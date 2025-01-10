@@ -89,7 +89,7 @@ const AccountDropdown = () => {
         <Box sx={{ display: { xs: 'none', xl: 'block' } }}>
           <Stack direction="row" alignItems="center" columnGap={6}>
             <Typography variant="h6" component="p" color="primary.darker" gutterBottom>
-              Musfiq
+              Tushar
             </Typography>
             <IconifyIcon icon="ph:caret-down-bold" fontSize={16} color="primary.darker" />
           </Stack>

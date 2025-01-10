@@ -1,11 +1,13 @@
-import { Box, Stack, Toolbar } from '@mui/material';
-import { PropsWithChildren, useState } from 'react';
+import { Box , Stack } from '@mui/material';
+import {  useState } from 'react';
 import Topbar from 'layouts/main-layout/topbar/Topbar';
 import VerticalNavbar from 'layouts/main-layout/sidebar/VerticalNavbar';
+import MenuPage from 'components/sections/dashboard/menu-item/MenuPage';
+
 
 const drawerWidth = 345;
 
-const menu = ({ children }: PropsWithChildren) => {
+const menu = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -34,24 +36,21 @@ const menu = ({ children }: PropsWithChildren) => {
         onTransitionEnd={handleDrawerTransitionEnd}
         onHandleDrawerClose={handleDrawerClose}
       />
-
+      
+      {/* Main content area */}
       <Box
         component="main"
-        sx={(theme) => ({
+        sx={{
           flexGrow: 1,
-          p: {
-            xs: theme.spacing(4, 2),
-            sm: theme.spacing(4, 5),
-            lg: theme.spacing(4),
-          },
+          bgcolor: 'background.default',
+          padding: 25,
+          paddingLeft: 0,                                     
           minHeight: '100vh',
-          width: { xs: 1, sm: `calc(100% - ${drawerWidth}px)` },
-          bgcolor: 'neutral.lighter',
-        })}
+        }}
       >
-        <Toolbar />
-        {children}
+        <MenuPage />
       </Box>
+
     </Stack>
   );
 };

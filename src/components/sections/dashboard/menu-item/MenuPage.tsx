@@ -75,17 +75,14 @@ const MenuPage: React.FC = () => {
   };
   return (
     <div style={{ padding: '20px' }}>
-      <Typography variant="h4" gutterBottom>
-        Menu
-      </Typography>
       <div style={{ marginBottom: '20px' }}>
         <Link to="/add-menu">
           <Button variant="contained" color="primary" sx={{ marginRight: '20px' }}>
             Add Menu Items
           </Button>
         </Link>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Category</InputLabel>
+        <FormControl sx={{ minWidth: 300 }}>
+          <InputLabel sx={{ paddingBottom: 50 }}>Category</InputLabel>
           <Select value={selectedCategory} onChange={(e) => handleCategoryFilter(e.target.value)}>
             <MenuItem value="">
               <em>All Categories</em>
@@ -101,13 +98,17 @@ const MenuPage: React.FC = () => {
 
       <Grid container spacing={3}>
         {filteredItems.map((item) => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
+          <Grid item xs={12} sm={6} md={2} key={item.id}>
             <Card>
-              <CardMedia component="img" height="140" image={item.image} alt={item.name} />
+              <CardMedia component="img" height="200" image={item.image} alt={item.name} />
               <CardContent>
                 <Typography variant="h6">{item.name}</Typography>
-                <Typography variant="body2">Category: {item.category}</Typography>
-                <Typography variant="body2">Price: {item.price}</Typography>
+                <Typography variant="body2" fontSize={14}>
+                  Category: {item.category}
+                </Typography>
+                <Typography variant="body2" fontSize={14}>
+                  Price: {item.price}
+                </Typography>
                 {editingItemId === item.id ? (
                   <>
                     <input
@@ -115,10 +116,11 @@ const MenuPage: React.FC = () => {
                       value={newRate}
                       onChange={(e) => setNewRate(e.target.value)}
                     />
+                    <br></br>
                     <Button
                       variant="contained"
                       onClick={() => handleRateChange(item.id, newRate)}
-                      sx={{ marginTop: '10px' }}
+                      sx={{ marginTop: '5px', marginLeft: '55px' }}
                     >
                       Save
                     </Button>
@@ -130,7 +132,11 @@ const MenuPage: React.FC = () => {
                       setEditingItemId(item.id);
                       setNewRate('');
                     }}
-                    sx={{ marginTop: '10px' }}
+                    sx={{
+                      marginTop: '30px',
+                      marginLeft: '45px',
+                      fontSize: '15px',
+                    }}
                   >
                     Set Rate
                   </Button>
@@ -139,7 +145,7 @@ const MenuPage: React.FC = () => {
                   variant="contained"
                   color="error"
                   onClick={() => handleRemoveItem(item.id)}
-                  sx={{ marginTop: '10px' }}
+                  sx={{ marginTop: '15px', marginLeft: '45px' }}
                 >
                   Remove
                 </Button>
