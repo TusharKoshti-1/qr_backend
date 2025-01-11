@@ -6,13 +6,14 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
+  CardActions,
   Grid,
   Card,
   CardContent,
   Typography,
   CardMedia,
 } from '@mui/material';
+import './MenuItem.css';
 
 interface MenuItemType {
   id: number;
@@ -33,7 +34,7 @@ const MenuPage: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItemType[]>(
-        'https://a205-103-161-98-197.ngrok-free.app/api/menu',
+        'https://b2ac-103-161-98-197.ngrok-free.app/api/menu',
         {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         },
@@ -79,18 +80,25 @@ const MenuPage: React.FC = () => {
     }
   };
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ marginBottom: '20px' }}>
+    <div className="menu__container">
+      <div className="menu__item">
         <Link to="/add-menu">
-          <Button variant="contained" color="primary" sx={{ marginRight: '20px' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ marginRight: '20px', marginBottom: { xs: 2, sm: 0 } }}
+          >
             Add Menu Items
           </Button>
         </Link>
-        <FormControl sx={{ minWidth: 300 }}>
-          <InputLabel sx={{ paddingBottom: 50 }}>Category</InputLabel>
-          <Select value={selectedCategory} onChange={(e) => handleCategoryFilter(e.target.value)}>
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => handleCategoryFilter(e.target.value)}
+            displayEmpty
+          >
             <MenuItem value="">
-              <em>All Categories</em>
+              <em>All</em>
             </MenuItem>
             {categories.map((category) => (
               <MenuItem key={category} value={category}>
@@ -101,19 +109,21 @@ const MenuPage: React.FC = () => {
         </FormControl>
       </div>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} justifyContent="center">
         {filteredItems.map((item) => (
-          <Grid item xs={12} sm={6} md={2} key={item.id}>
-            <Card>
-              <CardMedia component="img" height="200" image={item.image} alt={item.name} />
+          <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+            <Card sx={{ maxWidth: 345 }}>
+              <CardMedia component="img" height="140" image={item.image} alt={item.name} />
               <CardContent>
-                <Typography variant="h6">{item.name}</Typography>
-                <Typography variant="body2" fontSize={14}>
+                <Typography variant="h5">{item.name}</Typography>
+                <Typography variant="body2" fontSize={14} style={{ marginBottom: '4px' }}>
                   Category: {item.category}
                 </Typography>
                 <Typography variant="body2" fontSize={14}>
                   Price: {item.price}
                 </Typography>
+              </CardContent>
+              <CardActions>
                 {editingItemId === item.id ? (
                   <>
                     <input
@@ -121,41 +131,28 @@ const MenuPage: React.FC = () => {
                       value={newRate}
                       onChange={(e) => setNewRate(e.target.value)}
                     />
-                    <br></br>
-                    <Button
-                      variant="contained"
-                      onClick={() => handleRateChange(item.id, newRate)}
-                      sx={{ marginTop: '5px', marginLeft: '55px' }}
-                    >
+                    <br />
+                    <Button size="small" onClick={() => handleRateChange(item.id, newRate)}>
                       Save
                     </Button>
                   </>
                 ) : (
                   <Button
-                    variant="contained"
+                    size="small"
                     onClick={() => {
                       setEditingItemId(item.id);
                       setNewRate('');
-                    }}
-                    sx={{
-                      marginTop: '30px',
-                      marginLeft: '45px',
-                      fontSize: '15px',
                     }}
                   >
                     Set Rate
                   </Button>
                 )}
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleRemoveItem(item.id)}
-                  sx={{ marginTop: '15px', marginLeft: '45px' }}
-                >
+                <Button size="small" onClick={() => handleRemoveItem(item.id)}>
                   Remove
                 </Button>
-              </CardContent>
+              </CardActions>
             </Card>
+            {/* </div> */}
           </Grid>
         ))}
       </Grid>
