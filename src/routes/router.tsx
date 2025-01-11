@@ -36,6 +36,10 @@ export const routes = [
             index: true,
             element: <Dashboard />,
           },
+          {
+            path: paths.menu,
+            element: <Menu />,
+          },
         ],
       },
       {
@@ -55,10 +59,6 @@ export const routes = [
       {
         path: '*',
         element: <Page404 />,
-      },
-      {
-        path: '/menu',
-        element: <Menu />,
       },
     ],
   },

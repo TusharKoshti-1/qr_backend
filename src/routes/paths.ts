@@ -7,4 +7,5 @@ export const rootPaths = {
 export default {
   signin: `/${rootPaths.authRoot}/sign-in`,
   signup: `/${rootPaths.authRoot}/sign-up`,
+  menu: `/menu`,
 };
