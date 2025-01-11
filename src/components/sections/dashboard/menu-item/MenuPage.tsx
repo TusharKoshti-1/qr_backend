@@ -32,7 +32,12 @@ const MenuPage: React.FC = () => {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await axios.get<MenuItemType[]>('http://localhost:5000/api/menu');
+      const response = await axios.get<MenuItemType[]>(
+        'https://a205-103-161-98-197.ngrok-free.app/api/menu',
+        {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
+      );
       setMenuItems(response.data);
       setFilteredItems(response.data);
       const uniqueCategories: string[] = [
