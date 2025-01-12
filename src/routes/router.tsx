@@ -10,6 +10,8 @@ const SignIn = lazy(() => import('pages/authentication/SignIn'));
 const SignUp = lazy(() => import('pages/authentication/SignUp'));
 const Page404 = lazy(() => import('pages/errors/Page404'));
 const Menu = lazy(() => import('pages/menu/menu'));
+const Addmenuitems = lazy(() => import('pages/menu/addmenuitem'));
+const Addnewitems = lazy(() => import('pages/menu/addnewitems'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -39,6 +41,14 @@ export const routes = [
           {
             path: paths.menu,
             element: <Menu />,
+          },
+          {
+            path: paths.addmenuitems,
+            element: <Addmenuitems />,
+          },
+          {
+            path: paths.addnewitems,
+            element: <Addnewitems />,
           },
         ],
       },

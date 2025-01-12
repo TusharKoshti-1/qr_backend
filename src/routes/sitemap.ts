@@ -52,13 +52,30 @@ const sitemap: MenuItem[] = [
     pathName: 'menu',
     icon: 'ri:bar-chart-line',
     active: true,
+    items: [
+      {
+        id: 3,
+        name: 'AddMenuItems',
+        path: '/addmenuitems',
+        pathName: 'addmenuitems',
+        active: true,
+      },
+      {
+        id: 13,
+        name: 'AddNewItems',
+        path: '/addnewitems',
+        pathName: 'addnewitems',
+        active: true,
+      },
+    ],
   },
   {
-    id: 3,
-    name: 'Order',
+    id: 12,
+    name: 'order',
     path: '#!',
     pathName: 'order',
     icon: 'ph:shopping-cart-light',
+    active: true,
   },
   {
     id: 4,

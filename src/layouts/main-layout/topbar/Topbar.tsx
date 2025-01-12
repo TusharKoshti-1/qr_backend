@@ -1,27 +1,38 @@
 import { AppBar, IconButton, Link, Stack, Toolbar, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import sitemap, { MenuItem } from 'routes/sitemap';
 import { rootPaths } from 'routes/paths';
-import sitemap from 'routes/sitemap';
 import Logo from 'components/icons/Logo';
 import IconifyIcon from 'components/base/IconifyIcon';
 import Search from 'components/common/Search';
 import ElevationScroll from './ElevationScroll';
 import AccountDropdown from './AccountDropdown';
-// import LanguageDropdown from './LanguageDropdown';
-// import Notification from './Notification';
 
 interface TopbarProps {
   drawerWidth: number;
   onHandleDrawerToggle: () => void;
 }
 
+// Recursive function to find a matching nav item in the sitemap
+const findNavItem = (sitemap: MenuItem[], path: string): MenuItem | undefined => {
+  for (const item of sitemap) {
+    if (item.path === path) return item; // If path matches, return the item
+    if (item.items) {
+      const found = findNavItem(item.items, path); // Check nested items
+      if (found) return found;
+    }
+  }
+  return undefined; // Return undefined if no match is found
+};
+
 const Topbar = ({ drawerWidth, onHandleDrawerToggle }: TopbarProps) => {
   const location = useLocation();
 
+  // Use useMemo to find the current page title based on location
   const pageTitle = useMemo(() => {
-    const navItem = sitemap.find((navItem) => location.pathname === navItem.path);
-    return navItem!.name;
+    const navItem = findNavItem(sitemap, location.pathname); // Search for the matching nav item
+    return navItem ? navItem.name : 'Default Page Title'; // Fallback to a default title
   }, [location]);
 
   return (

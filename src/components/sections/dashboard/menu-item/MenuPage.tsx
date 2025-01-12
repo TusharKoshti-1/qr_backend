@@ -34,10 +34,10 @@ const MenuPage: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItemType[]>(
-        'https://b2ac-103-161-98-197.ngrok-free.app/api/menu',
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
+        'http://localhost:5000/api/menu',
+        // {
+        //   headers: { 'ngrok-skip-browser-warning': 'true' },
+        // },
       );
       setMenuItems(response.data);
       setFilteredItems(response.data);
@@ -82,7 +82,7 @@ const MenuPage: React.FC = () => {
   return (
     <div className="menu__container">
       <div className="menu__item">
-        <Link to="/add-menu">
+        <Link to="/addmenuitems">
           <Button
             variant="contained"
             color="primary"
@@ -109,7 +109,7 @@ const MenuPage: React.FC = () => {
         </FormControl>
       </div>
 
-      <Grid container spacing={3} justifyContent="center">
+      <Grid container spacing={3} justifyContent="left">
         {filteredItems.map((item) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
             <Card sx={{ maxWidth: 345 }}>
