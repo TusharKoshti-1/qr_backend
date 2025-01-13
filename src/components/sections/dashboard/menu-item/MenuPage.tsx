@@ -34,10 +34,10 @@ const MenuPage: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItemType[]>(
-        'http://localhost:5000/api/menu',
-        // {
-        //   headers: { 'ngrok-skip-browser-warning': 'true' },
-        // },
+        'https://exact-notable-tadpole.ngrok-free.app/api/menu',
+        {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
       );
       setMenuItems(response.data);
       setFilteredItems(response.data);
@@ -62,8 +62,9 @@ const MenuPage: React.FC = () => {
   };
   const handleRateChange = async (id: number, newRate: string) => {
     try {
-      await axios.put(`http://localhost:5000/api/update-item/${id}`, {
+      await axios.put(`https://exact-notable-tadpole.ngrok-free.app/api/update-item/${id}`, {
         price: newRate,
+        headers: { 'ngrok-skip-browser-warning': 'true' },
       });
       setEditingItemId(null);
       fetchMenuItems(); // Refresh the menu items after updating
@@ -73,7 +74,9 @@ const MenuPage: React.FC = () => {
   };
   const handleRemoveItem = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:5000/api/remove-item/${id}`);
+      await axios.delete(`https://exact-notable-tadpole.ngrok-free.app/api/delete-item/${id}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {
       console.error('Error removing item:', error);
