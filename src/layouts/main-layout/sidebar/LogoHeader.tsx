@@ -17,7 +17,7 @@ const LogoHeader = (props: LogoHeaderProps) => {
     >
       <Logo sx={{ fontSize: 56 }} />
       <Typography variant="h2" color="primary.darker">
-        Dabang
+        Restaurant Name
       </Typography>
     </Stack>
   );

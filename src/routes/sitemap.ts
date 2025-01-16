@@ -1,6 +1,7 @@
 import { SvgIconProps } from '@mui/material';
 import paths, { rootPaths } from './paths';
 import DashboardIcon from 'components/icons/DashboardIcon';
+import { MouseEventHandler } from 'react';
 
 export interface MenuItem {
   id: number;
@@ -9,6 +10,9 @@ export interface MenuItem {
   path?: string;
   active?: boolean;
   icon?: string;
+  disabled?: boolean;
+  style?: React.CSSProperties;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
   svgIcon?: (props: SvgIconProps) => JSX.Element;
   items?: MenuItem[];
 }
@@ -71,32 +75,45 @@ const sitemap: MenuItem[] = [
   },
   {
     id: 12,
-    name: 'order',
-    path: '#!',
+    name: 'Order',
+    path: '/order',
     pathName: 'order',
     icon: 'ph:shopping-cart-light',
     active: true,
-  },
-  {
-    id: 4,
-    name: 'Products',
-    path: '#!',
-    pathName: 'products',
-    icon: 'mdi:shopping-outline',
+    items: [
+      {
+        id: 4,
+        name: 'AddOrder',
+        path: '/addorder',
+        pathName: 'addorder',
+        active: true,
+      },
+      {
+        id: 15,
+        name: 'EditOrder',
+        path: '/editorder',
+        pathName: 'editorder',
+        disabled: true, // Mark as disabled
+        active: false, // Optionally mark as inactive
+        style: { cursor: 'not-allowed', color: 'gray' }, // Disable the cursor to indicate it's unclickable
+      },
+    ],
   },
   {
     id: 5,
     name: 'Sales Report',
-    path: '#!',
-    pathName: 'sales-report',
+    path: '/salesreport',
+    pathName: 'salesreport',
     icon: 'ph:chart-line',
+    active: true,
   },
   {
     id: 6,
-    name: 'Messages',
+    name: 'Reviews',
     path: '#!',
-    pathName: 'messages',
+    pathName: 'reviews',
     icon: 'mdi:message-processing-outline',
+    active: true,
   },
   {
     id: 7,

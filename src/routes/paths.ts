@@ -10,4 +10,10 @@ export default {
   menu: `/menu`,
   addmenuitems: `/addmenuitems`,
   addnewitems: '/addnewitems',
+  order: '/order',
+  editorder: '/editorder',
+  landingpage: `/welcome`,
+  customerpage: `/customerpage`,
+  cartpage: `/cartpage`,
+  salesreport: 'salesreport',
 };

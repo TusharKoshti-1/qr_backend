@@ -12,6 +12,12 @@ const Page404 = lazy(() => import('pages/errors/Page404'));
 const Menu = lazy(() => import('pages/menu/menu'));
 const Addmenuitems = lazy(() => import('pages/menu/addmenuitem'));
 const Addnewitems = lazy(() => import('pages/menu/addnewitems'));
+const Order = lazy(() => import('pages/order/Order'));
+const EditOrder = lazy(() => import('pages/order/EditOrder'));
+const LandingPage = lazy(() => import('pages/customer/LandingPage'));
+const CustomerPage = lazy(() => import('pages/customer/CustomerPage'));
+const CartPage = lazy(() => import('pages/customer/CartPage'));
+const SalesPage = lazy(() => import('pages/sales/SalesReport'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -50,6 +56,18 @@ export const routes = [
             path: paths.addnewitems,
             element: <Addnewitems />,
           },
+          {
+            path: paths.order,
+            element: <Order />,
+          },
+          {
+            path: paths.editorder,
+            element: <EditOrder />,
+          },
+          {
+            path: paths.salesreport,
+            element: <SalesPage />,
+          },
         ],
       },
       {
@@ -70,10 +88,22 @@ export const routes = [
         path: '*',
         element: <Page404 />,
       },
+      {
+        path: paths.landingpage,
+        element: <LandingPage />,
+      },
+      {
+        path: paths.customerpage,
+        element: <CustomerPage />,
+      },
+      {
+        path: paths.cartpage,
+        element: <CartPage />,
+      },
     ],
   },
 ];
 
-const router = createBrowserRouter(routes, { basename: '/dabang' });
+const router = createBrowserRouter(routes, { basename: '/RestaurantName' });
 
 export default router;

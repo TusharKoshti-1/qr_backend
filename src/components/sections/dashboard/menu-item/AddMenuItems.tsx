@@ -38,12 +38,9 @@ const AddMenuItems: React.FC = () => {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await axios.get<MenuItem[]>(
-        'https://exact-notable-tadpole.ngrok-free.app/api/menuitems',
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      const response = await axios.get<MenuItem[]>('http://localhost:5000/api/menuitems', {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       setMenuItems(response.data);
       setFilteredItems(response.data);
       const uniqueCategories: string[] = [
@@ -67,7 +64,7 @@ const AddMenuItems: React.FC = () => {
   const addItemToMenu = async (item: MenuItem) => {
     try {
       const existingMenuResponse = await axios.get<MenuItem[]>(
-        'https://exact-notable-tadpole.ngrok-free.app/api/menu',
+        'http://localhost:5000/api/api/menu',
         {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         },
@@ -81,16 +78,13 @@ const AddMenuItems: React.FC = () => {
         return;
       }
 
-      const response = await axios.post(
-        'https://exact-notable-tadpole.ngrok-free.app/api/add-item',
-        {
-          name: item.name,
-          image: item.image,
-          price: 0,
-          category: item.category,
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      const response = await axios.post('http://localhost:5000/api/add-item', {
+        name: item.name,
+        image: item.image,
+        price: 0,
+        category: item.category,
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
 
       if (response.status === 200) {
         setMessage(`Added: ${item.name}`);
@@ -104,12 +98,9 @@ const AddMenuItems: React.FC = () => {
   };
   const handleRemoveItem = async (id: number) => {
     try {
-      await axios.delete(
-        `https://exact-notable-tadpole.ngrok-free.app/api/remove-itemofmenu/${id}`,
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      await axios.delete(`http://localhost:5000/api/remove-itemofmenu/${id}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {
       console.error('Error removing item:', error);
@@ -164,7 +155,7 @@ const AddMenuItems: React.FC = () => {
         </div>
       </div>
       {message && <Alert severity="info">{message}</Alert>}
-      <Grid container spacing={3} justifyContent="center">
+      <Grid container spacing={3} justifyContent="left">
         {filteredItems
           .filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
           .map((item) => (
@@ -174,16 +165,22 @@ const AddMenuItems: React.FC = () => {
                 <CardContent>
                   <Typography variant="h5">{item.name}</Typography>
                   <Typography variant="body2">Category: {item.category}</Typography>
-                  <Button
-                    size="small"
-                    style={{ marginTop: '10px' }}
-                    onClick={() => addItemToMenu(item)}
-                  >
-                    Add to Menu
-                  </Button>
-                  <Button size="small" onClick={() => handleRemoveItem(item.id)}>
-                    Remove
-                  </Button>
+                  <div style={{ flexGrow: 1, display: 'flex', gap: '10px' }}>
+                    <Button
+                      size="small"
+                      style={{ marginTop: '10px' }}
+                      onClick={() => addItemToMenu(item)}
+                    >
+                      Add to Menu
+                    </Button>
+                    <Button
+                      size="small"
+                      style={{ marginTop: '10px' }}
+                      onClick={() => handleRemoveItem(item.id)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </Grid>

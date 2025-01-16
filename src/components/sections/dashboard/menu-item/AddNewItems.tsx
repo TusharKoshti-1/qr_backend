@@ -5,12 +5,11 @@ import { Button, TextField, Grid, Card, CardContent, Typography, CardActions } f
 const AddNewItem: React.FC = () => {
   const [name, setName] = useState<string>('');
   const [category, setCategory] = useState<string>('');
-  const [price, setPrice] = useState<number | ''>('');
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
 
   const handleAddMenuItem = async () => {
-    if (!name || !category || !price || !image) {
+    if (!name || !category || !image) {
       setError('Please fill all fields and upload an image.');
       return;
     }
@@ -18,7 +17,6 @@ const AddNewItem: React.FC = () => {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('category', category);
-    formData.append('price', price.toString());
     formData.append('image', image);
 
     try {
@@ -29,7 +27,6 @@ const AddNewItem: React.FC = () => {
       // Reset fields
       setName('');
       setCategory('');
-      setPrice('');
       setImage(null);
       setError('');
     } catch (error) {
@@ -59,15 +56,6 @@ const AddNewItem: React.FC = () => {
                 variant="outlined"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                sx={{ marginBottom: 2 }}
-              />
-              <TextField
-                fullWidth
-                label="Price"
-                variant="outlined"
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
                 sx={{ marginBottom: 2 }}
               />
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
