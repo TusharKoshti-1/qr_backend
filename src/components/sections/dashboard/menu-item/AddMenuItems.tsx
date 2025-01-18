@@ -35,7 +35,6 @@ const AddMenuItems: React.FC = () => {
   useEffect(() => {
     fetchMenuItems();
   }, []);
-
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItem[]>('http://localhost:5000/api/menuitems', {
@@ -63,12 +62,9 @@ const AddMenuItems: React.FC = () => {
 
   const addItemToMenu = async (item: MenuItem) => {
     try {
-      const existingMenuResponse = await axios.get<MenuItem[]>(
-        'http://localhost:5000/api/api/menu',
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      const existingMenuResponse = await axios.get<MenuItem[]>('http://localhost:5000/api/menu', {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       const existingMenu = existingMenuResponse.data;
 
       const itemExists = existingMenu.some((menuItem) => menuItem.name === item.name);
@@ -161,7 +157,12 @@ const AddMenuItems: React.FC = () => {
           .map((item) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
               <Card sx={{ maxWidth: 345 }}>
-                <CardMedia component="img" height="140" image={item.image} alt={item.name} />
+                <CardMedia
+                  component="img"
+                  height="140"
+                  image={`http://localhost:5000${item.image}`}
+                  alt={item.name}
+                />
                 <CardContent>
                   <Typography variant="h5">{item.name}</Typography>
                   <Typography variant="body2">Category: {item.category}</Typography>

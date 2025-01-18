@@ -188,7 +188,7 @@ const CustomerPage: React.FC = () => {
           <CardMedia
             component="img"
             height="140"
-            image={item.image}
+            image={`http://localhost:5000${item.image}`}
             alt={item.name}
           />
           <CardContent>

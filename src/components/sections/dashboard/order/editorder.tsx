@@ -152,7 +152,7 @@ const EditOrder: React.FC = () => {
             {filteredMenuItems.map((item) => (
               <ListItem key={item.id} divider>
                 <img
-                  src={item.image}
+                  src={`http://localhost:5000${item.image}`}
                   alt={item.name}
                   style={{ width: 50, height: 50, marginRight: 10 }}
                 />

@@ -113,7 +113,12 @@ const MenuPage: React.FC = () => {
         {filteredItems.map((item) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
             <Card sx={{ maxWidth: 345 }}>
-              <CardMedia component="img" height="140" image={item.image} alt={item.name} />
+              <CardMedia
+                component="img"
+                height="140"
+                image={`http://localhost:5000${item.image}`}
+                alt={item.name}
+              />
               <CardContent>
                 <Typography variant="h5">{item.name}</Typography>
                 <Typography variant="body2" fontSize={14} style={{ marginBottom: '4px' }}>
