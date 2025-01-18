@@ -18,6 +18,7 @@ const LandingPage = lazy(() => import('pages/customer/LandingPage'));
 const CustomerPage = lazy(() => import('pages/customer/CustomerPage'));
 const CartPage = lazy(() => import('pages/customer/CartPage'));
 const SalesPage = lazy(() => import('pages/sales/SalesReport'));
+const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -99,6 +100,10 @@ export const routes = [
       {
         path: paths.cartpage,
         element: <CartPage />,
+      },
+      {
+        path: paths.thankyou,
+        element: <ThankyouPage />,
       },
     ],
   },

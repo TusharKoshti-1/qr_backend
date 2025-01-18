@@ -16,4 +16,5 @@ export default {
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,
   salesreport: 'salesreport',
+  thankyou: 'thankyou',
 };
