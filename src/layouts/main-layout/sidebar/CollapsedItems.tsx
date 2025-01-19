@@ -10,11 +10,14 @@ interface CollapsedItemProps {
 const CollapsedItems = ({ items, open }: CollapsedItemProps) => {
   const location = useLocation();
 
+  console.log(items, "Check items")
   return (
     <Collapse in={open} timeout="auto" unmountOnExit>
       <List component="ul">
         {items?.map((item) => (
           <ListItem key={item.id} sx={{ py: 0, pl: 7, pr: 0 }}>
+            {item.path === "/editorder" ? ""
+            :
             <ListItemButton
               selected={location.pathname === item.path}
               component={item.path ? Link : 'div'}
@@ -23,6 +26,8 @@ const CollapsedItems = ({ items, open }: CollapsedItemProps) => {
             >
               <ListItemText primary={item.name} />
             </ListItemButton>
+            }
+            
           </ListItem>
         ))}
       </List>
