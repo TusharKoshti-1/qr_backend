@@ -108,14 +108,6 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
-    id: 6,
-    name: 'Reviews',
-    path: '#!',
-    pathName: 'reviews',
-    icon: 'mdi:message-processing-outline',
-    active: true,
-  },
-  {
     id: 7,
     name: 'Settings',
     path: '#!',
