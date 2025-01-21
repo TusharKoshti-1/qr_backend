@@ -9,8 +9,6 @@ interface CollapsedItemProps {
 
 const CollapsedItems = ({ items, open }: CollapsedItemProps) => {
   const location = useLocation();
-
-  console.log(items, "Check items")
   return (
     <Collapse in={open} timeout="auto" unmountOnExit>
       <List component="ul">

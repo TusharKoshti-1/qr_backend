@@ -118,7 +118,7 @@ const sitemap: MenuItem[] = [
   {
     id: 8,
     name: 'Sign Out',
-    path: '#!',
+    path: paths.signin,
     pathName: 'sign-out',
     icon: 'humbleicons:logout',
     active: true,
