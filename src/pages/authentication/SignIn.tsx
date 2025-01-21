@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { SyntheticEvent } from 'react';
+import { SyntheticEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import paths, { rootPaths } from 'routes/paths';
 import LogoHeader from 'layouts/main-layout/sidebar/LogoHeader';
@@ -23,9 +23,37 @@ const checkBoxLabel = { inputProps: { 'aria-label': 'Checkbox' } };
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const handleSubmit = (event: SyntheticEvent) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
-    navigate(rootPaths.root);
+
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store JWT Token in local storage or state
+        localStorage.setItem('token', data.token);
+
+        // Redirect to the dashboard or any other page
+        navigate(rootPaths.root); // You can change this to the page you want to navigate after login
+      } else {
+        setErrorMessage(data.message); // Show the error message from API response
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      setErrorMessage('An error occurred while logging in. Please try again.');
+    }
   };
 
   return (
@@ -48,6 +76,12 @@ const SignIn = () => {
           </Typography>
         </Stack>
 
+        {errorMessage && (
+          <Typography variant="body2" color="error" align="center" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Typography>
+        )}
+
         <Box component="form" sx={{ mt: 3 }} onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <TextField
@@ -58,6 +92,8 @@ const SignIn = () => {
               autoComplete="email"
               fullWidth
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <PasswordTextField
@@ -67,6 +103,8 @@ const SignIn = () => {
               autoComplete="current-password"
               fullWidth
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </Stack>
 
