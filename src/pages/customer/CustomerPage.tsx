@@ -56,7 +56,7 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get<MenuItem[]>("http://localhost:5000/api/menu");
+        const response = await axios.get<MenuItem[]>("https://exact-notable-tadpole.ngrok-free.app/api/menu");
         setMenuItems(response.data);
       } catch (error) {
         console.error("Error fetching menu items:", error);
@@ -65,7 +65,7 @@ const CustomerPage: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<string[]>("http://localhost:5000/api/categories");
+        const response = await axios.get<string[]>("https://exact-notable-tadpole.ngrok-free.app/api/categories");
         setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -188,7 +188,7 @@ const CustomerPage: React.FC = () => {
           <CardMedia
             component="img"
             height="140"
-            image={`http://localhost:5000${item.image}`}
+            image={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
             alt={item.name}
           />
           <CardContent>
