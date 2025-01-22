@@ -65,7 +65,9 @@ const Order = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get<OrderType[]>('http://localhost:5000/api/orders');
+        const response = await axios.get<OrderType[]>(
+          'https://exact-notable-tadpole.ngrok-free.app/api/orders',
+        );
         setOrders(response.data);
         aggregateItems(response.data);
       } catch (error) {
@@ -128,7 +130,7 @@ const Order = () => {
 
   const handleOrderComplete = async (id: number) => {
     try {
-      await axios.put(`http://localhost:5000/api/orders/${id}`, {
+      await axios.put(`https://exact-notable-tadpole.ngrok-free.app/api/orders/${id}`, {
         status: 'Completed',
       });
       const updatedOrders = orders.filter((order) => order.id !== id);

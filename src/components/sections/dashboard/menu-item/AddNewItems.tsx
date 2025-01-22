@@ -20,7 +20,7 @@ const AddNewItem: React.FC = () => {
     formData.append('image', image);
 
     try {
-      await axios.post('http://localhost:5000/api/add-menuitem', formData, {
+      await axios.post('https://exact-notable-tadpole.ngrok-free.app/api/add-menuitem', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       alert('Menu item added successfully!');

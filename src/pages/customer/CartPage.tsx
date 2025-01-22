@@ -74,7 +74,7 @@ const CartPage: React.FC = () => {
   const handleCashPayment = async () => {
     const total = calculateTotal();
     try {
-      await axios.post("http://localhost:5000/api/orders", {
+      await axios.post("https://exact-notable-tadpole.ngrok-free.app/api/orders", {
         customer_name: name,
         phone,
         items,

@@ -37,9 +37,12 @@ const AddMenuItems: React.FC = () => {
   }, []);
   const fetchMenuItems = async () => {
     try {
-      const response = await axios.get<MenuItem[]>('http://localhost:5000/api/menuitems', {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
+      const response = await axios.get<MenuItem[]>(
+        'https://exact-notable-tadpole.ngrok-free.app/api/menuitems',
+        {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
+      );
       setMenuItems(response.data);
       setFilteredItems(response.data);
       const uniqueCategories: string[] = [
@@ -62,9 +65,12 @@ const AddMenuItems: React.FC = () => {
 
   const addItemToMenu = async (item: MenuItem) => {
     try {
-      const existingMenuResponse = await axios.get<MenuItem[]>('http://localhost:5000/api/menu', {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
+      const existingMenuResponse = await axios.get<MenuItem[]>(
+        'https://exact-notable-tadpole.ngrok-free.app/api/menu',
+        {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
+      );
       const existingMenu = existingMenuResponse.data;
 
       const itemExists = existingMenu.some((menuItem) => menuItem.name === item.name);
@@ -74,13 +80,16 @@ const AddMenuItems: React.FC = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:5000/api/add-item', {
-        name: item.name,
-        image: item.image,
-        price: 0,
-        category: item.category,
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
+      const response = await axios.post(
+        'https://exact-notable-tadpole.ngrok-free.app/api/add-item',
+        {
+          name: item.name,
+          image: item.image,
+          price: 0,
+          category: item.category,
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
+      );
 
       if (response.status === 200) {
         setMessage(`Added: ${item.name}`);
@@ -94,9 +103,12 @@ const AddMenuItems: React.FC = () => {
   };
   const handleRemoveItem = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:5000/api/remove-itemofmenu/${id}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
-      });
+      await axios.delete(
+        `https://exact-notable-tadpole.ngrok-free.app/api/remove-itemofmenu/${id}`,
+        {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        },
+      );
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {
       console.error('Error removing item:', error);
@@ -160,7 +172,7 @@ const AddMenuItems: React.FC = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={`http://localhost:5000${item.image}`}
+                  image={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
                   alt={item.name}
                 />
                 <CardContent>
