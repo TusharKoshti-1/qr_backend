@@ -1,10 +1,9 @@
-// PrivateRoute.tsx
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import paths from './paths'; // Make sure you import your paths object correctly
+import paths from './paths';
 
 interface PrivateRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {

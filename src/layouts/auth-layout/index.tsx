@@ -1,10 +1,15 @@
+import { ReactNode } from 'react';
 import { Stack } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-const AuthLayout = () => {
+interface AuthLayoutProps {
+  children?: ReactNode; // Optional because you might use it without children
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <Stack justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="neutral.lighter">
-      <Outlet />
+      {children || <Outlet />} {/* Render children if provided, otherwise render Outlet */}
     </Stack>
   );
 };

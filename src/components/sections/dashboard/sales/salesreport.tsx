@@ -36,7 +36,9 @@ const SalesReport: React.FC = () => {
     // Fetch sales data from backend API
     const fetchSales = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sales');
+        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sales', {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         setSales(response.data);
         console.log(response);
         setFilteredSales(response.data);

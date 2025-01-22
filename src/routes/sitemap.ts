@@ -26,29 +26,29 @@ const sitemap: MenuItem[] = [
     svgIcon: DashboardIcon,
     active: true,
   },
-  {
-    id: 9,
-    name: 'Authentication',
-    pathName: 'authentication',
-    icon: 'material-symbols:security-rounded',
-    active: true,
-    items: [
-      {
-        id: 10,
-        name: 'Sign in',
-        path: paths.signin,
-        pathName: 'sign-in',
-        active: true,
-      },
-      {
-        id: 11,
-        name: 'Sign up',
-        path: paths.signup,
-        pathName: 'sign-up',
-        active: true,
-      },
-    ],
-  },
+  // {
+  //   id: 9,
+  //   name: 'Authentication',
+  //   pathName: 'authentication',
+  //   icon: 'material-symbols:security-rounded',
+  //   active: true,
+  //   items: [
+  //     {
+  //       id: 10,
+  //       name: 'Sign in',
+  //       path: paths.signin,
+  //       pathName: 'sign-in',
+  //       active: true,
+  //     },
+  //     {
+  //       id: 11,
+  //       name: 'Sign up',
+  //       path: paths.signup,
+  //       pathName: 'sign-up',
+  //       active: true,
+  //     },
+  //   ],
+  // },
   {
     id: 2,
     name: 'Menu',

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Outlet, createBrowserRouter } from 'react-router-dom';
+import { Outlet, createBrowserRouter, Navigate } from 'react-router-dom';
 import paths, { rootPaths } from './paths';
 
 const App = lazy(() => import('App'));
@@ -22,6 +22,7 @@ const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
+import PrivateRoute from './PrivateRoute';
 
 export const routes = [
   {
@@ -31,14 +32,42 @@ export const routes = [
       </Suspense>
     ),
     children: [
+      // Auth Routes: No TopBar/Sidebar
       {
-        path: rootPaths.root,
+        path: rootPaths.authRoot,
         element: (
-          <MainLayout>
+          <AuthLayout>
             <Suspense fallback={<PageLoader />}>
               <Outlet />
             </Suspense>
-          </MainLayout>
+          </AuthLayout>
+        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to={paths.signin} replace />, // Default to SignIn page
+          },
+          {
+            path: paths.signin,
+            element: <SignIn />,
+          },
+          {
+            path: paths.signup,
+            element: <SignUp />,
+          },
+        ],
+      },
+      // Protected Routes: Requires Authentication
+      {
+        path: rootPaths.root,
+        element: (
+          <PrivateRoute>
+            <MainLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            </MainLayout>
+          </PrivateRoute>
         ),
         children: [
           {
@@ -71,24 +100,7 @@ export const routes = [
           },
         ],
       },
-      {
-        path: rootPaths.authRoot,
-        element: <AuthLayout />,
-        children: [
-          {
-            path: paths.signin,
-            element: <SignIn />,
-          },
-          {
-            path: paths.signup,
-            element: <SignUp />,
-          },
-        ],
-      },
-      {
-        path: '*',
-        element: <Page404 />,
-      },
+      // Customer Routes: Public
       {
         path: paths.landingpage,
         element: <LandingPage />,
@@ -104,6 +116,11 @@ export const routes = [
       {
         path: paths.thankyou,
         element: <ThankyouPage />,
+      },
+      // Catch-All Route
+      {
+        path: '*',
+        element: <Page404 />,
       },
     ],
   },

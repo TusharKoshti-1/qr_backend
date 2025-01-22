@@ -67,6 +67,9 @@ const Order = () => {
       try {
         const response = await axios.get<OrderType[]>(
           'https://exact-notable-tadpole.ngrok-free.app/api/orders',
+          {
+            headers: { 'ngrok-skip-browser-warning': 'true' },
+          },
         );
         setOrders(response.data);
         aggregateItems(response.data);
@@ -77,34 +80,34 @@ const Order = () => {
 
     fetchOrders();
 
-    const ws = new WebSocket('ws://localhost:5001');
+    // const ws = new WebSocket('ws://localhost:5001');
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+    // ws.onmessage = (event) => {
+    //   try {
+    //     const data = JSON.parse(event.data);
 
-        if (data.type === 'new_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = [data.order, ...prevOrders];
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'update_order') {
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
-              order.id === data.id ? { ...order, status: data.status } : order,
-            ),
-          );
-          aggregateItems(orders);
-        }
-      } catch (error) {
-        console.error('Error processing WebSocket message:', error);
-      }
-    };
+    //     if (data.type === 'new_order') {
+    //       setOrders((prevOrders) => {
+    //         const updatedOrders = [data.order, ...prevOrders];
+    //         aggregateItems(updatedOrders);
+    //         return updatedOrders;
+    //       });
+    //     } else if (data.type === 'update_order') {
+    //       setOrders((prevOrders) =>
+    //         prevOrders.map((order) =>
+    //           order.id === data.id ? { ...order, status: data.status } : order,
+    //         ),
+    //       );
+    //       aggregateItems(orders);
+    //     }
+    //   } catch (error) {
+    //     console.error('Error processing WebSocket message:', error);
+    //   }
+    // };
 
-    return () => {
-      ws.close();
-    };
+    // return () => {
+    //   ws.close();
+    // };
   }, []);
 
   const handleEditOrder = (order: OrderType) => {
