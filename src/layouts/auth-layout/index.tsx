@@ -7,6 +7,7 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+  localStorage.clear();
   return (
     <Stack justifyContent="center" alignItems="center" minHeight="100vh" bgcolor="neutral.lighter">
       {children || <Outlet />} {/* Render children if provided, otherwise render Outlet */}

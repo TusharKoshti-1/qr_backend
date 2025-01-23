@@ -21,7 +21,7 @@ const AddNewItem: React.FC = () => {
 
     try {
       await axios.post('https://exact-notable-tadpole.ngrok-free.app/api/add-menuitem', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data', 'ngrok-skip-browser-warning': 'true' },
       });
       alert('Menu item added successfully!');
       // Reset fields

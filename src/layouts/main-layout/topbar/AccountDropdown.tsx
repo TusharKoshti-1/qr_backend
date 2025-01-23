@@ -8,14 +8,19 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent, MouseEventHandler, useState } from 'react';
 import Profile from 'assets/Profile.webp';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import IconifyIcon from 'components/base/IconifyIcon';
+import paths from 'routes/paths';
 
 interface MenuItem {
   id: number;
   label: string;
   icon: string;
+  path?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  // items?: MenuItem[];
 }
 
 const menuItems: MenuItem[] = [
@@ -33,12 +38,15 @@ const menuItems: MenuItem[] = [
     id: 2,
     label: 'Logout',
     icon: 'uiw:logout',
+    path: paths.signin,
   },
 ];
 
 const AccountDropdown = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const navigate = useNavigate(); // Initialize the useNavigate hook
+
 
   const handleClick = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -48,10 +56,19 @@ const AccountDropdown = () => {
     setAnchorEl(null);
   };
 
+   // Update the click handler for the logout item
+   const handleMenuItemClick = (path?: string) => {
+    if (path) {
+      navigate(path); // Navigate to the given path
+    }
+    handleClose(); // Close the menu after clicking an item
+  };
+
+
   const accountMenuItems = menuItems.map((menuItem) => (
     <MenuItem
       key={menuItem.id}
-      onClick={handleClose}
+      onClick={() => handleMenuItemClick(menuItem.path)} // Trigger the navigate onClick for all items
       sx={{
         '&:hover .account-menu-icon': { color: 'common.white' },
       }}

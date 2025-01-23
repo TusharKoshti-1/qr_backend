@@ -134,6 +134,7 @@ const Order = () => {
   const handleOrderComplete = async (id: number) => {
     try {
       await axios.put(`https://exact-notable-tadpole.ngrok-free.app/api/orders/${id}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
         status: 'Completed',
       });
       const updatedOrders = orders.filter((order) => order.id !== id);

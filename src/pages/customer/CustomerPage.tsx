@@ -56,7 +56,9 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get<MenuItem[]>("https://exact-notable-tadpole.ngrok-free.app/api/menu");
+        const response = await axios.get<MenuItem[]>("https://exact-notable-tadpole.ngrok-free.app/api/menu",{
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         setMenuItems(response.data);
       } catch (error) {
         console.error("Error fetching menu items:", error);
@@ -65,7 +67,9 @@ const CustomerPage: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<string[]>("https://exact-notable-tadpole.ngrok-free.app/api/categories");
+        const response = await axios.get<string[]>("https://exact-notable-tadpole.ngrok-free.app/api/categories",{
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories:", error);

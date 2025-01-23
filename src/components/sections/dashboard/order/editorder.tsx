@@ -49,7 +49,9 @@ const EditOrder: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/menu');
+        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/menu', {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         setMenuItems(response.data);
       } catch (error) {
         console.error('Error fetching menu items:', error);

@@ -80,6 +80,7 @@ const CartPage: React.FC = () => {
         items,
         total_amount: total,
         payment_method: "Cash",
+        headers: { 'ngrok-skip-browser-warning': 'true' },
       });
       alert("Your order has been placed successfully! Please pay with cash at the counter.");
       navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash" } });

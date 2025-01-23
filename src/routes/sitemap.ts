@@ -93,9 +93,7 @@ const sitemap: MenuItem[] = [
         name: 'EditOrder',
         path: '/editorder',
         pathName: 'editorder',
-        disabled: true, // Mark as disabled
-        active: false, // Optionally mark as inactive
-        style: { cursor: 'not-allowed', color: 'gray' }, // Disable the cursor to indicate it's unclickable
+        active: true,
       },
     ],
   },
