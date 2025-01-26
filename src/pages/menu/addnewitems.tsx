@@ -3,7 +3,7 @@ import AddNewItem from 'components/sections/dashboard/menu-item/AddNewItems';
 
 const menu = () => {
   return (
-    <Grid container spacing={2}>
+    <Grid>
       <AddNewItem />
     </Grid>
   );

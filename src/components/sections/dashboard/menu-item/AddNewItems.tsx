@@ -7,6 +7,7 @@ const AddNewItem: React.FC = () => {
   const [category, setCategory] = useState<string>('');
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleAddMenuItem = async () => {
     if (!name || !category || !image) {
@@ -28,6 +29,7 @@ const AddNewItem: React.FC = () => {
       setName('');
       setCategory('');
       setImage(null);
+      setImagePreview(null);
       setError('');
     } catch (error) {
       console.error('Error adding menu item:', error);
@@ -35,11 +37,19 @@ const AddNewItem: React.FC = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedImage = e.target.files[0];
+      setImage(selectedImage);
+      setImagePreview(URL.createObjectURL(selectedImage)); // Create image preview URL
+    }
+  };
+
   return (
     <div className="menu__container">
       {error && <Typography color="error">{error}</Typography>}
       <Grid container spacing={3} justifyContent="center">
-        <Grid item xs={12} sm={6} md={4} lg={7}>
+        <Grid item xs={12} sm={6} md={4} lg={5}>
           <Card>
             <CardContent>
               <TextField
@@ -60,21 +70,21 @@ const AddNewItem: React.FC = () => {
               />
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
                 Upload Image
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setImage(e.target.files[0]);
-                    }
-                  }}
-                />
+                <input type="file" accept="image/*" hidden onChange={handleImageChange} />
               </Button>
               {image && (
                 <Typography variant="body2" color="textSecondary">
                   Selected file: {image.name}
                 </Typography>
+              )}
+              {imagePreview && (
+                <div style={{ textAlign: 'center', marginTop: 2 }}>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }}
+                  />
+                </div>
               )}
             </CardContent>
             <CardActions>

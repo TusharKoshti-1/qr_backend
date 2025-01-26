@@ -19,11 +19,11 @@ import dayjs, { Dayjs } from 'dayjs';
 
 interface Sale {
   id: string;
-  customerName: string;
+  customer_name: string;
   phone: string;
-  totalAmount: number;
-  paymentMethod: string;
-  date: string;
+  total_amount: number;
+  payment_method: string;
+  created_on: string;
 }
 
 const SalesReport: React.FC = () => {
@@ -36,7 +36,7 @@ const SalesReport: React.FC = () => {
     // Fetch sales data from backend API
     const fetchSales = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sales', {
+        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sale', {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
         setSales(response.data);
@@ -54,7 +54,7 @@ const SalesReport: React.FC = () => {
   const filterSalesByDate = () => {
     if (startDate && endDate) {
       const filtered = sales.filter((sale) => {
-        const saleDate = dayjs(sale.date);
+        const saleDate = dayjs(sale.created_on);
         return (
           saleDate.isAfter(startDate.subtract(1, 'day')) && saleDate.isBefore(endDate.add(1, 'day'))
         );
@@ -66,8 +66,9 @@ const SalesReport: React.FC = () => {
   };
 
   const calculateTotalRevenue = () => {
-    return filteredSales.reduce((total, sale) => total + sale.totalAmount, 0);
+    return filteredSales.reduce((total, sale) => total + sale.total_amount, 0);
   };
+  console.log(filteredSales + 'this is filter sales');
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -85,12 +86,14 @@ const SalesReport: React.FC = () => {
               label="Start Date"
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
+              format="DD/MM/YYYY"
               slotProps={{ textField: { fullWidth: true } }}
             />
             <DatePicker
               label="End Date"
               value={endDate}
               onChange={(newValue) => setEndDate(newValue)}
+              format="DD/MM/YYYY"
               slotProps={{ textField: { fullWidth: true } }}
             />
             <Button variant="contained" onClick={filterSalesByDate}>
@@ -127,11 +130,11 @@ const SalesReport: React.FC = () => {
               {filteredSales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell>{sale.id}</TableCell>
-                  <TableCell>{sale.customerName}</TableCell>
+                  <TableCell>{sale.customer_name}</TableCell>
                   <TableCell>{sale.phone}</TableCell>
-                  <TableCell>₹{sale.totalAmount}</TableCell>
-                  <TableCell>{sale.paymentMethod}</TableCell>
-                  <TableCell>{dayjs(sale.date).format('DD/MM/YYYY')}</TableCell>
+                  <TableCell>₹{sale.total_amount}</TableCell>
+                  <TableCell>{sale.payment_method}</TableCell>
+                  <TableCell>{dayjs(sale.created_on).format('DD/MM/YYYY')}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
