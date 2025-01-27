@@ -14,13 +14,30 @@ const LandingPage: React.FC = () => {
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
 
+  const isValidPhoneNumber = (phone: string) => {
+    const phoneRegex = /^[6-9]\d{9}$/; // Valid 10-digit phone number
+    return phoneRegex.test(phone);
+  };
+
   const handleSubmit = () => {
     if (!name || !phone) {
       alert("Please enter both name and phone number.");
       return;
     }
 
-    // Redirect to customer page with name and phone
+    if (!isValidPhoneNumber(phone)) {
+      alert("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    // Set session storage to manage session expiration
+    const sessionData = {
+      name,
+      phone,
+      timestamp: Date.now(),
+    };
+    sessionStorage.setItem("userSession", JSON.stringify(sessionData));
+
     navigate("/customerpage", { state: { name, phone } });
   };
 
@@ -66,6 +83,7 @@ const LandingPage: React.FC = () => {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             fullWidth
+            inputProps={{ maxLength: 10 }}
           />
           <Button
             variant="contained"

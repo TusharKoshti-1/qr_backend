@@ -10,7 +10,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
 } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -21,7 +20,7 @@ interface Sale {
   id: string;
   customer_name: string;
   phone: string;
-  total_amount: number;
+  total_amount: string; // API returns this as a string
   payment_method: string;
   created_on: string;
 }
@@ -33,15 +32,16 @@ const SalesReport: React.FC = () => {
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
 
   useEffect(() => {
-    // Fetch sales data from backend API
     const fetchSales = async () => {
       try {
         const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sale', {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
-        setSales(response.data);
-        console.log(response);
-        setFilteredSales(response.data);
+        const sortedSales = response.data.sort((a: Sale, b: Sale) =>
+          dayjs(b.created_on).diff(dayjs(a.created_on)),
+        );
+        setSales(sortedSales);
+        setFilteredSales(sortedSales);
       } catch (error) {
         console.error('Error fetching sales data:', error);
         alert('Failed to fetch sales data. Please try again later.');
@@ -51,24 +51,28 @@ const SalesReport: React.FC = () => {
     fetchSales();
   }, []);
 
-  const filterSalesByDate = () => {
-    if (startDate && endDate) {
-      const filtered = sales.filter((sale) => {
-        const saleDate = dayjs(sale.created_on);
-        return (
-          saleDate.isAfter(startDate.subtract(1, 'day')) && saleDate.isBefore(endDate.add(1, 'day'))
-        );
-      });
-      setFilteredSales(filtered);
-    } else {
-      setFilteredSales(sales);
-    }
-  };
+  useEffect(() => {
+    const filterSalesByDate = () => {
+      if (startDate && endDate) {
+        const filtered = sales.filter((sale) => {
+          const saleDate = dayjs(sale.created_on);
+          return (
+            saleDate.isAfter(startDate.subtract(1, 'day')) &&
+            saleDate.isBefore(endDate.add(1, 'day'))
+          );
+        });
+        setFilteredSales(filtered.sort((a, b) => dayjs(b.created_on).diff(dayjs(a.created_on))));
+      } else {
+        setFilteredSales(sales);
+      }
+    };
+
+    filterSalesByDate();
+  }, [startDate, endDate, sales]);
 
   const calculateTotalRevenue = () => {
-    return filteredSales.reduce((total, sale) => total + sale.total_amount, 0);
+    return filteredSales.reduce((total, sale) => total + parseFloat(sale.total_amount), 0);
   };
-  console.log(filteredSales + 'this is filter sales');
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -96,9 +100,6 @@ const SalesReport: React.FC = () => {
               format="DD/MM/YYYY"
               slotProps={{ textField: { fullWidth: true } }}
             />
-            <Button variant="contained" onClick={filterSalesByDate}>
-              Apply Filter
-            </Button>
           </Box>
         </Paper>
 
@@ -127,9 +128,9 @@ const SalesReport: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredSales.map((sale) => (
+              {filteredSales.map((sale, index) => (
                 <TableRow key={sale.id}>
-                  <TableCell>{sale.id}</TableCell>
+                  <TableCell>{index + 1}</TableCell> {/* Sequential ID starting from 1 */}
                   <TableCell>{sale.customer_name}</TableCell>
                   <TableCell>{sale.phone}</TableCell>
                   <TableCell>₹{sale.total_amount}</TableCell>
@@ -142,7 +143,7 @@ const SalesReport: React.FC = () => {
         </TableContainer>
 
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6">Total Revenue: ₹{calculateTotalRevenue()}</Typography>
+          <Typography variant="h6">Total Revenue: ₹{calculateTotalRevenue().toFixed(2)}</Typography>
         </Box>
       </Container>
     </LocalizationProvider>
