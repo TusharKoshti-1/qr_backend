@@ -1,9 +1,11 @@
 import { Typography, Grid, Paper, Stack, Button } from '@mui/material';
 import IconifyIcon from 'components/base/IconifyIcon';
-import { sales } from 'data/sales';
+import { useSalesData, SaleItem } from 'data/sales';
 import SaleCard from './SaleCard';
 
 const Sales = () => {
+  const sales = useSalesData(); // Get sales data from the custom hook
+
   return (
     <Paper sx={{ pt: 2.875, pb: 4, px: 4 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={5.375}>
@@ -21,11 +23,15 @@ const Sales = () => {
       </Stack>
 
       <Grid container spacing={{ xs: 3.875, xl: 2 }} columns={{ xs: 1, sm: 2, md: 4 }}>
-        {sales.map((item) => (
-          <Grid item xs={1} key={item.label}>
-            <SaleCard item={item} />
-          </Grid>
-        ))}
+        {sales.map(
+          (
+            item: SaleItem, // Fixed type name from SalesItem to SaleItem
+          ) => (
+            <Grid item xs={1} key={item.label}>
+              <SaleCard item={item} />
+            </Grid>
+          ),
+        )}
       </Grid>
     </Paper>
   );
