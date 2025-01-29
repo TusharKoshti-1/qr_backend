@@ -20,11 +20,15 @@ type EChartsOption = echarts.ComposeOption<
   TooltipComponentOption | GridComponentOption | LegendComponentOption | BarSeriesOption
 >;
 
+// Add this type definition
+interface RevenueData {
+  'Online Sales': number[];
+  'Offline Sales': number[];
+}
+
+// Update the component props
 interface TotalRevenueChartProps {
-  data: {
-    'Online Sales': number[];
-    'Offline Sales': number[];
-  };
+  data: RevenueData;
   style?: {
     height?: number;
     width?: number;
@@ -73,13 +77,13 @@ const TotalRevenueChart = ({ data, style }: TotalRevenueChartProps) => {
       },
 
       yAxis: {
-        type: 'value',
         axisLabel: {
           fontSize: theme.typography.fontSize - 2,
           color: theme.palette.grey.A200,
-          formatter: '{value}k',
+          formatter: (value: number) => `₹${value}k`,
           margin: 18,
         },
+        type: 'value',
 
         splitLine: {
           lineStyle: {

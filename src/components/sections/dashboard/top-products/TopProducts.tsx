@@ -67,8 +67,13 @@ const TopProducts = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {topProducts.map((product) => (
-              <TopProduct key={product.id} product={product} maxSales={maxSales} />
+            {topProducts.map((product, index) => (
+              <TopProduct
+                key={product.id}
+                product={product}
+                maxSales={maxSales}
+                rank={index + 1} // Add rank prop here
+              />
             ))}
           </TableBody>
         </Table>

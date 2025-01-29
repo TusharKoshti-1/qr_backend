@@ -9,9 +9,17 @@ import {
 } from '@mui/material';
 import { Product } from 'data/top-products';
 
-const TopProduct = ({ product, maxSales }: { product: Product; maxSales: number }) => {
+const TopProduct = ({
+  product,
+  maxSales,
+  rank, // Receive the rank prop
+}: {
+  product: Product;
+  maxSales: number;
+  rank: number;
+}) => {
   const theme = useTheme();
-  const { id, name, color, sales } = product;
+  const { name, color, sales } = product;
 
   const [paletteOption, simplePaletteColorOption] = color.split('.') as [
     keyof typeof theme.palette,
@@ -23,9 +31,9 @@ const TopProduct = ({ product, maxSales }: { product: Product; maxSales: number 
 
   return (
     <TableRow>
-      <TableCell>0{id}</TableCell>
-      <TableCell>
-        <Typography variant="subtitle2" noWrap>
+      <TableCell>{rank}</TableCell> {/* Use rank instead of id */}
+      <TableCell size="small">
+        <Typography variant="subtitle2" whiteSpace="nowrap">
           {name}
         </Typography>
       </TableCell>
@@ -37,19 +45,14 @@ const TopProduct = ({ product, maxSales }: { product: Product; maxSales: number 
             bgcolor: alpha(productColor, 0.2),
             borderRadius: 2,
             width: 180,
-            '& .MuiLinearProgress-bar': { bgcolor: color },
+            '& .MuiLinearProgress-bar': {
+              bgcolor: color,
+            },
           }}
         />
       </TableCell>
       <TableCell>
-        <Chip
-          label={sales} // Show actual sales count
-          variant="outlined"
-          sx={{
-            color: color,
-            borderColor: color,
-          }}
-        />
+        <Chip label={`${sales}`} variant="outlined" sx={{ color: color, borderColor: color }} />
       </TableCell>
     </TableRow>
   );
