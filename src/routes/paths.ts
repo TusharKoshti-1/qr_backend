@@ -15,6 +15,8 @@ export default {
   landingpage: `/welcome`,
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,
-  salesreport: 'salesreport',
-  thankyou: 'thankyou',
+  salesreport: '/salesreport',
+  itemreport: '/itemreport',
+  settingpage: '/settings',
+  thankyou: '/thankyou',
 };

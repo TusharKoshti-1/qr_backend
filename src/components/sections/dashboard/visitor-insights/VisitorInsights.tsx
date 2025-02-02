@@ -1,18 +1,45 @@
+import { useState, useEffect, useRef } from 'react';
 import { Paper, Stack, Typography } from '@mui/material';
-import { useRef, useState } from 'react';
 import EChartsReactCore from 'echarts-for-react/lib/core';
-import { visitorInsightsData } from 'data/visitor-insights-data';
 import LegendToggleButton from 'components/common/LegendToggleButton';
 import VisitorInsightsChart from './VisitorInsightsChart';
 
+interface VisitorData {
+  'loyal customers': number[];
+  'new customers': number[];
+  'unique customers': number[];
+}
+
 const VisitorInsights = () => {
   const chartRef = useRef<EChartsReactCore | null>(null);
-
+  const [visitorData, setVisitorData] = useState<VisitorData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [legend, setLegend] = useState({
     'loyal customers': false,
     'new customers': false,
     'unique customers': false,
   });
+
+  useEffect(() => {
+    const fetchVisitorData = async () => {
+      try {
+        const response = await fetch('https://exact-notable-tadpole.ngrok-free.app/api/visitors', {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch visitor data');
+        const data = await response.json();
+        setVisitorData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVisitorData();
+  }, []);
 
   const handleLegendToggle = (name: keyof typeof legend) => {
     setLegend((prevState) => ({
@@ -29,17 +56,22 @@ const VisitorInsights = () => {
     }
   };
 
+  if (loading) return <Paper sx={{ p: 3 }}>Loading visitor data...</Paper>;
+  if (error)
+    return (
+      <Paper sx={{ p: 3 }} color="error">
+        {error}
+      </Paper>
+    );
+  if (!visitorData) return null;
+
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h4" color="primary.dark" mb={4}>
         Visitor Insights
       </Typography>
 
-      <VisitorInsightsChart
-        chartRef={chartRef}
-        data={visitorInsightsData}
-        style={{ height: 176 }}
-      />
+      <VisitorInsightsChart chartRef={chartRef} data={visitorData} style={{ height: 176 }} />
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}

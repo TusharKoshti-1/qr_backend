@@ -19,18 +19,23 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import axios from 'axios';
 import dayjs, { Dayjs } from 'dayjs';
 
-interface Sale {
-  id: string;
-  customer_name: string;
-  phone: string;
-  total_amount: string;
-  payment_method: string;
-  created_on: string;
+interface ItemReport {
+  item_id: number;
+  item_name: string;
+  total_quantity: number;
+  total_revenue: number;
 }
 
-const SalesReport: React.FC = () => {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
+// Define an interface for the API response
+interface ItemReportApi {
+  item_id: number | string;
+  item_name: string;
+  total_quantity: number | string;
+  total_revenue: number | string;
+}
+
+const ItemReport: React.FC = () => {
+  const [items, setItems] = useState<ItemReport[]>([]);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -38,104 +43,93 @@ const SalesReport: React.FC = () => {
   const rowsPerPage = 10;
 
   useEffect(() => {
-    const fetchSales = async () => {
+    const fetchItems = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sale', {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        });
-        // Sort sales by created_on date (most recent first)
-        const sortedSales = response.data.sort((a: Sale, b: Sale) =>
-          dayjs(b.created_on).diff(dayjs(a.created_on)),
+        const response = await axios.get<ItemReportApi[]>(
+          'https://exact-notable-tadpole.ngrok-free.app/api/items-report',
+          {
+            headers: { 'ngrok-skip-browser-warning': 'true' },
+            params: {
+              startDate: startDate?.format('YYYY-MM-DD'),
+              endDate: endDate?.format('YYYY-MM-DD'),
+            },
+          },
         );
-        setSales(sortedSales);
-        setFilteredSales(sortedSales);
+        // Convert numeric fields explicitly
+        const processedData = response.data.map((item) => ({
+          ...item,
+          total_revenue: Number(item.total_revenue),
+          total_quantity: Number(item.total_quantity),
+          item_id: Number(item.item_id),
+        }));
+        setItems(processedData);
+        // Reset current page to 1 on new fetch
+        setCurrentPage(1);
       } catch (error) {
-        console.error('Error fetching sales data:', error);
-        alert('Failed to fetch sales data. Please try again later.');
+        console.error('Error fetching items data:', error);
+        alert('Failed to fetch items data. Please try again later.');
       }
     };
 
-    fetchSales();
-  }, []);
+    fetchItems();
+  }, [startDate, endDate]);
 
-  // Updated filter to include boundaries and reset page to 1
-  const applyDateFilter = (start: Dayjs, end: Dayjs) => {
-    const filtered = sales.filter((sale) => {
-      const saleDate = dayjs(sale.created_on);
-      return (
-        (saleDate.isAfter(start) || saleDate.isSame(start)) &&
-        (saleDate.isBefore(end) || saleDate.isSame(end))
-      );
-    });
-    setFilteredSales(filtered);
-    setCurrentPage(1);
-  };
-
-  // When a quick filter is clicked, update the date picker values and apply filter
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);
     const today = dayjs().startOf('day');
     const yesterday = dayjs().subtract(1, 'day').startOf('day');
 
-    let newStart: Dayjs;
-    let newEnd: Dayjs;
-
     switch (filter) {
       case 'today':
-        newStart = today;
-        newEnd = today.endOf('day');
+        setStartDate(today);
+        // Set end date to one day later to cover the full day
+        setEndDate(today.add(1, 'day'));
         break;
       case 'yesterday':
-        newStart = yesterday;
-        newEnd = yesterday.endOf('day');
+        setStartDate(yesterday);
+        // Set end date to one day later to cover the full day
+        setEndDate(yesterday.add(1, 'day'));
         break;
       case 'thisWeek':
-        newStart = today.startOf('week');
-        newEnd = today.endOf('week');
+        setStartDate(today.startOf('week'));
+        setEndDate(today.endOf('week'));
         break;
       case 'lastWeek':
-        newStart = today.subtract(1, 'week').startOf('week');
-        newEnd = today.subtract(1, 'week').endOf('week');
+        setStartDate(today.subtract(1, 'week').startOf('week'));
+        setEndDate(today.subtract(1, 'week').endOf('week'));
         break;
       case 'thisMonth':
-        newStart = today.startOf('month');
-        newEnd = today.endOf('month');
+        setStartDate(today.startOf('month'));
+        setEndDate(today.endOf('month'));
         break;
       case 'lastMonth':
-        newStart = today.subtract(1, 'month').startOf('month');
-        newEnd = today.subtract(1, 'month').endOf('month');
+        setStartDate(today.subtract(1, 'month').startOf('month'));
+        setEndDate(today.subtract(1, 'month').endOf('month'));
         break;
       default:
-        setFilteredSales(sales);
-        return;
+        setStartDate(null);
+        setEndDate(null);
     }
-
-    // Update the date pickers to reflect the chosen quick filter range
-    setStartDate(newStart);
-    setEndDate(newEnd);
-    // Apply the filter to update the sales displayed
-    applyDateFilter(newStart, newEnd);
+    // Reset current page when applying a new filter
+    setCurrentPage(1);
   };
 
   const calculateTotalRevenue = () => {
-    return filteredSales.reduce((total, sale) => total + parseFloat(sale.total_amount), 0);
+    return items.reduce((total, item) => total + item.total_revenue, 0);
   };
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
   };
 
-  // Calculate current sales for the current page
-  const paginatedSales = filteredSales.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage,
-  );
+  // Slice the items array for pagination
+  const paginatedItems = items.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Sales Report
+          Item Sales Report
         </Typography>
 
         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
@@ -216,44 +210,38 @@ const SalesReport: React.FC = () => {
                   <b>ID</b>
                 </TableCell>
                 <TableCell>
-                  <b>Customer Name</b>
+                  <b>Item Name</b>
                 </TableCell>
                 <TableCell>
-                  <b>Phone</b>
+                  <b>Total Quantity Sold</b>
                 </TableCell>
                 <TableCell>
-                  <b>Total Amount (₹)</b>
-                </TableCell>
-                <TableCell>
-                  <b>Payment Method</b>
-                </TableCell>
-                <TableCell>
-                  <b>Date</b>
+                  <b>Total Revenue (₹)</b>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedSales.map((sale, index) => (
-                <TableRow key={sale.id}>
+              {paginatedItems.map((item: ItemReport, index: number) => (
+                <TableRow key={index}>
                   <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                  <TableCell>{sale.customer_name}</TableCell>
-                  <TableCell>{sale.phone}</TableCell>
-                  <TableCell>₹{sale.total_amount}</TableCell>
-                  <TableCell>{sale.payment_method}</TableCell>
-                  <TableCell>{dayjs(sale.created_on).format('DD/MM/YYYY')}</TableCell>
+                  <TableCell>{item.item_name}</TableCell>
+                  <TableCell>{item.total_quantity}</TableCell>
+                  <TableCell>₹{item.total_revenue.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Pagination
-            count={Math.ceil(filteredSales.length / rowsPerPage)}
+            count={Math.ceil(items.length / rowsPerPage)}
             page={currentPage}
             onChange={handlePageChange}
             color="primary"
           />
         </Box>
+
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6">Total Revenue: ₹{calculateTotalRevenue().toFixed(2)}</Typography>
         </Box>
@@ -262,4 +250,4 @@ const SalesReport: React.FC = () => {
   );
 };
 
-export default SalesReport;
+export default ItemReport;

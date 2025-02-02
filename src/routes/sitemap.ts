@@ -104,11 +104,20 @@ const sitemap: MenuItem[] = [
     pathName: 'salesreport',
     icon: 'ph:chart-line',
     active: true,
+    items: [
+      {
+        id: 30,
+        name: 'ItemReport',
+        path: '/itemreport',
+        pathName: 'itemreport',
+        active: true,
+      },
+    ],
   },
   {
     id: 7,
     name: 'Settings',
-    path: '#!',
+    path: '/settings',
     pathName: 'settings',
     icon: 'fluent:settings-24-regular',
     active: true,
