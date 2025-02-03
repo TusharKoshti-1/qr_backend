@@ -131,7 +131,7 @@ const MenuPage: React.FC = () => {
                   Price: {item.price}
                 </Typography>
               </CardContent>
-              <CardActions>
+              <CardActions style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {editingItemId === item.id ? (
                   <>
                     <input
