@@ -90,9 +90,54 @@ const CartPage: React.FC = () => {
     }
   };
 
-  const handleOnlinePayment = () => {
-    alert("Redirecting to online payment gateway...");
-    navigate("/thankyou", { state: { name, phone, items, total: calculateTotal(), payment: "Online" } });
+  const handleOnlinePayment = async () => {
+    const total = calculateTotal();
+    const upiLink = generateUpiPaymentLink(total);
+    
+    // Open UPI apps dialog
+    window.open(upiLink, '_blank');
+    
+    // Show confirmation dialog
+    const isConfirmed = window.confirm(
+      "Please complete the payment in your UPI app and confirm here. " +
+      "Don't forget to show the payment confirmation at the counter."
+    );
+
+    if (isConfirmed) {
+      try {
+        await axios.post("https://exact-notable-tadpole.ngrok-free.app/api/orders", {
+          customer_name: name,
+          phone,
+          items,
+          total_amount: total,
+          payment_method: "UPI",
+        }, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        
+        navigate("/thankyou", { 
+          state: { 
+            name, 
+            phone, 
+            items, 
+            total, 
+            payment: "UPI" 
+          } 
+        });
+      } catch (error) {
+        console.error("Error placing order:", error);
+        alert("Failed to process payment. Please try again.");
+      }
+    } else {
+      alert("Payment not completed. Please complete the payment to place your order.");
+    }
+  };
+
+  const generateUpiPaymentLink = (amount: number) => {
+    const vpa = 'tusharkoshti001@okicici'; // Replace with your UPI ID
+    const transactionNote = `Payment for order from ${name}`;
+    
+    return `upi://pay?pa=${vpa}&pn=Restaurant%20Name&am=${amount}&tn=${transactionNote}`;
   };
 
   const handleBack = () => {
