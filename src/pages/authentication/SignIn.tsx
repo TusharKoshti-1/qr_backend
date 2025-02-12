@@ -31,7 +31,7 @@ const SignIn = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('https://exact-notable-tadpole.ngrok-free.app/login', {
+      const response = await fetch('https://qr-system-v1pa.onrender.com/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
