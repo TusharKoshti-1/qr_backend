@@ -1,42 +1,71 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Divider, Paper, Stack, Typography } from '@mui/material';
-import { useMemo, useRef, useState } from 'react';
 import EChartsReactCore from 'echarts-for-react/lib/core';
-import { customerSatisfaction } from 'data/customer-satisfaction';
-import { currencyFormat, getTotal } from 'helpers/utils';
+import { getTotal } from 'helpers/utils';
 import Pin from 'components/icons/Pin';
 import LegendToggleButton from 'components/common/LegendToggleButton';
 import CustomerSatisfactionChart from './CustomerSatisfactionChart';
+import axios from 'axios';
+
+interface SatisfactionData {
+  'last month': number[];
+  'this month': number[];
+}
 
 const CustomerSatisfaction = () => {
   const chartRef = useRef<EChartsReactCore | null>(null);
+  const [satisfactionData, setSatisfactionData] = useState<SatisfactionData>({
+    'last month': Array(7).fill(0),
+    'this month': Array(7).fill(0),
+  });
+  const [loading, setLoading] = useState(true);
   const [legend, setLegend] = useState({
     'last month': false,
     'this month': false,
   });
 
+  useEffect(() => {
+    const fetchSatisfactionData = async () => {
+      try {
+        const response = await axios.get<SatisfactionData>(
+          'https://exact-notable-tadpole.ngrok-free.app/api/customer-satisfaction',
+          {
+            headers: { 'ngrok-skip-browser-warning': 'true' },
+          },
+        );
+        setSatisfactionData(response.data);
+      } catch (error) {
+        console.error('Error fetching satisfaction data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSatisfactionData();
+  }, []);
+
   const totalLastMonthSatisfaction = useMemo(
-    () => getTotal(customerSatisfaction['last month']),
-    [customerSatisfaction['last month']],
+    () => getTotal(satisfactionData['last month']),
+    [satisfactionData],
   );
+
   const totalThisMonthSatisfaction = useMemo(
-    () => getTotal(customerSatisfaction['this month']),
-    [customerSatisfaction['this month']],
+    () => getTotal(satisfactionData['this month']),
+    [satisfactionData],
   );
 
   const handleLegendToggle = (name: keyof typeof legend) => {
-    setLegend((prevState) => ({
-      ...prevState,
-      [name]: !prevState[name],
-    }));
+    setLegend((prev) => ({ ...prev, [name]: !prev[name] }));
 
     if (chartRef.current) {
-      const instance = chartRef.current.getEchartsInstance();
-      instance.dispatchAction({
+      chartRef.current.getEchartsInstance().dispatchAction({
         type: 'legendToggleSelect',
         name: name,
       });
     }
   };
+
+  if (loading) return <Paper sx={{ p: 3 }}>Loading satisfaction data...</Paper>;
 
   return (
     <Paper sx={{ py: 3, px: 1.5 }}>
@@ -46,7 +75,7 @@ const CustomerSatisfaction = () => {
 
       <CustomerSatisfactionChart
         chartRef={chartRef}
-        data={customerSatisfaction}
+        data={satisfactionData}
         style={{ height: 182 }}
       />
 
@@ -61,7 +90,7 @@ const CustomerSatisfaction = () => {
           name="Last Month"
           svgIcon={Pin}
           color="info.main"
-          value={currencyFormat(totalLastMonthSatisfaction)}
+          value={'₹' + totalLastMonthSatisfaction}
           legend={legend}
           onHandleLegendToggle={handleLegendToggle}
         />
@@ -69,7 +98,7 @@ const CustomerSatisfaction = () => {
           name="This Month"
           svgIcon={Pin}
           color="success.dark"
-          value={currencyFormat(totalThisMonthSatisfaction)}
+          value={'₹' + totalThisMonthSatisfaction}
           legend={legend}
           onHandleLegendToggle={handleLegendToggle}
         />
