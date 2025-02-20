@@ -14,12 +14,16 @@ import {
 } from '@mui/material';
 import { SyntheticEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import paths, { rootPaths } from 'routes/paths';
 import LogoHeader from 'layouts/main-layout/sidebar/LogoHeader';
 import IconifyIcon from 'components/base/IconifyIcon';
 import PasswordTextField from 'components/common/PasswordTextField';
 
 const checkBoxLabel = { inputProps: { 'aria-label': 'Checkbox' } };
+
+// import dotenv from 'dotenv';
+// dotenv.config();
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -31,7 +35,7 @@ const SignIn = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('https://qr-system-v1pa.onrender.com/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
