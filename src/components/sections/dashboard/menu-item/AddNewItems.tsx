@@ -20,9 +20,15 @@ const AddNewItem: React.FC = () => {
     formData.append('category', category);
     formData.append('image', image);
 
+    const token = localStorage.getItem('userLoggedIn');
+
     try {
-      await axios.post('https://exact-notable-tadpole.ngrok-free.app/api/add-menuitem', formData, {
-        headers: { 'Content-Type': 'multipart/form-data', 'ngrok-skip-browser-warning': 'true' },
+      await axios.post('https://qr-system-v1pa.onrender.com/api/add-menuitem', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${token}`,
+        },
       });
       alert('Menu item added successfully!');
       // Reset fields

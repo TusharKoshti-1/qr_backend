@@ -44,7 +44,7 @@ const SignIn = () => {
 
       if (response.ok) {
         // Store JWT Token in local storage or state
-        localStorage.setItem('userLoggedIn', JSON.stringify({ token: data.token }));
+        localStorage.setItem('userLoggedIn', data.token);
         // Redirect to the dashboard or any other page
         navigate(rootPaths.root); // You can change this to the page you want to navigate after login
       } else {
