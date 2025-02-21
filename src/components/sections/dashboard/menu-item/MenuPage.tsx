@@ -34,7 +34,10 @@ const MenuPage: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItemType[]>(`${import.meta.env.VITE_API_URL}/api/menu`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
       setMenuItems(response.data);
       setFilteredItems(response.data);
@@ -61,7 +64,10 @@ const MenuPage: React.FC = () => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/update-item/${id}`, {
         price: newRate,
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
       setEditingItemId(null);
       fetchMenuItems(); // Refresh the menu items after updating
@@ -72,7 +78,10 @@ const MenuPage: React.FC = () => {
   const handleRemoveItem = async (id: number) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/delete-item/${id}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {

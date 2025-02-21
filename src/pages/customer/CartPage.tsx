@@ -80,7 +80,9 @@ const CartPage: React.FC = () => {
         items,
         total_amount: total,
         payment_method: "Cash",
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: { 'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+         },
       });
       alert("Your order has been placed successfully! Please pay with cash at the counter.");
       navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash" } });
@@ -112,7 +114,9 @@ const CartPage: React.FC = () => {
           total_amount: total,
           payment_method: "UPI",
         }, {
-          headers: { 'ngrok-skip-browser-warning': 'true' }
+          headers: { 'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+           }
         });
         
         navigate("/thankyou", { 

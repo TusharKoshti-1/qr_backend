@@ -48,7 +48,10 @@ const ItemReport: React.FC = () => {
         const response = await axios.get<ItemReportApi[]>(
           '${import.meta.env.VITE_API_URL}/api/items-report',
           {
-            headers: { 'ngrok-skip-browser-warning': 'true' },
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
             params: {
               startDate: startDate?.format('YYYY-MM-DD'),
               endDate: endDate?.format('YYYY-MM-DD'),

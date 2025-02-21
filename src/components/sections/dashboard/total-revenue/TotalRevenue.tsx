@@ -16,7 +16,10 @@ const TotalRevenue = () => {
     const fetchRevenueData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/revenue`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         });
 
         if (!response.ok) throw new Error('Failed to fetch revenue data');

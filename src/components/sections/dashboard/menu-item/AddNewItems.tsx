@@ -20,14 +20,14 @@ const AddNewItem: React.FC = () => {
     formData.append('category', category);
     formData.append('image', image);
 
-    const token = localStorage.getItem('userLoggedIn');
+    // const token = localStorage.getItem('userLoggedIn');
 
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/add-menuitem`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
       alert('Menu item added successfully!');

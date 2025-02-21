@@ -25,7 +25,10 @@ const VisitorInsights = () => {
     const fetchVisitorData = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visitors`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         });
 
         if (!response.ok) throw new Error('Failed to fetch visitor data');

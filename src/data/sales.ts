@@ -28,18 +28,21 @@ export const useSalesData = () => {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
           }),
           fetch(`${import.meta.env.VITE_API_URL}/api/orders/today-total`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
           }),
           fetch(`${import.meta.env.VITE_API_URL}/api/items/today-total`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
           }),
         ]);

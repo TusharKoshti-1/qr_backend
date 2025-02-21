@@ -57,7 +57,9 @@ const CustomerPage: React.FC = () => {
     const fetchMenu = async () => {
       try {
         const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/menu`,{
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: { 'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+           },
         });
         setMenuItems(response.data);
       } catch (error) {
@@ -68,7 +70,9 @@ const CustomerPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/categories`,{
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: { 'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+           },
         });
         setCategories(response.data);
       } catch (error) {

@@ -30,7 +30,10 @@ const CustomerSatisfaction = () => {
         const response = await axios.get<SatisfactionData>(
           `${import.meta.env.VITE_API_URL}/api/customer-satisfaction`,
           {
-            headers: { 'ngrok-skip-browser-warning': 'true' },
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
           },
         );
         setSatisfactionData(response.data);

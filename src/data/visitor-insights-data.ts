@@ -4,5 +4,8 @@
 //   'unique customers': [280, 340, 310, 280, 220, 180, 250, 300, 305, 310, 250, 200],
 // };
 export const visitorInsightsData = await fetch(`${import.meta.env.VITE_API_URL}/api/visitors`, {
-  headers: { 'ngrok-skip-browser-warning': 'true' },
+  headers: {
+    'ngrok-skip-browser-warning': 'true',
+    Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+  },
 });

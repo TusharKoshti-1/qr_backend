@@ -41,7 +41,10 @@ const SettingsPage: React.FC = () => {
     const fetchSettings = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/settings`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         });
         setSettings(response.data);
         setLoading(false);
@@ -73,7 +76,10 @@ const SettingsPage: React.FC = () => {
     e.preventDefault();
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/settings`, settings, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
       setSuccess(true);
       setError(null);

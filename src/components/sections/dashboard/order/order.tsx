@@ -68,7 +68,10 @@ const Order = () => {
         const response = await axios.get<OrderType[]>(
           `${import.meta.env.VITE_API_URL}/api/orders`,
           {
-            headers: { 'ngrok-skip-browser-warning': 'true' },
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
           },
         );
         setOrders(response.data);
@@ -134,7 +137,10 @@ const Order = () => {
   const handleOrderComplete = async (id: number) => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
         status: 'Completed',
       });
       const updatedOrders = orders.filter((order) => order.id !== id);

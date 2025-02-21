@@ -50,7 +50,10 @@ const EditOrder: React.FC = () => {
     const fetchMenu = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/menu`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         });
         setMenuItems(response.data);
       } catch (error) {
@@ -121,7 +124,16 @@ const EditOrder: React.FC = () => {
     };
 
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/updateorders/${order.id}`, updatedOrder);
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/updateorders/${order.id}`,
+        updatedOrder,
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
       navigate('/order');
     } catch (error) {
       console.error('Error saving updated order:', error);

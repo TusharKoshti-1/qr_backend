@@ -40,7 +40,10 @@ const AddMenuItems: React.FC = () => {
       const response = await axios.get<MenuItem[]>(
         `${import.meta.env.VITE_API_URL}/api/menuitems`,
         {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
       );
       setMenuItems(response.data);
@@ -68,7 +71,10 @@ const AddMenuItems: React.FC = () => {
       const existingMenuResponse = await axios.get<MenuItem[]>(
         `${import.meta.env.VITE_API_URL}/api/menu`,
         {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
       );
       const existingMenu = existingMenuResponse.data;
@@ -85,7 +91,10 @@ const AddMenuItems: React.FC = () => {
         image: item.image,
         price: 0,
         category: item.category,
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
 
       if (response.status === 200) {
@@ -101,7 +110,10 @@ const AddMenuItems: React.FC = () => {
   const handleRemoveItem = async (id: number) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/remove-itemofmenu/${id}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
       });
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {

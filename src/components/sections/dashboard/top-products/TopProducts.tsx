@@ -22,7 +22,10 @@ const TopProducts = () => {
     const fetchTopProducts = async () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products/top`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         });
         if (!response.ok) throw new Error('Failed to fetch top products');
         const data: Product[] = await response.json();
