@@ -21,12 +21,9 @@ const TopProducts = () => {
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const response = await fetch(
-          'https://exact-notable-tadpole.ngrok-free.app/api/products/top',
-          {
-            headers: { 'ngrok-skip-browser-warning': 'true' },
-          },
-        );
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/products/top`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         if (!response.ok) throw new Error('Failed to fetch top products');
         const data: Product[] = await response.json();
         setTopProducts(data);

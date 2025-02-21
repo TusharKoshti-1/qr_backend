@@ -23,7 +23,7 @@ const AddNewItem: React.FC = () => {
     const token = localStorage.getItem('userLoggedIn');
 
     try {
-      await axios.post('https://qr-system-v1pa.onrender.com/api/add-menuitem', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/add-menuitem`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'ngrok-skip-browser-warning': 'true',

@@ -24,7 +24,7 @@ const VisitorInsights = () => {
   useEffect(() => {
     const fetchVisitorData = async () => {
       try {
-        const response = await fetch('https://exact-notable-tadpole.ngrok-free.app/api/visitors', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visitors`, {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
 

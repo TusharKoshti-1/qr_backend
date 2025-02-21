@@ -66,7 +66,7 @@ const Order = () => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get<OrderType[]>(
-          'https://exact-notable-tadpole.ngrok-free.app/api/orders',
+          `${import.meta.env.VITE_API_URL}/api/orders`,
           {
             headers: { 'ngrok-skip-browser-warning': 'true' },
           },
@@ -133,7 +133,7 @@ const Order = () => {
 
   const handleOrderComplete = async (id: number) => {
     try {
-      await axios.put(`https://exact-notable-tadpole.ngrok-free.app/api/orders/${id}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
         status: 'Completed',
       });

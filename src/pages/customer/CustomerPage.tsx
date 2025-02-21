@@ -56,7 +56,7 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get<MenuItem[]>("https://exact-notable-tadpole.ngrok-free.app/api/menu",{
+        const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/menu`,{
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
         setMenuItems(response.data);
@@ -67,7 +67,7 @@ const CustomerPage: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<string[]>("https://exact-notable-tadpole.ngrok-free.app/api/categories",{
+        const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/categories`,{
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
         setCategories(response.data);
@@ -192,7 +192,7 @@ const CustomerPage: React.FC = () => {
           <CardMedia
             component="img"
             height="140"
-            image={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
+            image={`${import.meta.env.VITE_API_URL}${item.image}`}
             alt={item.name}
           />
           <CardContent>

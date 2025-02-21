@@ -49,7 +49,7 @@ const EditOrder: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/menu', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/menu`, {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
         setMenuItems(response.data);
@@ -121,10 +121,7 @@ const EditOrder: React.FC = () => {
     };
 
     try {
-      await axios.put(
-        `https://exact-notable-tadpole.ngrok-free.app/api/updateorders/${order.id}`,
-        updatedOrder,
-      );
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/updateorders/${order.id}`, updatedOrder);
       navigate('/order');
     } catch (error) {
       console.error('Error saving updated order:', error);
@@ -157,7 +154,7 @@ const EditOrder: React.FC = () => {
             {filteredMenuItems.map((item) => (
               <ListItem key={item.id} divider>
                 <img
-                  src={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
+                  src={`${import.meta.env.VITE_API_URL}${item.image}`}
                   alt={item.name}
                   style={{ width: 50, height: 50, marginRight: 10 }}
                 />

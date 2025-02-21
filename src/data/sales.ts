@@ -24,19 +24,19 @@ export const useSalesData = () => {
     const fetchData = async () => {
       try {
         const [salesRes, ordersRes, itemRes] = await Promise.all([
-          fetch('https://exact-notable-tadpole.ngrok-free.app/api/sales/today-total', {
+          fetch(`${import.meta.env.VITE_API_URL}/api/sales/today-total`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
             },
           }),
-          fetch('https://exact-notable-tadpole.ngrok-free.app/api/orders/today-total', {
+          fetch(`${import.meta.env.VITE_API_URL}/api/orders/today-total`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',
             },
           }),
-          fetch('https://exact-notable-tadpole.ngrok-free.app/api/items/today-total', {
+          fetch(`${import.meta.env.VITE_API_URL}/api/items/today-total`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               'Content-Type': 'application/json',

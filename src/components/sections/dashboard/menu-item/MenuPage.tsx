@@ -33,12 +33,9 @@ const MenuPage: React.FC = () => {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await axios.get<MenuItemType[]>(
-        'https://exact-notable-tadpole.ngrok-free.app/api/menu',
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      const response = await axios.get<MenuItemType[]>(`${import.meta.env.VITE_API_URL}/api/menu`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       setMenuItems(response.data);
       setFilteredItems(response.data);
       const uniqueCategories: string[] = [
@@ -62,7 +59,7 @@ const MenuPage: React.FC = () => {
   };
   const handleRateChange = async (id: number, newRate: string) => {
     try {
-      await axios.put(`https://exact-notable-tadpole.ngrok-free.app/api/update-item/${id}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/update-item/${id}`, {
         price: newRate,
         headers: { 'ngrok-skip-browser-warning': 'true' },
       });
@@ -74,7 +71,7 @@ const MenuPage: React.FC = () => {
   };
   const handleRemoveItem = async (id: number) => {
     try {
-      await axios.delete(`https://exact-notable-tadpole.ngrok-free.app/api/delete-item/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/delete-item/${id}`, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
       });
       fetchMenuItems(); // Refresh the menu items after removing
@@ -119,7 +116,7 @@ const MenuPage: React.FC = () => {
               <CardMedia
                 component="img"
                 height="140"
-                image={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
+                image={`${import.meta.env.VITE_API_URL}${item.image}`}
                 alt={item.name}
               />
               <CardContent>

@@ -40,7 +40,7 @@ const SalesReport: React.FC = () => {
   useEffect(() => {
     const fetchSales = async () => {
       try {
-        const response = await axios.get('https://exact-notable-tadpole.ngrok-free.app/api/sale', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/sale`, {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
         // Sort sales by created_on date (most recent first)

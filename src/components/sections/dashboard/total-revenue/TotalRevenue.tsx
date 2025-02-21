@@ -15,7 +15,7 @@ const TotalRevenue = () => {
   useEffect(() => {
     const fetchRevenueData = async () => {
       try {
-        const response = await fetch('https://exact-notable-tadpole.ngrok-free.app/api/revenue', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/revenue`, {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         });
 

@@ -38,7 +38,7 @@ const AddMenuItems: React.FC = () => {
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItem[]>(
-        'https://exact-notable-tadpole.ngrok-free.app/api/menuitems',
+        `${import.meta.env.VITE_API_URL}/api/menuitems`,
         {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         },
@@ -66,7 +66,7 @@ const AddMenuItems: React.FC = () => {
   const addItemToMenu = async (item: MenuItem) => {
     try {
       const existingMenuResponse = await axios.get<MenuItem[]>(
-        'https://exact-notable-tadpole.ngrok-free.app/api/menu',
+        `${import.meta.env.VITE_API_URL}/api/menu`,
         {
           headers: { 'ngrok-skip-browser-warning': 'true' },
         },
@@ -80,16 +80,13 @@ const AddMenuItems: React.FC = () => {
         return;
       }
 
-      const response = await axios.post(
-        'https://exact-notable-tadpole.ngrok-free.app/api/add-item',
-        {
-          name: item.name,
-          image: item.image,
-          price: 0,
-          category: item.category,
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/add-item`, {
+        name: item.name,
+        image: item.image,
+        price: 0,
+        category: item.category,
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
 
       if (response.status === 200) {
         setMessage(`Added: ${item.name}`);
@@ -103,12 +100,9 @@ const AddMenuItems: React.FC = () => {
   };
   const handleRemoveItem = async (id: number) => {
     try {
-      await axios.delete(
-        `https://exact-notable-tadpole.ngrok-free.app/api/remove-itemofmenu/${id}`,
-        {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        },
-      );
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/remove-itemofmenu/${id}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
       fetchMenuItems(); // Refresh the menu items after removing
     } catch (error) {
       console.error('Error removing item:', error);
@@ -172,7 +166,7 @@ const AddMenuItems: React.FC = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={`https://exact-notable-tadpole.ngrok-free.app${item.image}`}
+                  image={`${import.meta.env.VITE_API_URL}${item.image}`}
                   alt={item.name}
                 />
                 <CardContent>

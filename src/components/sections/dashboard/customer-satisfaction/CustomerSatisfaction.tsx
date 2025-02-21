@@ -28,7 +28,7 @@ const CustomerSatisfaction = () => {
     const fetchSatisfactionData = async () => {
       try {
         const response = await axios.get<SatisfactionData>(
-          'https://exact-notable-tadpole.ngrok-free.app/api/customer-satisfaction',
+          `${import.meta.env.VITE_API_URL}/api/customer-satisfaction`,
           {
             headers: { 'ngrok-skip-browser-warning': 'true' },
           },

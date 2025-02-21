@@ -40,10 +40,9 @@ const SettingsPage: React.FC = () => {
     // Fetch existing settings from your API endpoint
     const fetchSettings = async () => {
       try {
-        const response = await axios.get(
-          'https://exact-notable-tadpole.ngrok-free.app/api/settings',
-          { headers: { 'ngrok-skip-browser-warning': 'true' } },
-        );
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/settings`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' },
+        });
         setSettings(response.data);
         setLoading(false);
       } catch (err) {
@@ -73,7 +72,7 @@ const SettingsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.put('https://exact-notable-tadpole.ngrok-free.app/api/settings', settings, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/settings`, settings, {
         headers: { 'ngrok-skip-browser-warning': 'true' },
       });
       setSuccess(true);
