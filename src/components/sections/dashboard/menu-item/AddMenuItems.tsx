@@ -86,11 +86,13 @@ const AddMenuItems: React.FC = () => {
         return;
       }
 
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/add-item`, {
-        name: item.name,
-        image: item.image,
-        price: 0,
-        category: item.category,
+      const formData = new FormData();
+      formData.append('name', item.name);
+      formData.append('category', item.category);
+      formData.append('image', item.image);
+      formData.append('price', '0');
+
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/add-item`, formData, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
