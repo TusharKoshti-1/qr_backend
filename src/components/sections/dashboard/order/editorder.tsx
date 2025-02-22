@@ -166,7 +166,7 @@ const EditOrder: React.FC = () => {
             {filteredMenuItems.map((item) => (
               <ListItem key={item.id} divider>
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${item.image}`}
+                  src={`${item.image}`}
                   alt={item.name}
                   style={{ width: 50, height: 50, marginRight: 10 }}
                 />
