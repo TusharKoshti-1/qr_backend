@@ -73,13 +73,13 @@ const CartPage: React.FC = () => {
 
   const handleCashPayment = async () => {
     const total = calculateTotal();
+    const data = {customer_name: name,
+    phone,
+    items,
+    total_amount: total,
+    payment_method: "Cash",};
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
-        customer_name: name,
-        phone,
-        items,
-        total_amount: total,
-        payment_method: "Cash",
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, data, {
         headers: { 'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
          },
@@ -106,14 +106,13 @@ const CartPage: React.FC = () => {
     );
 
     if (isConfirmed) {
+      const upidata = {customer_name: name,
+        phone,
+        items,
+        total_amount: total,
+        payment_method: "UPI",}
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
-          customer_name: name,
-          phone,
-          items,
-          total_amount: total,
-          payment_method: "UPI",
-        }, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, upidata, {
           headers: { 'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
            }
