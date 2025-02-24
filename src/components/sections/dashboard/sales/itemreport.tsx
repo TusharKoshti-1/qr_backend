@@ -46,7 +46,7 @@ const ItemReport: React.FC = () => {
     const fetchItems = async () => {
       try {
         const response = await axios.get<ItemReportApi[]>(
-          '${import.meta.env.VITE_API_URL}/api/items-report',
+          `${import.meta.env.VITE_API_URL}/api/items-report`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
