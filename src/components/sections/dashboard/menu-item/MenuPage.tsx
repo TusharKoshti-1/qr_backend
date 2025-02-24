@@ -60,10 +60,13 @@ const MenuPage: React.FC = () => {
       setFilteredItems(menuItems.filter((item) => item.category === category));
     }
   };
+
   const handleRateChange = async (id: number, newRate: string) => {
+    const data = {
+      price: newRate,
+    };
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/update-item/${id}`, {
-        price: newRate,
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/update-item/${id}`, data, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
