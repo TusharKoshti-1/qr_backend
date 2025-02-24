@@ -135,13 +135,13 @@ const Order = () => {
   };
 
   const handleOrderComplete = async (id: number) => {
+    const data = { status: 'Completed' };
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, data, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
-        status: 'Completed',
       });
       const updatedOrders = orders.filter((order) => order.id !== id);
       setOrders(updatedOrders);
