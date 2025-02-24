@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -9,10 +9,16 @@ import {
   Paper,
 } from "@mui/material";
 
+
 const LandingPage: React.FC = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const restaurantId = queryParams.get('restaurant_id');
+
 
   const isValidPhoneNumber = (phone: string) => {
     const phoneRegex = /^[6-9]\d{9}$/; // Valid 10-digit phone number
@@ -38,7 +44,7 @@ const LandingPage: React.FC = () => {
     };
     sessionStorage.setItem("userSession", JSON.stringify(sessionData));
 
-    navigate("/customerpage", { state: { name, phone } });
+    navigate("/customerpage", { state: { name, phone, restaurantId } });
   };
 
   return (

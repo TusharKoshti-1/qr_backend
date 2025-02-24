@@ -39,12 +39,13 @@ interface CartItem extends MenuItem {
 interface LocationState {
     name: string;
     phone: string;
+    restaurantId: number;
   }
   
 
 const CustomerPage: React.FC = () => {
   const location = useLocation();
-  const { name, phone } = location.state as LocationState || {};
+  const { name, phone, restaurantId } = location.state as LocationState || {};
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -56,7 +57,7 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/menu`,{
+        const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${restaurantId}`,{
           headers: { 'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
            },
