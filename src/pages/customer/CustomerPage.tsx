@@ -59,7 +59,6 @@ const CustomerPage: React.FC = () => {
       try {
         const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${restaurantId}`,{
           headers: { 'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
            },
         });
         setMenuItems(response.data);
@@ -70,9 +69,8 @@ const CustomerPage: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/categories`,{
+        const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/customer/categories`,{
           headers: { 'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
            },
         });
         setCategories(response.data);

@@ -81,7 +81,6 @@ const CartPage: React.FC = () => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, data, {
         headers: { 'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
          },
       });
       alert("Your order has been placed successfully! Please pay with cash at the counter.");
