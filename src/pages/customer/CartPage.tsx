@@ -74,18 +74,19 @@ const CartPage: React.FC = () => {
 
   const handleCashPayment = async () => {
     const total = calculateTotal();
-    const data = {customer_name: name,
+    const data = {restaurant_id: restaurantId,
+    customer_name: name,
     phone,
     items,
     total_amount: total,
     payment_method: "Cash"};
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, data, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, data, {
         headers: { 'ngrok-skip-browser-warning': 'true',
          },
       });
       alert("Your order has been placed successfully! Please pay with cash at the counter.");
-      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash", restaurantId } });
+      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash", restaurant_id: restaurantId, } });
     } catch (error) {
       console.error("Error placing order:", error);
       alert("Failed to place order. Please try again.");
@@ -106,13 +107,14 @@ const CartPage: React.FC = () => {
     );
 
     if (isConfirmed) {
-      const upidata = {customer_name: name,
+      const upidata = {restaurant_id: restaurantId,
+        customer_name: name,
         phone,
         items,
         total_amount: total,
         payment_method: "UPI",};
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, upidata, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, upidata, {
           headers: { 'ngrok-skip-browser-warning': 'true',
            }
         });
@@ -124,7 +126,7 @@ const CartPage: React.FC = () => {
             items, 
             total, 
             payment: "UPI",
-            restaurantId, 
+            restaurant_id: restaurantId,
           } 
         });
       } catch (error) {
