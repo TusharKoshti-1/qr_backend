@@ -317,7 +317,7 @@ const Order = () => {
                   variant="contained"
                   size="small"
                   color="error"
-                  onClick={() => handleDeleteOrder(order.id)}
+                  onClick={() => setConfirmDeleteId(order.id)}
                 >
                   Delete
                 </Button>
