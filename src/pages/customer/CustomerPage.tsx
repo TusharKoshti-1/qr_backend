@@ -69,7 +69,7 @@ const CustomerPage: React.FC = () => {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/customer/categories`,{
+        const response = await axios.get<string[]>(`${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=${restaurantId}`,{
           headers: { 'ngrok-skip-browser-warning': 'true',
            },
         });
