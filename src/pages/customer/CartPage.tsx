@@ -78,10 +78,9 @@ const CartPage: React.FC = () => {
     phone,
     items,
     total_amount: total,
-    payment_method: "Cash",
-    restaurantId,};
+    payment_method: "Cash"};
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, data, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, data, {
         headers: { 'ngrok-skip-browser-warning': 'true',
          },
       });
@@ -111,10 +110,9 @@ const CartPage: React.FC = () => {
         phone,
         items,
         total_amount: total,
-        payment_method: "UPI",
-        restaurantId,};
+        payment_method: "UPI",};
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, upidata, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, upidata, {
           headers: { 'ngrok-skip-browser-warning': 'true',
            }
         });
