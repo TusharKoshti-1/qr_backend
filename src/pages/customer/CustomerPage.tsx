@@ -147,7 +147,7 @@ const CustomerPage: React.FC = () => {
   };
 
   const handleGoToCart = () => {
-    navigate("/cartpage", { state: { name, phone, selectedItems, total } });
+    navigate("/cartpage", { state: { name, phone, selectedItems, total, restaurantId } });
   };
 
   const filteredMenuItems = menuItems.filter((item) => {

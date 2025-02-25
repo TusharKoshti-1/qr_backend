@@ -26,13 +26,14 @@ interface LocationState {
   name: string;
   phone: string;
   selectedItems: CartItem[];
+  restaurantId: number;
 }
 
 const CartPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { name, phone, selectedItems } = (location.state as LocationState) || {};
+  const { name, phone, selectedItems, restaurantId } = (location.state as LocationState) || {};
   const [items, setItems] = useState<CartItem[]>(selectedItems || []);
 
   useEffect(() => {
@@ -77,14 +78,15 @@ const CartPage: React.FC = () => {
     phone,
     items,
     total_amount: total,
-    payment_method: "Cash",};
+    payment_method: "Cash",
+    restaurantId,};
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, data, {
         headers: { 'ngrok-skip-browser-warning': 'true',
          },
       });
       alert("Your order has been placed successfully! Please pay with cash at the counter.");
-      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash" } });
+      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash", restaurantId } });
     } catch (error) {
       console.error("Error placing order:", error);
       alert("Failed to place order. Please try again.");
@@ -109,11 +111,11 @@ const CartPage: React.FC = () => {
         phone,
         items,
         total_amount: total,
-        payment_method: "UPI",}
+        payment_method: "UPI",
+        restaurantId,};
       try {
         await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, upidata, {
           headers: { 'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
            }
         });
         
@@ -123,7 +125,8 @@ const CartPage: React.FC = () => {
             phone, 
             items, 
             total, 
-            payment: "UPI" 
+            payment: "UPI",
+            restaurantId, 
           } 
         });
       } catch (error) {
