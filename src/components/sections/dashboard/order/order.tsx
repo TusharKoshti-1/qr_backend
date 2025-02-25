@@ -83,7 +83,7 @@ const Order = () => {
 
     fetchOrders();
 
-    const ws = new WebSocket('ws://qr-system-v1pa.onrender.com:5001');
+    const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
 
     ws.onmessage = (event) => {
       try {
