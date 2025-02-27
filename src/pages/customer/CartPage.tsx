@@ -75,11 +75,13 @@ const CartPage: React.FC = () => {
     verifySession();
   }, [navigate]);
 
+// Remove the empty cart redirect useEffect and replace with:
   useEffect(() => {
-    if (items.length === 0) {
-      navigate("/customerpage");
-    }
-  }, [items, navigate]);
+  const savedItems = sessionStorage.getItem("selectedItems");
+  if (!savedItems || JSON.parse(savedItems).length === 0) {
+    navigate("/customerpage");
+  }
+}, [navigate]);
 
   useEffect(() => {
     sessionStorage.setItem("selectedItems", JSON.stringify(items));
@@ -198,6 +200,7 @@ const CartPage: React.FC = () => {
   };
 
   const handleBack = () => {
+    sessionStorage.setItem("selectedItems", JSON.stringify(items));
     navigate("/customerpage");
   };
 

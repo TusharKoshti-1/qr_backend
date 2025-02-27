@@ -169,12 +169,9 @@ const CustomerPage: React.FC = () => {
   };
 
   const handleGoToCart = () => {
-    navigate("/cartpage", { 
-      state: { 
-        selectedItems,
-        total 
-      } 
-    });
+    // Explicitly save to session storage before navigation
+    sessionStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+    navigate("/cartpage");
   };
 
   const filteredMenuItems = menuItems.filter((item) => {
