@@ -3,6 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Button,
   Card,
   CardContent,
@@ -38,6 +43,7 @@ interface AggregatedItemType {
 
 const Order = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [aggregatedItems, setAggregatedItems] = useState<AggregatedItemType[]>([]);
   const navigate = useNavigate();
 
@@ -89,19 +95,26 @@ const Order = () => {
       try {
         const data = JSON.parse(event.data);
 
-        if (data.type === 'new_order') {
+        if (data.type === 'delete_order') {
+          setOrders((prevOrders) => {
+            const updatedOrders = prevOrders.filter((order) => order.id !== data.id);
+            aggregateItems(updatedOrders); // Use the filtered array
+            return updatedOrders;
+          });
+        } else if (data.type === 'new_order') {
           setOrders((prevOrders) => {
             const updatedOrders = [data.order, ...prevOrders];
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'update_order') {
-          setOrders((prevOrders) =>
-            prevOrders.map((order) =>
+          setOrders((prevOrders) => {
+            const updatedOrders = prevOrders.map((order) =>
               order.id === data.id ? { ...order, status: data.status } : order,
-            ),
-          );
-          aggregateItems(orders);
+            );
+            aggregateItems(updatedOrders); // Use the mapped array
+            return updatedOrders;
+          });
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -150,6 +163,23 @@ const Order = () => {
       console.error('Error marking order as completed:', error);
     }
   };
+  // Add delete handler function
+  const handleDeleteOrder = async (id: number) => {
+    setConfirmDeleteId(null);
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
+      });
+      const updatedOrders = orders.filter((order) => order.id !== id);
+      setOrders(updatedOrders);
+      aggregateItems(updatedOrders);
+    } catch (error) {
+      console.error('Error deleting order:', error);
+    }
+  };
 
   return (
     <Box sx={{ padding: '20px' }}>
@@ -165,6 +195,25 @@ const Order = () => {
           </Button>
         </Link>
       </div>
+      <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this order? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteId(null)} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => confirmDeleteId && handleDeleteOrder(confirmDeleteId)}
+            color="error"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Aggregated Items Section */}
       <Box
@@ -263,6 +312,14 @@ const Order = () => {
                   onClick={() => handleOrderComplete(order.id)}
                 >
                   Complete
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="error"
+                  onClick={() => setConfirmDeleteId(order.id)}
+                >
+                  Delete
                 </Button>
               </CardActions>
             </Card>
