@@ -41,6 +41,7 @@ const LandingPage: React.FC = () => {
       name,
       phone,
       timestamp: Date.now(),
+      restaurantId,
     };
     sessionStorage.setItem("userSession", JSON.stringify(sessionData));
 

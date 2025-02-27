@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -22,25 +22,68 @@ interface CartItem {
   quantity: number;
 }
 
-interface LocationState {
-  name: string;
-  phone: string;
-  selectedItems: CartItem[];
-  restaurantId: number;
-}
-
 const CartPage: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const { name, phone, selectedItems, restaurantId } = (location.state as LocationState) || {};
-  const [items, setItems] = useState<CartItem[]>(selectedItems || []);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [session, setSession] = useState<{
+    name: string;
+    phone: string;
+    restaurantId: number;
+  }>(() => {
+    const savedSession = sessionStorage.getItem("userSession");
+    return savedSession
+      ? JSON.parse(savedSession)
+      : { name: "", phone: "", restaurantId: 0 };
+  });
 
   useEffect(() => {
-    if (!selectedItems || selectedItems.length === 0) {
+    const verifySession = () => {
+      const sessionData = sessionStorage.getItem("userSession");
+      if (!sessionData) {
+        navigate("/welcome");
+        return;
+      }
+
+      const { timestamp, ...session } = JSON.parse(sessionData);
+      const currentTime = Date.now();
+      const sessionAge = currentTime - timestamp;
+
+      if (sessionAge > 10 * 60 * 1000) {
+        sessionStorage.removeItem("userSession");
+        sessionStorage.removeItem("selectedItems");
+        navigate("/welcome");
+        return;
+      }
+
+      setSession(session);
+      const savedItems = JSON.parse(
+        sessionStorage.getItem("selectedItems") || "[]"
+      );
+      setItems(savedItems);
+
+      // Set auto-logout timer
+      const timeLeft = 10 * 60 * 1000 - sessionAge;
+      const timeout = setTimeout(() => {
+        sessionStorage.removeItem("userSession");
+        sessionStorage.removeItem("selectedItems");
+        navigate("/welcome");
+      }, timeLeft);
+
+      return () => clearTimeout(timeout);
+    };
+
+    verifySession();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (items.length === 0) {
       navigate("/customerpage");
     }
-  }, [selectedItems, navigate]);
+  }, [items, navigate]);
+
+  useEffect(() => {
+    sessionStorage.setItem("selectedItems", JSON.stringify(items));
+  }, [items]);
 
   const handleIncreaseQuantity = (item: CartItem) => {
     setItems(
@@ -74,19 +117,30 @@ const CartPage: React.FC = () => {
 
   const handleCashPayment = async () => {
     const total = calculateTotal();
-    const data = {restaurant_id: restaurantId,
-    customer_name: name,
-    phone,
-    items,
-    total_amount: total,
-    payment_method: "Cash"};
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, data, {
-        headers: { 'ngrok-skip-browser-warning': 'true',
-         },
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/customer/orders`,
+        {
+          restaurant_id: session.restaurantId,
+          customer_name: session.name,
+          phone: session.phone,
+          items,
+          total_amount: total,
+          payment_method: "Cash",
+        },
+        {
+          headers: { "ngrok-skip-browser-warning": "true" },
+        }
+      );
+
+      sessionStorage.removeItem("userSession");
+      sessionStorage.removeItem("selectedItems");
+      navigate("/thankyou", {
+        state: {
+          payment: "Cash",
+          restaurant_id: session.restaurantId,
+        },
       });
-      alert("Your order has been placed successfully! Please pay with cash at the counter.");
-      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash", restaurant_id: restaurantId, } });
     } catch (error) {
       console.error("Error placing order:", error);
       alert("Failed to place order. Please try again.");
@@ -96,38 +150,37 @@ const CartPage: React.FC = () => {
   const handleOnlinePayment = async () => {
     const total = calculateTotal();
     const upiLink = generateUpiPaymentLink(total);
-    
-    // Open UPI apps dialog
-    window.open(upiLink, '_blank');
-    
-    // Show confirmation dialog
+
+    window.open(upiLink, "_blank");
     const isConfirmed = window.confirm(
       "Please complete the payment in your UPI app and confirm here. " +
-      "Don't forget to show the payment confirmation at the counter."
+        "Don't forget to show the payment confirmation at the counter."
     );
 
     if (isConfirmed) {
-      const upidata = {restaurant_id: restaurantId,
-        customer_name: name,
-        phone,
-        items,
-        total_amount: total,
-        payment_method: "UPI",};
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, upidata, {
-          headers: { 'ngrok-skip-browser-warning': 'true',
-           }
-        });
-        
-        navigate("/thankyou", { 
-          state: { 
-            name, 
-            phone, 
-            items, 
-            total, 
+        await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/customer/orders`,
+          {
+            restaurant_id: session.restaurantId,
+            customer_name: session.name,
+            phone: session.phone,
+            items,
+            total_amount: total,
+            payment_method: "UPI",
+          },
+          {
+            headers: { "ngrok-skip-browser-warning": "true" },
+          }
+        );
+
+        sessionStorage.removeItem("userSession");
+        sessionStorage.removeItem("selectedItems");
+        navigate("/thankyou", {
+          state: {
             payment: "UPI",
-            restaurant_id: restaurantId,
-          } 
+            restaurant_id: session.restaurantId,
+          },
         });
       } catch (error) {
         console.error("Error placing order:", error);
@@ -139,16 +192,13 @@ const CartPage: React.FC = () => {
   };
 
   const generateUpiPaymentLink = (amount: number) => {
-    const vpa = 'tusharkoshti001@okicici'; // Replace with your UPI ID
-    const transactionNote = `Payment for order from ${name}`;
-    
+    const vpa = "tusharkoshti001@okicici";
+    const transactionNote = `Payment for order from ${session.name}`;
     return `upi://pay?pa=${vpa}&pn=Restaurant%20Name&am=${amount}&tn=${transactionNote}`;
   };
 
   const handleBack = () => {
-    navigate("customerpage", {
-      state: { name, phone, selectedItems: items },
-    });
+    navigate("/customerpage");
   };
 
   return (
@@ -166,16 +216,27 @@ const CartPage: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6">{item.name}</Typography>
-                <Typography variant="body1">₹{item.price} x {item.quantity}</Typography>
+                <Typography variant="body1">
+                  ₹{item.price} x {item.quantity}
+                </Typography>
               </CardContent>
               <CardActions>
-                <IconButton color="primary" onClick={() => handleIncreaseQuantity(item)}>
+                <IconButton
+                  color="primary"
+                  onClick={() => handleIncreaseQuantity(item)}
+                >
                   <Add />
                 </IconButton>
-                <IconButton color="secondary" onClick={() => handleDecreaseQuantity(item)}>
+                <IconButton
+                  color="secondary"
+                  onClick={() => handleDecreaseQuantity(item)}
+                >
                   <Remove />
                 </IconButton>
-                <IconButton color="error" onClick={() => handleRemoveItem(item)}>
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemoveItem(item)}
+                >
                   <Delete />
                 </IconButton>
               </CardActions>
@@ -185,7 +246,9 @@ const CartPage: React.FC = () => {
       </Grid>
 
       <Paper elevation={3} sx={{ mt: 4, p: 3 }}>
-        <Typography variant="h5">Total Amount: ₹{calculateTotal()}</Typography>
+        <Typography variant="h5">
+          Total Amount: ₹{calculateTotal()}
+        </Typography>
 
         <Box display="flex" justifyContent="space-between" mt={2}>
           <Button
