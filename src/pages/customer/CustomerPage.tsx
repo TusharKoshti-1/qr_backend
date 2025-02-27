@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -34,7 +34,14 @@ interface CartItem extends MenuItem {
   quantity: number;
 }
 
+interface LocationState {
+  name: string;
+  phone: string;
+  selectedItems: CartItem[];
+}
+
 const CustomerPage: React.FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
@@ -43,88 +50,75 @@ const CustomerPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [total, setTotal] = useState<number>(0);
 
-  // Session state
-  const [session, setSession] = useState<{
-    name: string;
-    phone: string;
-    restaurantId: number;
-  }>(() => {
-    const savedSession = sessionStorage.getItem("userSession");
-    return savedSession ? JSON.parse(savedSession) : { name: "", phone: "", restaurantId: 0 };
-  });
-
   useEffect(() => {
-    const verifySession = () => {
-      const sessionData = sessionStorage.getItem("userSession");
-      if (!sessionData) {
-        navigate("/welcome");
-        return;
-      }
-
-      const { timestamp, ...session } = JSON.parse(sessionData);
-      const currentTime = Date.now();
-      const sessionAge = currentTime - timestamp;
-
-      if (sessionAge > 10 * 60 * 1000) {
-        sessionStorage.removeItem("userSession");
-        navigate("/welcome");
-        return;
-      }
-
-      // Update session state
-      setSession(session);
-      
-      // Set auto-logout timer
-      const timeLeft = 10 * 60 * 1000 - sessionAge;
-      const timeout = setTimeout(() => {
-        sessionStorage.removeItem("userSession");
-        navigate("/welcome");
-      }, timeLeft);
-
-      return () => clearTimeout(timeout);
-    };
-
-    verifySession();
-  }, [navigate]);
-
-  useEffect(() => {
-    const fetchData = async () => {
+    const fetchMenu = async () => {
       try {
-        const [menuResponse, categoriesResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${session.restaurantId}`, {
-            headers: { 'ngrok-skip-browser-warning': 'true' }
-          }),
-          axios.get(`${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=${session.restaurantId}`, {
-            headers: { 'ngrok-skip-browser-warning': 'true' }
-          })
-        ]);
-
-        setMenuItems(menuResponse.data);
-        setCategories(categoriesResponse.data);
-
-        // Restore cart items
-        const savedItems = JSON.parse(sessionStorage.getItem("selectedItems") || "[]");
-        setSelectedItems(savedItems);
+        const response = await axios.get<MenuItem[]>(
+          `${import.meta.env.VITE_API_URL}/api/menu`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }
+        );
+        setMenuItems(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching menu items:", error);
       }
     };
 
-    if (session.restaurantId) {
-      fetchData();
-    }
-  }, [session.restaurantId]);
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get<string[]>(
+          `${import.meta.env.VITE_API_URL}/api/categories`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }
+        );
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchMenu();
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
-    const totalAmount = selectedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-    setTotal(totalAmount);
+    const state = location.state as LocationState;
+    let initialItems: CartItem[] = [];
+
+    if (state && state.selectedItems) {
+      initialItems = state.selectedItems;
+    } else {
+      initialItems = JSON.parse(sessionStorage.getItem("selectedItems") || "[]") as CartItem[];
+    }
+
+    setSelectedItems(initialItems);
+  }, [location.state]);
+
+  useEffect(() => {
     sessionStorage.setItem("selectedItems", JSON.stringify(selectedItems));
   }, [selectedItems]);
 
-  // Cart item handlers remain the same
+  useEffect(() => {
+    const calculateTotal = () => {
+      const totalAmount = selectedItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      setTotal(totalAmount);
+    };
+    calculateTotal();
+  }, [selectedItems]);
+
+  const { name, phone } = (location.state as LocationState) || {};
+
   const handleAddItem = (item: MenuItem) => {
     const existingItem = selectedItems.find((selectedItem) => selectedItem.id === item.id);
     if (existingItem) {
@@ -169,9 +163,7 @@ const CustomerPage: React.FC = () => {
   };
 
   const handleGoToCart = () => {
-    // Explicitly save to session storage before navigation
-    sessionStorage.setItem("selectedItems", JSON.stringify(selectedItems));
-    navigate("/cartpage");
+    navigate("/cartpage", { state: { name, phone, selectedItems, total } });
   };
 
   const filteredMenuItems = menuItems.filter((item) => {
@@ -183,10 +175,9 @@ const CustomerPage: React.FC = () => {
   return (
     <Container sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Hello, {session.name}!
+        Hello, {name}!
       </Typography>
 
-      {/* Rest of the UI remains the same */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <TextField
           label="Search for items..."
@@ -220,7 +211,7 @@ const CustomerPage: React.FC = () => {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={`${item.image}`}
+                  image={`${import.meta.env.VITE_API_URL}${item.image}`}
                   alt={item.name}
                 />
                 <CardContent>
@@ -243,7 +234,7 @@ const CustomerPage: React.FC = () => {
       </div>
 
       <Paper elevation={3} sx={{ mt: 4, p: 2 }}>
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" sx={{ mb: 2 }}>
           Your Cart
         </Typography>
         <div style={{ overflowX: 'auto', width: '100%' }}>
@@ -252,7 +243,10 @@ const CustomerPage: React.FC = () => {
               <ListItem key={item.id} divider>
                 <Grid container spacing={2} alignItems="center">
                   <Grid item xs={12} sm={8}>
-                    <Typography variant="body1" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <Typography
+                      variant="body1"
+                      sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                       {`${item.name} - ₹${item.price}`}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -260,14 +254,25 @@ const CustomerPage: React.FC = () => {
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <IconButton size="small" onClick={() => handleIncreaseQuantity(item)}>
                         <Add />
                       </IconButton>
                       <IconButton size="small" onClick={() => handleDecreaseQuantity(item)}>
                         <Remove />
                       </IconButton>
-                      <IconButton size="small" onClick={() => handleRemoveItem(item)} color="error">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveItem(item)}
+                        color="error"
+                      >
                         <Delete />
                       </IconButton>
                     </div>
@@ -277,20 +282,20 @@ const CustomerPage: React.FC = () => {
             ))}
           </List>
         </div>
-      </Paper>
 
-      <Typography variant="h6" sx={{ mt: 2 }}>
-        Total: ₹{total}
-      </Typography>
-      <Button
-        variant="contained"
-        color="success"
-        fullWidth
-        sx={{ mt: 2 }}
-        onClick={handleGoToCart}
-      >
-        Go to Cart
-      </Button>
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          Total: ₹{total}
+        </Typography>
+        <Button
+          variant="contained"
+          color="success"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={handleGoToCart}
+        >
+          Go to Cart
+        </Button>
+      </Paper>
     </Container>
   );
 };
