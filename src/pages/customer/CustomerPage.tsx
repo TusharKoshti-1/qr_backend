@@ -54,7 +54,7 @@ const CustomerPage: React.FC = () => {
     const fetchMenu = async () => {
       try {
         const response = await axios.get<MenuItem[]>(
-          `${import.meta.env.VITE_API_URL}/api/menu`,
+          `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=10`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
@@ -71,7 +71,7 @@ const CustomerPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get<string[]>(
-          `${import.meta.env.VITE_API_URL}/api/categories`,
+          `${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=10`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',

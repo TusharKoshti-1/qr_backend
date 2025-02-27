@@ -74,7 +74,7 @@ const CartPage: React.FC = () => {
   const handleCashPayment = async () => {
     const total = calculateTotal();
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=10`, {
         customer_name: name,
         phone,
         items,
@@ -103,7 +103,7 @@ const CartPage: React.FC = () => {
 
     if (isConfirmed) {
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=10`, {
           customer_name: name,
           phone,
           items,
@@ -141,7 +141,7 @@ const CartPage: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate("/", { // Navigate back to customer page
+    navigate("/customerpage", { // Navigate back to customer page
       state: { name, phone, selectedItems: items },
     });
   };
