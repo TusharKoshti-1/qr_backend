@@ -25,7 +25,7 @@ interface CartItem {
 interface LocationState {
   name: string;
   phone: string;
-  restaurandId: number;
+  restaurantId: number;
   selectedItems: CartItem[];
 }
 
@@ -33,12 +33,12 @@ const CartPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { name, phone, selectedItems, restaurandId } = (location.state as LocationState) || {};
+  const { name, phone, selectedItems, restaurantId } = (location.state as LocationState) || {};
   const [items, setItems] = useState<CartItem[]>(selectedItems || []);
 
   useEffect(() => {
     if (!selectedItems || selectedItems.length === 0) {
-      navigate("/"); // Navigate back to customer page
+      navigate("/customerpage"); // Navigate back to customer page
     }
   }, [selectedItems, navigate]);
 
@@ -75,12 +75,13 @@ const CartPage: React.FC = () => {
   const handleCashPayment = async () => {
     const total = calculateTotal();
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=10`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, {
         customer_name: name,
         phone,
         items,
         total_amount: total,
         payment_method: "Cash",
+        restaurant_id: restaurantId,
         headers: { 'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
          },
@@ -104,13 +105,13 @@ const CartPage: React.FC = () => {
 
     if (isConfirmed) {
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=10`, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, {
           customer_name: name,
           phone,
           items,
           total_amount: total,
           payment_method: "UPI",
-          restaurant_id: restaurandId,
+          restaurant_id: restaurantId,
         }, {
           headers: { 'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
@@ -124,7 +125,7 @@ const CartPage: React.FC = () => {
             items, 
             total, 
             payment: "UPI",
-            restaurant_id: restaurandId, 
+            restaurant_id: restaurantId, 
           } 
         });
       } catch (error) {

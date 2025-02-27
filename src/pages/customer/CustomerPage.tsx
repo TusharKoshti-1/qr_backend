@@ -37,6 +37,7 @@ interface CartItem extends MenuItem {
 interface LocationState {
   name: string;
   phone: string;
+  restaurantId: number;
   selectedItems: CartItem[];
 }
 
@@ -54,7 +55,7 @@ const CustomerPage: React.FC = () => {
     const fetchMenu = async () => {
       try {
         const response = await axios.get<MenuItem[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=10`,
+          `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${restaurantId}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
@@ -71,7 +72,7 @@ const CustomerPage: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get<string[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=10`,
+          `${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=${restaurantId}`,
           {
             headers: {
               'ngrok-skip-browser-warning': 'true',
@@ -117,7 +118,7 @@ const CustomerPage: React.FC = () => {
     calculateTotal();
   }, [selectedItems]);
 
-  const { name, phone } = (location.state as LocationState) || {};
+  const { name, phone, restaurantId } = (location.state as LocationState) || {};
 
   const handleAddItem = (item: MenuItem) => {
     const existingItem = selectedItems.find((selectedItem) => selectedItem.id === item.id);
@@ -163,7 +164,7 @@ const CustomerPage: React.FC = () => {
   };
 
   const handleGoToCart = () => {
-    navigate("/cartpage", { state: { name, phone, selectedItems, total } });
+    navigate("/cartpage", { state: { name, phone, selectedItems, total,restaurantId } });
   };
 
   const filteredMenuItems = menuItems.filter((item) => {
