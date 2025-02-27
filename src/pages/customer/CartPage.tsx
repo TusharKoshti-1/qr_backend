@@ -13,7 +13,7 @@ import {
   Container,
   Paper,
 } from "@mui/material";
-import { Add, Remove, Delete, ArrowBack } from "@mui/icons-material";
+import { Add, Remove, Delete, ArrowBack} from "@mui/icons-material";
 
 interface CartItem {
   id: string;
@@ -25,6 +25,7 @@ interface CartItem {
 interface LocationState {
   name: string;
   phone: string;
+  restaurandId: number;
   selectedItems: CartItem[];
 }
 
@@ -32,7 +33,7 @@ const CartPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { name, phone, selectedItems } = (location.state as LocationState) || {};
+  const { name, phone, selectedItems, restaurandId } = (location.state as LocationState) || {};
   const [items, setItems] = useState<CartItem[]>(selectedItems || []);
 
   useEffect(() => {
@@ -109,6 +110,7 @@ const CartPage: React.FC = () => {
           items,
           total_amount: total,
           payment_method: "UPI",
+          restaurant_id: restaurandId,
         }, {
           headers: { 'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
@@ -121,7 +123,8 @@ const CartPage: React.FC = () => {
             phone, 
             items, 
             total, 
-            payment: "UPI" 
+            payment: "UPI",
+            restaurant_id: restaurandId, 
           } 
         });
       } catch (error) {
