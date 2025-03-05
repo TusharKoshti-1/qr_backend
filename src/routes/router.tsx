@@ -21,6 +21,7 @@ const SalesPage = lazy(() => import('pages/sales/SalesReport'));
 const ItemPage = lazy(() => import('pages/sales/ItemReport'));
 const SettingPage = lazy(() => import('pages/setting/Setting'));
 const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
+const ScanQRAgainPage = lazy(() => import('pages/customer/ScanQRCodeAgain'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -126,6 +127,10 @@ export const routes = [
       {
         path: paths.thankyou,
         element: <ThankyouPage />,
+      },
+      {
+        path: paths.scanqrcodeagain,
+        element: <ScanQRAgainPage />,
       },
       // Catch-All Route
       {

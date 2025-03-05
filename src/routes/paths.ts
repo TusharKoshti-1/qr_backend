@@ -19,4 +19,5 @@ export default {
   itemreport: '/itemreport',
   settingpage: '/settings',
   thankyou: '/thankyou',
+  scanqrcodeagain: '/scanqrcodeagain',
 };

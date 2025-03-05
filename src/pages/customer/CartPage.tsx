@@ -29,7 +29,7 @@ const useSessionCheck = () => {
   useEffect(() => {
     const sessionData = sessionStorage.getItem('userSession');
     if (!sessionData) {
-      navigate('/');
+      navigate('/scanqrcodeagain');
       return;
     }
 
@@ -83,6 +83,7 @@ const CartPage: React.FC = () => {
         items,
         total_amount: calculateTotal(),
         payment_method: method,
+        restaurantId : sessionData.restaurantId,
       }, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });

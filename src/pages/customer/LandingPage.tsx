@@ -9,33 +9,14 @@ import {
   Paper,
 } from "@mui/material";
 
-// Session validation hook (reusable)
-const useSessionCheck = () => {
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const sessionData = sessionStorage.getItem('userSession');
-    if (!sessionData) {
-      navigate('/');
-      return;
-    }
-
-    const session = JSON.parse(sessionData);
-    const currentTime = Date.now();
-    // 15 minutes = 900,000 milliseconds
-    if (currentTime - session.timestamp > 900000) {
-      sessionStorage.removeItem('userSession');
-      sessionStorage.removeItem('selectedItems');
-      navigate('/');
-    }
-  }, [navigate]);
-};
+const queryParams = new URLSearchParams(location.search);
+const restaurantId = queryParams.get('restaurant_id');
 
 const LandingPage: React.FC = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
-  useSessionCheck();
 
   useEffect(() => {
     if (sessionStorage.getItem('userSession')) {
@@ -63,6 +44,7 @@ const LandingPage: React.FC = () => {
       name: cleanName,
       phone: cleanPhone,
       timestamp: Date.now(),
+      restaurantId: restaurantId,
     }));
     navigate("/customerpage");
   };
