@@ -170,7 +170,7 @@ const CustomerPage: React.FC = () => {
               <CardMedia
                 component="img"
                 height="160"
-                image={`${import.meta.env.VITE_API_URL}${item.image}`}
+                image={`${item.image}`}
                 alt={item.name}
                 sx={{ objectFit: 'cover' }}
               />

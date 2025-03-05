@@ -83,7 +83,7 @@ const CartPage: React.FC = () => {
         items,
         total_amount: calculateTotal(),
         payment_method: method,
-        restaurantId : sessionData.restaurantId,
+        restaurant_id : sessionData.restaurantId,
       }, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });
