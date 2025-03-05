@@ -77,7 +77,7 @@ const CartPage: React.FC = () => {
 
   const handlePayment = async (method: 'Cash' | 'UPI') => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, {
         customer_name: sessionData.name,
         phone: sessionData.phone,
         items,

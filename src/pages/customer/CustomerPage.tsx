@@ -78,10 +78,10 @@ const CustomerPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const [menuResponse, categoriesResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL}/api/menu?restaurant_id=${sessionData.restaurantId}`, {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`, {
             headers: { 'ngrok-skip-browser-warning': 'true' }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL}/api/categories?restaurant_id=${sessionData.restaurantId}`, {
+          axios.get(`${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=${sessionData.restaurantId}`, {
             headers: { 'ngrok-skip-browser-warning': 'true' }
           })
         ]);
