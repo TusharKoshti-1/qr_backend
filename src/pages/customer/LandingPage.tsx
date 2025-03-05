@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -9,43 +9,62 @@ import {
   Paper,
 } from "@mui/material";
 
+// Session validation hook (reusable)
+const useSessionCheck = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const sessionData = sessionStorage.getItem('userSession');
+    if (!sessionData) {
+      navigate('/');
+      return;
+    }
+
+    const session = JSON.parse(sessionData);
+    const currentTime = Date.now();
+    // 15 minutes = 900,000 milliseconds
+    if (currentTime - session.timestamp > 900000) {
+      sessionStorage.removeItem('userSession');
+      sessionStorage.removeItem('selectedItems');
+      navigate('/');
+    }
+  }, [navigate]);
+};
 
 const LandingPage: React.FC = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
-  const location = useLocation();
+  useSessionCheck();
 
-  const queryParams = new URLSearchParams(location.search);
-  const restaurantId = queryParams.get('restaurant_id');
+  useEffect(() => {
+    if (sessionStorage.getItem('userSession')) {
+      navigate('/customerpage');
+    }
+  }, [navigate]);
 
-
-  const isValidPhoneNumber = (phone: string) => {
-    const phoneRegex = /^[6-9]\d{9}$/; // Valid 10-digit phone number
-    return phoneRegex.test(phone);
-  };
+  const isValidPhoneNumber = (phone: string) => /^[6-9]\d{9}$/.test(phone);
 
   const handleSubmit = () => {
-    if (!name || !phone) {
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+
+    if (!cleanName || !cleanPhone) {
       alert("Please enter both name and phone number.");
       return;
     }
 
-    if (!isValidPhoneNumber(phone)) {
+    if (!isValidPhoneNumber(cleanPhone)) {
       alert("Please enter a valid 10-digit phone number.");
       return;
     }
 
-    // Set session storage to manage session expiration
-    const sessionData = {
-      name,
-      phone,
+    sessionStorage.setItem("userSession", JSON.stringify({
+      name: cleanName,
+      phone: cleanPhone,
       timestamp: Date.now(),
-      restaurantId,
-    };
-    sessionStorage.setItem("userSession", JSON.stringify(sessionData));
-
-    navigate("/customerpage", { state: { name, phone, restaurantId } });
+    }));
+    navigate("/customerpage");
   };
 
   return (
@@ -59,46 +78,39 @@ const LandingPage: React.FC = () => {
         backgroundColor: "#f5f5f5",
       }}
     >
-      <Paper
-        elevation={3}
-        sx={{
-          padding: "2rem",
-          width: "100%",
-          textAlign: "center",
-        }}
-      >
+      <Paper elevation={3} sx={{ padding: "2rem", width: "100%", textAlign: "center" }}>
         <Typography variant="h4" gutterBottom>
           Welcome to Our Restaurant!
         </Typography>
-        <Box
-          component="form"
-          noValidate
-          autoComplete="off"
-          sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
+        
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <TextField
             label="Enter Your Name"
             variant="outlined"
             value={name}
             onChange={(e) => setName(e.target.value)}
             fullWidth
+            inputProps={{ maxLength: 50 }}
           />
+          
           <TextField
             label="Enter Your Phone Number"
             variant="outlined"
             type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
             fullWidth
             inputProps={{ maxLength: 10 }}
           />
+          
           <Button
             variant="contained"
             color="primary"
             onClick={handleSubmit}
             size="large"
+            fullWidth
           >
-            Submit
+            Continue
           </Button>
         </Box>
       </Paper>

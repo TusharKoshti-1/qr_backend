@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -22,6 +22,28 @@ import {
 } from "@mui/material";
 import { Add, Remove, Delete } from "@mui/icons-material";
 
+// Session validation hook (reusable)
+const useSessionCheck = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const sessionData = sessionStorage.getItem('userSession');
+    if (!sessionData) {
+      navigate('/');
+      return;
+    }
+
+    const session = JSON.parse(sessionData);
+    const currentTime = Date.now();
+    // 15 minutes = 900,000 milliseconds
+    if (currentTime - session.timestamp > 900000) {
+      sessionStorage.removeItem('userSession');
+      sessionStorage.removeItem('selectedItems');
+      navigate('/');
+    }
+  }, [navigate]);
+};
+
 interface MenuItem {
   id: string;
   name: string;
@@ -34,160 +56,99 @@ interface CartItem extends MenuItem {
   quantity: number;
 }
 
-interface LocationState {
-  name: string;
-  phone: string;
-  restaurantId: number;
-  selectedItems: CartItem[];
-}
-
 const CustomerPage: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
+  useSessionCheck(); // Reuse the session check hook
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [total, setTotal] = useState<number>(0);
+  
+  // Get initial cart from session storage
+  const [selectedItems, setSelectedItems] = useState<CartItem[]>(() => {
+    const savedItems = sessionStorage.getItem("selectedItems");
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
+
+  // Session data validation
+  const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
 
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get<MenuItem[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${restaurantId}`,
-          {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }
-        );
-        setMenuItems(response.data);
+        const [menuResponse, categoriesResponse] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/api/menu`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+          }),
+          axios.get(`${import.meta.env.VITE_API_URL}/api/categories`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+          })
+        ]);
+        
+        setMenuItems(menuResponse.data);
+        setCategories(categoriesResponse.data);
       } catch (error) {
-        console.error("Error fetching menu items:", error);
+        console.error("Error fetching data:", error);
+        alert("Failed to load menu. Please try refreshing the page.");
       }
     };
 
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get<string[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/categories?restaurant_id=${restaurantId}`,
-          {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }
-        );
-        setCategories(response.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchMenu();
-    fetchCategories();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    const state = location.state as LocationState;
-    let initialItems: CartItem[] = [];
-
-    if (state && state.selectedItems) {
-      initialItems = state.selectedItems;
-    } else {
-      initialItems = JSON.parse(sessionStorage.getItem("selectedItems") || "[]") as CartItem[];
-    }
-
-    setSelectedItems(initialItems);
-  }, [location.state]);
-
+  // Persist cart to session storage
   useEffect(() => {
     sessionStorage.setItem("selectedItems", JSON.stringify(selectedItems));
   }, [selectedItems]);
 
-  useEffect(() => {
-    const calculateTotal = () => {
-      const totalAmount = selectedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      setTotal(totalAmount);
-    };
-    calculateTotal();
-  }, [selectedItems]);
-
-  const { name, phone, restaurantId } = (location.state as LocationState) || {};
-
   const handleAddItem = (item: MenuItem) => {
-    const existingItem = selectedItems.find((selectedItem) => selectedItem.id === item.id);
-    if (existingItem) {
-      setSelectedItems(
-        selectedItems.map((selectedItem) =>
-          selectedItem.id === item.id
-            ? { ...selectedItem, quantity: selectedItem.quantity + 1 }
-            : selectedItem
-        )
-      );
-    } else {
-      setSelectedItems([...selectedItems, { ...item, quantity: 1 }]);
-    }
+    setSelectedItems(prev => {
+      const existing = prev.find(i => i.id === item.id);
+      return existing 
+        ? prev.map(i => i.id === item.id ? {...i, quantity: i.quantity + 1} : i)
+        : [...prev, {...item, quantity: 1}];
+    });
   };
 
-  const handleIncreaseQuantity = (item: CartItem) => {
-    setSelectedItems(
-      selectedItems.map((selectedItem) =>
-        selectedItem.id === item.id
-          ? { ...selectedItem, quantity: selectedItem.quantity + 1 }
-          : selectedItem
-      )
-    );
+  const handleQuantity = (itemId: string, increment: boolean) => {
+    setSelectedItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const newQuantity = item.quantity + (increment ? 1 : -1);
+        return newQuantity >= 1 ? {...item, quantity: newQuantity} : item;
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
   };
 
-  const handleDecreaseQuantity = (item: CartItem) => {
-    if (item.quantity > 1) {
-      setSelectedItems(
-        selectedItems.map((selectedItem) =>
-          selectedItem.id === item.id
-            ? { ...selectedItem, quantity: selectedItem.quantity - 1 }
-            : selectedItem
-        )
-      );
-    } else {
-      setSelectedItems(selectedItems.filter((selectedItem) => selectedItem.id !== item.id));
-    }
+  const handleRemoveItem = (itemId: string) => {
+    setSelectedItems(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const handleRemoveItem = (item: CartItem) => {
-    setSelectedItems(selectedItems.filter((selectedItem) => selectedItem.id !== item.id));
-  };
-
-  const handleGoToCart = () => {
-    navigate("/cartpage", { state: { name, phone, selectedItems, total,restaurantId } });
-  };
-
-  const filteredMenuItems = menuItems.filter((item) => {
+  const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory ? item.category === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
 
+  const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   return (
     <Container sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
-        Hello, {name}!
+        Hello, {sessionData.name}!
       </Typography>
 
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+      <Box display="flex" gap={2} mb={4} flexDirection={{ xs: 'column', sm: 'row' }}>
         <TextField
-          label="Search for items..."
+          label="Search menu..."
           variant="outlined"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ flex: 1, marginRight: 2 }}
+          sx={{ flex: 1 }}
         />
-        <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+        
+        <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Category</InputLabel>
           <Select
             value={selectedCategory}
@@ -195,107 +156,89 @@ const CustomerPage: React.FC = () => {
             label="Category"
           >
             <MenuItem value="">All Categories</MenuItem>
-            {categories.map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
+            {categories.map(category => (
+              <MenuItem key={category} value={category}>{category}</MenuItem>
             ))}
           </Select>
         </FormControl>
       </Box>
 
-      <div style={{ overflowX: 'auto', width: '100%' }}>
-        <Grid container spacing={4} style={{ flexWrap: 'nowrap' }}>
-          {filteredMenuItems.map((item) => (
-            <Grid item style={{ flex: '0 0 auto', width: '250px' }} key={item.id}>
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={`${item.image}`}
-                  alt={item.name}
-                />
-                <CardContent>
-                  <Typography variant="h6">{item.name}</Typography>
-                  <Typography variant="body2">₹{item.price}</Typography>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    onClick={() => handleAddItem(item)}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {filteredItems.map(item => (
+          <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardMedia
+                component="img"
+                height="160"
+                image={`${import.meta.env.VITE_API_URL}${item.image}`}
+                alt={item.name}
+                sx={{ objectFit: 'cover' }}
+              />
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography gutterBottom variant="h6">{item.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  ₹{item.price}
+                </Typography>
+              </CardContent>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => handleAddItem(item)}
+                sx={{ mt: 'auto' }}
+              >
+                Add to Cart
+              </Button>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      <Paper elevation={3} sx={{ p: 2, position: 'sticky', bottom: 16 }}>
+        <Typography variant="h6" gutterBottom>
+          Your Cart ({selectedItems.length} items)
+        </Typography>
+        
+        <List dense>
+          {selectedItems.map(item => (
+            <ListItem key={item.id} divider>
+              <Box width="100%" display="flex" alignItems="center" justifyContent="space-between">
+                <div>
+                  <Typography variant="body1">{item.name}</Typography>
+                  <Typography variant="body2">
+                    ₹{item.price} × {item.quantity}
+                  </Typography>
+                </div>
+                
+                <div>
+                  <IconButton onClick={() => handleQuantity(item.id, true)}>
+                    <Add />
+                  </IconButton>
+                  <IconButton 
+                    onClick={() => handleQuantity(item.id, false)}
+                    disabled={item.quantity === 1}
                   >
-                    Add
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+                    <Remove />
+                  </IconButton>
+                  <IconButton onClick={() => handleRemoveItem(item.id)} color="error">
+                    <Delete />
+                  </IconButton>
+                </div>
+              </Box>
+            </ListItem>
           ))}
-        </Grid>
-      </div>
+        </List>
 
-      <Paper elevation={3} sx={{ mt: 4, p: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          Your Cart
-        </Typography>
-        <div style={{ overflowX: 'auto', width: '100%' }}>
-          <List>
-            {selectedItems.map((item) => (
-              <ListItem key={item.id} divider>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={8}>
-                    <Typography
-                      variant="body1"
-                      sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
-                    >
-                      {`${item.name} - ₹${item.price}`}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {`Quantity: ${item.quantity}`}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '8px',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <IconButton size="small" onClick={() => handleIncreaseQuantity(item)}>
-                        <Add />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleDecreaseQuantity(item)}>
-                        <Remove />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveItem(item)}
-                        color="error"
-                      >
-                        <Delete />
-                      </IconButton>
-                    </div>
-                  </Grid>
-                </Grid>
-              </ListItem>
-            ))}
-          </List>
-        </div>
-
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Total: ₹{total}
-        </Typography>
-        <Button
-          variant="contained"
-          color="success"
-          fullWidth
-          sx={{ mt: 2 }}
-          onClick={handleGoToCart}
-        >
-          Go to Cart
-        </Button>
+        <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Total: ₹{total}</Typography>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => navigate('/cartpage')}
+            disabled={selectedItems.length === 0}
+          >
+            Proceed to Checkout
+          </Button>
+        </Box>
       </Paper>
     </Container>
   );

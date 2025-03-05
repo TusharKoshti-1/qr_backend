@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -13,7 +13,7 @@ import {
   Container,
   Paper,
 } from "@mui/material";
-import { Add, Remove, Delete, ArrowBack} from "@mui/icons-material";
+import { Add, Remove, Delete, ArrowBack } from "@mui/icons-material";
 
 interface CartItem {
   id: string;
@@ -22,159 +22,132 @@ interface CartItem {
   quantity: number;
 }
 
-interface LocationState {
-  name: string;
-  phone: string;
-  restaurantId: number;
-  selectedItems: CartItem[];
-}
-
-const CartPage: React.FC = () => {
-  const location = useLocation();
+// Reusable session check hook (same as previous pages)
+const useSessionCheck = () => {
   const navigate = useNavigate();
 
-  const { name, phone, selectedItems, restaurantId } = (location.state as LocationState) || {};
-  const [items, setItems] = useState<CartItem[]>(selectedItems || []);
+  useEffect(() => {
+    const sessionData = sessionStorage.getItem('userSession');
+    if (!sessionData) {
+      navigate('/');
+      return;
+    }
+
+    const session = JSON.parse(sessionData);
+    const currentTime = Date.now();
+    if (currentTime - session.timestamp > 900000) { // 15 minutes
+      sessionStorage.clear();
+      navigate('/');
+    }
+  }, [navigate]);
+};
+
+const CartPage: React.FC = () => {
+  const navigate = useNavigate();
+  useSessionCheck();
+
+  // Get data from session storage
+  const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
+  const [items, setItems] = useState<CartItem[]>(
+    JSON.parse(sessionStorage.getItem('selectedItems') || '[]')
+  );
 
   useEffect(() => {
-    if (!selectedItems || selectedItems.length === 0) {
-      navigate("/customerpage"); // Navigate back to customer page
+    sessionStorage.setItem('selectedItems', JSON.stringify(items));
+    if (items.length === 0) {
+      navigate('/customerpage');
     }
-  }, [selectedItems, navigate]);
+  }, [items, navigate]);
 
-  const handleIncreaseQuantity = (item: CartItem) => {
-    setItems(
-      items.map((selectedItem) =>
-        selectedItem.id === item.id
-          ? { ...selectedItem, quantity: selectedItem.quantity + 1 }
-          : selectedItem
-      )
-    );
-  };
-
-  const handleDecreaseQuantity = (item: CartItem) => {
-    if (item.quantity > 1) {
-      setItems(
-        items.map((selectedItem) =>
-          selectedItem.id === item.id
-            ? { ...selectedItem, quantity: selectedItem.quantity - 1 }
-            : selectedItem
-        )
-      );
-    }
-  };
-
-  const handleRemoveItem = (item: CartItem) => {
-    setItems(items.filter((selectedItem) => selectedItem.id !== item.id));
-  };
-
-  const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
-
-  const handleCashPayment = async () => {
-    const total = calculateTotal();
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, {
-        customer_name: name,
-        phone,
-        items,
-        total_amount: total,
-        payment_method: "Cash",
-        restaurant_id: restaurantId,
-        headers: { 'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-         },
-      });
-      alert("Your order has been placed successfully! Please pay with cash at the counter.");
-      navigate("/thankyou", { state: { name, phone, items, total, payment: "Cash" } });
-    } catch (error) {
-      console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
-    }
-  };
-
-  const handleOnlinePayment = async () => {
-    const total = calculateTotal();
-    const upiLink = generateUpiPaymentLink(total);
-    
-    window.open(upiLink, '_blank');
-    const isConfirmed = window.confirm(
-      "Please complete the payment in your UPI app and confirm here."
-    );
-
-    if (isConfirmed) {
-      try {
-        await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders?restaurant_id=${restaurantId}`, {
-          customer_name: name,
-          phone,
-          items,
-          total_amount: total,
-          payment_method: "UPI",
-          restaurant_id: restaurantId,
-        }, {
-          headers: { 'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-           }
-        });
-        
-        navigate("/thankyou", { 
-          state: { 
-            name, 
-            phone, 
-            items, 
-            total, 
-            payment: "UPI",
-            restaurant_id: restaurantId, 
-          } 
-        });
-      } catch (error) {
-        console.error("Error placing order:", error);
-        alert("Failed to process payment. Please try again.");
+  const handleQuantityChange = (itemId: string, increment: boolean) => {
+    setItems(prev => prev.map(item => {
+      if (item.id === itemId) {
+        const newQuantity = Math.max(1, item.quantity + (increment ? 1 : -1));
+        return { ...item, quantity: newQuantity };
       }
-    } else {
-      alert("Payment not completed. Please complete the payment to place your order.");
+      return item;
+    }));
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const calculateTotal = () => items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handlePayment = async (method: 'Cash' | 'UPI') => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/orders`, {
+        customer_name: sessionData.name,
+        phone: sessionData.phone,
+        items,
+        total_amount: calculateTotal(),
+        payment_method: method,
+      }, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
+
+      if (method === 'UPI') {
+        const upiLink = `upi://pay?pa=${import.meta.env.VITE_UPI_ID}&pn=Restaurant&am=${calculateTotal()}&tn=Order%20Payment`;
+        window.open(upiLink, '_blank');
+        
+        const confirmed = window.confirm(
+          "Please complete the UPI payment and confirm.\nShow confirmation at the counter."
+        );
+        if (!confirmed) return;
+      }
+
+      sessionStorage.removeItem('selectedItems');
+      sessionStorage.removeItem('userSession');
+      navigate('/thankyou', { 
+        state: { 
+          payment: method,
+          total: calculateTotal()
+        } 
+      });
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Payment failed. Please try again.");
     }
-  };
-
-  const generateUpiPaymentLink = (amount: number) => {
-    const vpa = 'tusharkoshti001@okicici';
-    const transactionNote = `Payment for order from ${name}`;
-    
-    return `upi://pay?pa=${vpa}&pn=Restaurant%20Name&am=${amount}&tn=${transactionNote}`;
-  };
-
-  const handleBack = () => {
-    navigate("/customerpage", { // Navigate back to customer page
-      state: { name, phone, selectedItems: items },
-    });
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Box display="flex" alignItems="center" mb={2}>
-        <IconButton onClick={handleBack} color="primary">
+    <Container sx={{ mt: 4, pb: 8 }}>
+      <Box display="flex" alignItems="center" mb={4}>
+        <IconButton onClick={() => navigate('/customerpage')} color="primary">
           <ArrowBack />
         </IconButton>
-        <Typography variant="h4">Cart</Typography>
+        <Typography variant="h4">Your Cart</Typography>
       </Box>
 
       <Grid container spacing={3}>
         {items.map((item) => (
-          <Grid item xs={12} md={6} key={item.id}>
+          <Grid item xs={12} key={item.id}>
             <Card>
               <CardContent>
                 <Typography variant="h6">{item.name}</Typography>
-                <Typography variant="body1">₹{item.price} x {item.quantity}</Typography>
+                <Typography variant="body1">
+                  ₹{item.price} × {item.quantity}
+                </Typography>
               </CardContent>
               <CardActions>
-                <IconButton color="primary" onClick={() => handleIncreaseQuantity(item)}>
+                <IconButton 
+                  onClick={() => handleQuantityChange(item.id, true)}
+                  color="primary"
+                >
                   <Add />
                 </IconButton>
-                <IconButton color="secondary" onClick={() => handleDecreaseQuantity(item)}>
+                <IconButton 
+                  onClick={() => handleQuantityChange(item.id, false)}
+                  color="secondary"
+                  disabled={item.quantity === 1}
+                >
                   <Remove />
                 </IconButton>
-                <IconButton color="error" onClick={() => handleRemoveItem(item)}>
+                <IconButton 
+                  onClick={() => handleRemoveItem(item.id)}
+                  color="error"
+                >
                   <Delete />
                 </IconButton>
               </CardActions>
@@ -183,27 +156,29 @@ const CartPage: React.FC = () => {
         ))}
       </Grid>
 
-      <Paper elevation={3} sx={{ mt: 4, p: 3 }}>
-        <Typography variant="h5">Total Amount: ₹{calculateTotal()}</Typography>
-
-        <Box display="flex" justifyContent="space-between" mt={2}>
+      <Paper elevation={3} sx={{ mt: 4, p: 3, position: 'sticky', bottom: 16 }}>
+        <Typography variant="h5" gutterBottom>
+          Total: ₹{calculateTotal()}
+        </Typography>
+        
+        <Box display="flex" gap={2} flexDirection={{ xs: 'column', sm: 'row' }}>
           <Button
             variant="contained"
             color="success"
-            onClick={handleCashPayment}
+            onClick={() => handlePayment('Cash')}
             fullWidth
-            sx={{ mr: 1 }}
+            size="large"
           >
-            Cash Payment
+            Pay with Cash
           </Button>
           <Button
             variant="contained"
             color="primary"
-            onClick={handleOnlinePayment}
+            onClick={() => handlePayment('UPI')}
             fullWidth
-            sx={{ ml: 1 }}
+            size="large"
           >
-            Online Payment
+            Pay via UPI
           </Button>
         </Box>
       </Paper>
