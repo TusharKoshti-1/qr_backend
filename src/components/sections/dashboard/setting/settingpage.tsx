@@ -11,6 +11,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 interface SettingsData {
   restaurantName: string;
@@ -18,7 +19,7 @@ interface SettingsData {
   phone: string;
   email: string;
   operatingHours: string;
-  taxRate: string;
+  upiId: string;
   isOpen: boolean;
 }
 
@@ -29,7 +30,7 @@ const SettingsPage: React.FC = () => {
     phone: '',
     email: '',
     operatingHours: '',
-    taxRate: '',
+    upiId: '',
     isOpen: false,
   });
   const [loading, setLoading] = useState<boolean>(true);
@@ -162,14 +163,14 @@ const SettingsPage: React.FC = () => {
                 placeholder="e.g., 9 AM - 9 PM"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Tax Rate (%)"
-                name="taxRate"
-                value={settings.taxRate}
+                label="UPI ID"
+                name="upiId"
+                value={settings.upiId}
                 onChange={handleChange}
-                type="number"
+                placeholder="example@upi"
               />
             </Grid>
             <Grid item xs={12} sm={6} display="flex" alignItems="center">
@@ -183,6 +184,11 @@ const SettingsPage: React.FC = () => {
             <Button type="submit" variant="contained" color="primary">
               Save Settings
             </Button>
+            <Link to="/qr-code">
+              <Button variant="outlined" sx={{ mt: 2, ml: 2 }}>
+                View QR Code
+              </Button>
+            </Link>
           </Box>
         </Box>
       </Paper>

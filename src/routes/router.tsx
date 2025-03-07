@@ -22,6 +22,7 @@ const ItemPage = lazy(() => import('pages/sales/ItemReport'));
 const SettingPage = lazy(() => import('pages/setting/Setting'));
 const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
 const ScanQRAgainPage = lazy(() => import('pages/customer/ScanQRCodeAgain'));
+const QrPage = lazy(() => import('pages/setting/QrCode'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -108,6 +109,10 @@ export const routes = [
           {
             path: paths.settingpage,
             element: <SettingPage />,
+          },
+          {
+            path: paths.qrcode,
+            element: <QrPage />,
           },
         ],
       },

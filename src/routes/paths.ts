@@ -20,4 +20,5 @@ export default {
   settingpage: '/settings',
   thankyou: '/thankyou',
   scanqrcodeagain: '/scanqrcodeagain',
+  qrcode: '/qr-code',
 };
