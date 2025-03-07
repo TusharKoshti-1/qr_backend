@@ -22,7 +22,7 @@ const ItemPage = lazy(() => import('pages/sales/ItemReport'));
 const SettingPage = lazy(() => import('pages/setting/Setting'));
 const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
 const ScanQRAgainPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
-const QrPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
+const QrPage = lazy(() => import('pages/setting/QrCode'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
