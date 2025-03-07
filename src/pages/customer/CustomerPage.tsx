@@ -39,7 +39,7 @@ const useSessionCheck = () => {
     if (currentTime - session.timestamp > 900000) {
       sessionStorage.removeItem('userSession');
       sessionStorage.removeItem('selectedItems');
-      navigate('/');
+      navigate('/scanqrcodeagain');
     }
   }, [navigate]);
 };

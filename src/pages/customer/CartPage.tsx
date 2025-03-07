@@ -37,7 +37,7 @@ const useSessionCheck = () => {
     const currentTime = Date.now();
     if (currentTime - session.timestamp > 900000) { // 15 minutes
       sessionStorage.clear();
-      navigate('/');
+      navigate('/scanqrcodeagain');
     }
   }, [navigate]);
 };
