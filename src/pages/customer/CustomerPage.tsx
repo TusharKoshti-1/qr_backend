@@ -139,15 +139,14 @@ const CustomerPage: React.FC = () => {
         Hello, {sessionData.name}!
       </Typography>
 
-      <Box display="flex" gap={2} mb={4} flexDirection={{ xs: 'column', sm: 'row' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
         <TextField
-          label="Search menu..."
+          label="Search for items..."
           variant="outlined"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ flex: 1 }}
+          sx={{ flex: 1, mr: { sm: 2 } }}
         />
-        
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>Category</InputLabel>
           <Select
@@ -163,82 +162,106 @@ const CustomerPage: React.FC = () => {
         </FormControl>
       </Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {filteredItems.map(item => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardMedia
-                component="img"
-                height="160"
-                image={`${item.image}`}
-                alt={item.name}
-                sx={{ objectFit: 'cover' }}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h6">{item.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  ₹{item.price}
-                </Typography>
-              </CardContent>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => handleAddItem(item)}
-                sx={{ mt: 'auto' }}
-              >
-                Add to Cart
-              </Button>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      <Box sx={{ overflowX: 'auto', width: '100%', mb: 4 }}>
+        <Grid container spacing={3} sx={{ flexWrap: 'nowrap', p: 1 }}>
+          {filteredItems.map(item => (
+            <Grid item key={item.id} sx={{ minWidth: 250 }}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardMedia
+                  component="img"
+                  height="140"
+                  image={item.image}
+                  alt={item.name}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography gutterBottom variant="h6">{item.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ₹{item.price}
+                  </Typography>
+                </CardContent>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => handleAddItem(item)}
+                  sx={{ mt: 'auto' }}
+                >
+                  Add
+                </Button>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
 
-      <Paper elevation={3} sx={{ p: 2, position: 'sticky', bottom: 16 }}>
-        <Typography variant="h6" gutterBottom>
-          Your Cart ({selectedItems.length} items)
+      <Paper elevation={3} sx={{ p: 2 }}>
+        <Typography variant="h5" gutterBottom>
+          Your Cart
         </Typography>
         
-        <List dense>
-          {selectedItems.map(item => (
-            <ListItem key={item.id} divider>
-              <Box width="100%" display="flex" alignItems="center" justifyContent="space-between">
-                <div>
-                  <Typography variant="body1">{item.name}</Typography>
-                  <Typography variant="body2">
-                    ₹{item.price} × {item.quantity}
-                  </Typography>
-                </div>
-                
-                <div>
-                  <IconButton onClick={() => handleQuantity(item.id, true)}>
-                    <Add />
-                  </IconButton>
-                  <IconButton 
-                    onClick={() => handleQuantity(item.id, false)}
-                    disabled={item.quantity === 1}
-                  >
-                    <Remove />
-                  </IconButton>
-                  <IconButton onClick={() => handleRemoveItem(item.id)} color="error">
-                    <Delete />
-                  </IconButton>
-                </div>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
-
-        <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Total: ₹{total}</Typography>
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => navigate('/cartpage')}
-            disabled={selectedItems.length === 0}
-          >
-            Proceed to Checkout
-          </Button>
+        <Box sx={{ overflowX: 'auto', width: '100%' }}>
+          <List dense>
+            {selectedItems.map(item => (
+              <ListItem key={item.id} divider>
+                <Grid container alignItems="center" spacing={2}>
+                  <Grid item xs={8}>
+                    <Typography 
+                      variant="body1"
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {item.name} - ₹{item.price}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Quantity: {item.quantity}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <Box display="flex" justifyContent="flex-end" gap={1}>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleQuantity(item.id, true)}
+                      >
+                        <Add />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleQuantity(item.id, false)}
+                        disabled={item.quantity === 1}
+                      >
+                        <Remove />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleRemoveItem(item.id)} 
+                        color="error"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </ListItem>
+            ))}
+          </List>
         </Box>
+
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          Total: ₹{total}
+        </Typography>
+        <Button
+          variant="contained"
+          color="success"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={() => navigate('/cartpage')}
+          disabled={selectedItems.length === 0}
+        >
+          Go to Cart
+        </Button>
       </Paper>
     </Container>
   );
