@@ -89,7 +89,7 @@ const CartPage: React.FC = () => {
       });
 
       if (method === 'UPI') {
-        const upiLink = `upi://pay?pa=${import.meta.env.VITE_UPI_ID}&pn=Restaurant&am=${calculateTotal()}&tn=Order%20Payment`;
+        const upiLink = `upi://pay?pa=${await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/updId?restaurant_id=${sessionData.restaurantId}`)}&pn=Restaurant&am=${calculateTotal()}&tn=Order%20Payment`;
         window.open(upiLink, '_blank');
         
         const confirmed = window.confirm(
