@@ -75,7 +75,7 @@ const CartPage: React.FC = () => {
 
   const calculateTotal = () => items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handlePayment = async (method: 'Cash' | 'UPI') => {
+  const handlePayment = async (method: 'Cash' | 'Online') => {
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, {
         customer_name: sessionData.name,
@@ -88,7 +88,7 @@ const CartPage: React.FC = () => {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });
 
-      if (method === 'UPI') {
+      if (method === 'Online') {
         const upiLink = `upi://pay?pa=${await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/updId?restaurant_id=${sessionData.restaurantId}`)}&pn=Restaurant&am=${calculateTotal()}&tn=Order%20Payment`;
         window.open(upiLink, '_blank');
         
@@ -175,11 +175,11 @@ const CartPage: React.FC = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handlePayment('UPI')}
+            onClick={() => handlePayment('Online')}
             fullWidth
             size="large"
           >
-            Pay via UPI
+            Pay Online
           </Button>
         </Box>
       </Paper>
