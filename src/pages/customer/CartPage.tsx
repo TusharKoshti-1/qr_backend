@@ -45,6 +45,7 @@ const useSessionCheck = () => {
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
   useSessionCheck();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Get data from session storage
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
@@ -76,6 +77,8 @@ const CartPage: React.FC = () => {
   const calculateTotal = () => items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handlePayment = async (method: 'Cash' | 'Online') => {
+    if (isProcessing) return;
+    setIsProcessing(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/customer/orders`, {
         customer_name: sessionData.name,
@@ -112,6 +115,8 @@ const CartPage: React.FC = () => {
     } catch (error) {
       console.error("Payment error:", error);
       alert("Payment failed. Please try again.");
+    } finally {
+      setIsProcessing(false); // Re-enable buttons
     }
   };
 
@@ -170,6 +175,7 @@ const CartPage: React.FC = () => {
             variant="contained"
             color="success"
             onClick={() => handlePayment('Cash')}
+            disabled={isProcessing}
             fullWidth
             size="large"
           >
@@ -179,6 +185,7 @@ const CartPage: React.FC = () => {
             variant="contained"
             color="primary"
             onClick={() => handlePayment('Online')}
+            disabled={isProcessing}
             fullWidth
             size="large"
           >
