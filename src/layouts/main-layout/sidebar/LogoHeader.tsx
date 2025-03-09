@@ -15,7 +15,12 @@ const LogoHeader = (props: LogoHeaderProps) => {
     const fetchRestaurantName = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/restaurant-name`
+          `${import.meta.env.VITE_API_URL}/api/restaurant-name`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }
         );
         setRestaurantName(response.data.name);
       } catch (error) {
