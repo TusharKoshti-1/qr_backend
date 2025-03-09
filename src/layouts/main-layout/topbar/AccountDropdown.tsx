@@ -29,7 +29,7 @@ const AccountDropdown = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/user/profile`, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             }
           }
         );
@@ -61,7 +61,7 @@ const AccountDropdown = () => {
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
           }
         }
       );
