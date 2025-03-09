@@ -163,7 +163,7 @@ const AccountDropdown = () => {
         >
           <ListItemIcon>
             <IconifyIcon
-              icon="material-symbols:camera-alt"
+              icon= 'material-symbols:person'
               sx={{ color: 'primary.main' }}
               className="account-menu-icon"
             />
