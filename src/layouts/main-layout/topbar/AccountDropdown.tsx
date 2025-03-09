@@ -33,7 +33,7 @@ const AccountDropdown = () => {
             }
           }
         );
-        setProfileImage(response.data.profile_photo);
+        setProfileImage(response.data.photoUrl);
       } catch (error) {
         console.error('Error fetching profile photo:', error);
       }
