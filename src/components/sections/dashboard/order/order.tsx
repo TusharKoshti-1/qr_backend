@@ -189,7 +189,7 @@ const Order = () => {
       <div
         style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingBottom: '20px' }}
       >
-        <Link to="/welcome">
+        <Link to="/addorder">
           <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
             Add Order
           </Button>

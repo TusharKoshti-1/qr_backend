@@ -19,6 +19,7 @@ import {
   Box,
 } from '@mui/material';
 import { Add, Remove, Delete } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface MenuItemType {
   id: number;
@@ -39,6 +40,8 @@ const AdminAddOrderPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,6 +126,7 @@ const AdminAddOrderPage: React.FC = () => {
       alert('Order created successfully!');
       setCustomerName('');
       setOrderItems([]);
+      navigate('/order');
     } catch (error) {
       console.error('Error creating order:', error);
       alert('Failed to create order');
