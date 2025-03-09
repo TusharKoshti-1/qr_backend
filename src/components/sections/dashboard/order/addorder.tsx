@@ -111,7 +111,7 @@ const AdminAddOrderPage: React.FC = () => {
           customer_name: customerName,
           items: orderItems,
           total: totalAmount,
-          payment_method: 'Cash',
+          payment_method: 'C',
         },
         {
           headers: {
