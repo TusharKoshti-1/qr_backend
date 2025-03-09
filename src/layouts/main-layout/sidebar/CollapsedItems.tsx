@@ -14,7 +14,7 @@ const CollapsedItems = ({ items, open }: CollapsedItemProps) => {
       <List component="ul">
         {items?.map((item) => (
           <ListItem key={item.id} sx={{ py: 0, pl: 7, pr: 0 }}>
-            {item.path === "/editorder" ? ""
+            {item.path === "/editorder"|| item.path === "/qr-code" ? ""
             :
             <ListItemButton
               selected={location.pathname === item.path}

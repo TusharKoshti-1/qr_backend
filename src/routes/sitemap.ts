@@ -95,6 +95,13 @@ const sitemap: MenuItem[] = [
         pathName: 'editorder',
         active: true,
       },
+      {
+        id: 25,
+        name: 'OrderQRCode',
+        path: '/qr-code',
+        pathName: 'qr-code',
+        active: true,
+      },
     ],
   },
   {
