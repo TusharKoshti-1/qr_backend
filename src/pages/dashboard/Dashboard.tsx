@@ -11,30 +11,24 @@ import TopProducts from 'components/sections/dashboard/top-products/TopProducts'
 
 const Dashboard = () => {
   return (
-    <Grid container spacing={3} sx={{ p: 3 }}>
-      {/* First Row - Main Metrics */}
-      <Grid item xs={12} lg={8}>
+    <Grid container spacing={4}>
+      <Grid item xs={12} xl={7}>
         <Sales />
       </Grid>
-      <Grid item xs={12} lg={4}>
+      <Grid item xs={12} md={7} xl={5}>
         <VisitorInsights />
       </Grid>
-
-      {/* Second Row - Key Indicators */}
-      <Grid item xs={12} md={6} lg={3}>
+      <Grid item xs={12} md={5} xl={6}>
         <TotalRevenue />
       </Grid>
-      <Grid item xs={12} md={6} lg={3}>
+      <Grid item xs={12} md={7} xl={3}>
         <CustomerSatisfaction />
       </Grid>
-
-      {/* Third Row - Full Width Section */}
-      <Grid item xs={12}>
+      <Grid item xs={12} xl={6}>
         <TopProducts />
       </Grid>
     </Grid>
   );
 };
-
 
 export default Dashboard;
