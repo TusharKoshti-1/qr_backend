@@ -14,6 +14,7 @@ const Addmenuitems = lazy(() => import('pages/menu/addmenuitem'));
 const Addnewitems = lazy(() => import('pages/menu/addnewitems'));
 const Order = lazy(() => import('pages/order/Order'));
 const EditOrder = lazy(() => import('pages/order/EditOrder'));
+const AddOrder = lazy(() => import('pages/order/AddOrder'));
 const LandingPage = lazy(() => import('pages/customer/LandingPage'));
 const CustomerPage = lazy(() => import('pages/customer/CustomerPage'));
 const CartPage = lazy(() => import('pages/customer/CartPage'));
@@ -97,6 +98,10 @@ export const routes = [
           {
             path: paths.editorder,
             element: <EditOrder />,
+          },
+          {
+            path: paths.addorder,
+            element: <AddOrder />,
           },
           {
             path: paths.salesreport,

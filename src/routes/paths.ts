@@ -12,6 +12,7 @@ export default {
   addnewitems: '/addnewitems',
   order: '/order',
   editorder: '/editorder',
+  addorder: '/addorder',
   landingpage: `/welcome`,
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,
