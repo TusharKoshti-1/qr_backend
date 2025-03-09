@@ -27,7 +27,7 @@ const AccountDropdown = () => {
     const fetchProfilePhoto = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/user/profile`,{
+          `${import.meta.env.VITE_API_URL}/api/user/profile`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('token')}`
             }
@@ -75,7 +75,7 @@ const AccountDropdown = () => {
     }
   };
 
-  const handleAvatarClick = () => {
+  const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
 
@@ -101,7 +101,6 @@ const AccountDropdown = () => {
         sx={{ px: { xs: 1, sm: 2 }, minWidth: 'auto' }}
       >
         <Avatar
-          onClick={handleAvatarClick}
           sx={{
             width: { xs: 48, sm: 60 },
             height: { xs: 48, sm: 60 },
@@ -156,6 +155,22 @@ const AccountDropdown = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
+        <MenuItem
+          onClick={triggerFileInput}
+          sx={{
+            '&:hover .account-menu-icon': { color: 'common.white' },
+          }}
+        >
+          <ListItemIcon>
+            <IconifyIcon
+              icon="material-symbols:camera-alt"
+              sx={{ color: 'primary.main' }}
+              className="account-menu-icon"
+            />
+          </ListItemIcon>
+          <Typography variant="body1">Change Profile Photo</Typography>
+        </MenuItem>
+
         <MenuItem
           onClick={() => navigate(paths.signin)}
           sx={{
