@@ -118,7 +118,10 @@ const ItemReport: React.FC = () => {
   };
 
   const calculateTotalRevenue = () => {
-    return items.reduce((total, item) => total + item.total_revenue, 0);
+    return filteredSales.reduce((total, sale) => {
+      const cleanedAmount = sale.total_amount.replace(/[^0-9.-]+/g, '');
+      return total + parseFloat(cleanedAmount);
+    }, 0);
   };
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
