@@ -179,11 +179,13 @@ const AdminAddOrderPage: React.FC = () => {
               </Box>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={4}>
+              {' '}
+              {/* Increased spacing from 3 to 4 */}
               {filteredItems.map((item) => (
-                <Grid item key={item.id} xs={12} sm={6} md={6}>
+                <Grid item key={item.id} xs={12} sm={6} md={4}>
                   {' '}
-                  {/* Changed md from 4 to 6 */}
+                  {/* Back to 3 columns */}
                   <Card
                     sx={{
                       height: '100%',
@@ -191,43 +193,29 @@ const AdminAddOrderPage: React.FC = () => {
                       flexDirection: 'column',
                       transition: 'all 0.3s',
                       '&:hover': { boxShadow: 6 },
-                      minWidth: 300, // Added minimum width
+                      minWidth: 250, // Moderate minimum width
                     }}
                   >
                     <CardMedia
                       component="img"
-                      height="200" // Increased height for better proportion
+                      height="180" // Back to a reasonable height
                       image={item.image}
                       alt={item.name}
                       sx={{ objectFit: 'cover' }}
                     />
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      {' '}
-                      {/* Increased padding */}
-                      <Typography gutterBottom variant="h5" component="div">
-                        {' '}
-                        {/* Larger text */}
+                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                      <Typography gutterBottom variant="h6" component="div">
                         {item.name}
                       </Typography>
-                      <Typography variant="body1" color="text.secondary">
-                        {' '}
-                        {/* Larger category text */}
+                      <Typography variant="body2" color="text.secondary">
                         {item.category}
                       </Typography>
-                      <Typography variant="h6" sx={{ mt: 2, fontWeight: 'medium' }}>
-                        {' '}
-                        {/* Larger price */}₹{item.price}
+                      <Typography variant="body1" sx={{ mt: 1, fontWeight: 'medium' }}>
+                        ₹{item.price}
                       </Typography>
                     </CardContent>
-                    <Box sx={{ p: 3, pt: 0 }}>
-                      {' '}
-                      {/* Increased padding */}
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        size="large" // Larger button
-                        onClick={() => handleAddToOrder(item)}
-                      >
+                    <Box sx={{ p: 2, pt: 0 }}>
+                      <Button variant="contained" fullWidth onClick={() => handleAddToOrder(item)}>
                         Add to Order
                       </Button>
                     </Box>
