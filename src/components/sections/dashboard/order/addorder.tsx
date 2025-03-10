@@ -178,13 +178,12 @@ const AdminAddOrderPage: React.FC = () => {
 
         <Grid container spacing={3}>
           {/* Menu Items Column */}
-          <Grid item xs={12} md={8} lg={5}>
+          <Grid item xs={12} md={8}>
             <Grid container spacing={3}>
               {filteredItems.map((item) => (
-                <Grid item key={item.id} xs={12} sm={6} md={4} lg={5}>
+                <Grid item key={item.id} xs={12} sm={6} md={6} lg={4}>
                   <Card
                     sx={{
-                      maxWidth: 700,
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
@@ -193,7 +192,7 @@ const AdminAddOrderPage: React.FC = () => {
                   >
                     <CardMedia
                       component="img"
-                      height="140"
+                      height="160"
                       image={item.image}
                       alt={item.name}
                       sx={{ objectFit: 'cover' }}
