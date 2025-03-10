@@ -178,7 +178,7 @@ const AdminAddOrderPage: React.FC = () => {
 
         <Grid container spacing={3}>
           {/* Menu Items Column */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={8} lg={5}>
             <Grid container spacing={3}>
               {filteredItems.map((item) => (
                 <Grid item key={item.id} xs={12} sm={6} md={4} lg={5}>
