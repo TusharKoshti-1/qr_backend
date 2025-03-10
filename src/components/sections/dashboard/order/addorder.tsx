@@ -150,7 +150,7 @@ const AdminAddOrderPage: React.FC = () => {
 
       <Grid container spacing={3}>
         {/* Left Column - Menu Items */}
-        <Grid item xs={12} md={8} lg={9}>
+        <Grid item xs={12} md={8} lg={8}>
           <Paper sx={{ p: 3, mb: 3, borderRadius: 4 }}>
             <Box sx={{ mb: 3 }}>
               <TextField
@@ -203,7 +203,7 @@ const AdminAddOrderPage: React.FC = () => {
 
             <Grid container spacing={3}>
               {filteredItems.map((item) => (
-                <Grid item key={item.id} xs={12} sm={6} md={6} lg={4}>
+                <Grid item key={item.id} xs={12} sm={6} md={4}>
                   <Card
                     sx={{
                       height: '100%',
@@ -281,23 +281,22 @@ const AdminAddOrderPage: React.FC = () => {
 
         {/* Right Column - Order Summary */}
         <Grid item xs={12} md={4} lg={4}>
-          {' '}
-          {/* Increased width from lg={3} to lg={4} */}
           <Paper
             sx={{
               p: 3,
-              position: { xs: 'static', md: 'sticky' },
-              top: 16,
               borderRadius: 4,
               backgroundColor: 'background.paper',
               boxShadow: 3,
-              height: { md: 'calc(100vh - 120px)' }, // Adjusted height
+              position: 'sticky',
+              top: 16,
+              // Removed maxHeight and overflow to prevent overlap issues
+              minHeight: isMobile ? 'auto' : 300, // Ensure minimum height for desktop
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden',
+              gap: 2, // Added consistent spacing between elements
             }}
           >
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
               Order Summary
             </Typography>
 
@@ -308,80 +307,70 @@ const AdminAddOrderPage: React.FC = () => {
                   py: 2,
                   textAlign: 'center',
                   fontStyle: 'italic',
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexGrow: 1, // Allow it to take available space
                 }}
               >
                 No items added yet
               </Typography>
             ) : (
-              <>
-                <List dense sx={{ flex: 1, overflow: 'auto', mb: 2, pr: 1 }}>
+              <Box sx={{ flexGrow: 1 }}>
+                <List dense>
                   {orderItems.map((item) => (
                     <ListItem
                       key={item.id}
                       divider
                       sx={{
                         py: 1.5,
-                        px: 0,
-                        '&:last-child': { borderBottom: 'none' }, // Remove border from last item
+                        '&:last-child': { borderBottom: 'none' }, // Remove divider from last item
                       }}
                     >
                       <Grid container alignItems="center" spacing={1}>
-                        <Grid item xs={7}>
+                        <Grid item xs={6} sm={7}>
                           <Typography variant="body1" fontWeight="medium" noWrap>
                             {item.name}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                              ₹{item.price} × {item.quantity}
-                            </Typography>
-                            <Typography variant="body2" fontWeight="bold">
-                              ₹{(item.price * item.quantity).toFixed(2)}
-                            </Typography>
-                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            ₹{item.price} × {item.quantity}
+                          </Typography>
                         </Grid>
-                        <Grid item xs={5}>
+                        <Grid item xs={6} sm={5}>
                           <Box
                             sx={{
                               display: 'flex',
                               justifyContent: 'flex-end',
-                              gap: 1,
                               alignItems: 'center',
+                              gap: 0.5,
                             }}
                           >
                             <IconButton
                               size="small"
                               onClick={() => handleQuantityChange(item.id, true)}
+                              color="primary"
                               sx={{
-                                backgroundColor: 'primary.main',
-                                color: 'white',
-                                '&:hover': { backgroundColor: 'primary.dark' },
+                                backgroundColor: 'primary.light',
+                                '&:hover': { backgroundColor: 'primary.main' },
                               }}
                             >
-                              <Add fontSize="small" />
+                              <Add fontSize="small" sx={{ color: 'white' }} />
                             </IconButton>
-                            <Typography variant="body2" sx={{ minWidth: 24, textAlign: 'center' }}>
+                            <Typography variant="body2" sx={{ mx: 1 }}>
                               {item.quantity}
                             </Typography>
                             <IconButton
                               size="small"
                               onClick={() => handleQuantityChange(item.id, false)}
+                              color="secondary"
                               sx={{
-                                backgroundColor: 'error.main',
-                                color: 'white',
-                                '&:hover': { backgroundColor: 'error.dark' },
+                                backgroundColor: 'error.light',
+                                '&:hover': { backgroundColor: 'error.main' },
                               }}
                             >
-                              <Remove fontSize="small" />
+                              <Remove fontSize="small" sx={{ color: 'white' }} />
                             </IconButton>
                             <IconButton
                               size="small"
                               onClick={() => handleRemoveItem(item.id)}
                               color="error"
-                              sx={{ ml: 0.5 }}
                             >
                               <Delete fontSize="small" />
                             </IconButton>
@@ -392,31 +381,23 @@ const AdminAddOrderPage: React.FC = () => {
                   ))}
                 </List>
 
-                {/* Total and Submit Section */}
                 <Box
                   sx={{
-                    mt: 'auto',
+                    mt: 2,
                     pt: 2,
-                    borderTop: 1,
+                    borderTop: '1px solid',
                     borderColor: 'divider',
-                    backgroundColor: 'background.paper',
-                    zIndex: 1,
                   }}
                 >
                   <Typography
-                    variant="h6"
+                    variant="h5"
                     sx={{
                       mb: 2,
                       fontWeight: 'bold',
                       color: 'secondary.main',
-                      fontSize: '1.25rem',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
                     }}
                   >
-                    <span>Total:</span>
-                    <span>₹{totalAmount.toFixed(2)}</span>
+                    Total: ₹{totalAmount}
                   </Typography>
 
                   <Button
@@ -427,22 +408,19 @@ const AdminAddOrderPage: React.FC = () => {
                     onClick={handleSubmitOrder}
                     disabled={!customerName}
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: 8,
                       py: 1.5,
-                      fontSize: '1rem',
+                      textTransform: 'none',
+                      fontSize: '1.1rem',
                       fontWeight: 'bold',
-                      boxShadow: 0,
-                      '&:hover': {
-                        boxShadow: 2,
-                        transform: 'translateY(-1px)',
-                      },
-                      transition: 'all 0.2s ease',
+                      boxShadow: 2,
+                      '&:hover': { boxShadow: 4 },
                     }}
                   >
                     Submit Order
                   </Button>
                 </Box>
-              </>
+              </Box>
             )}
           </Paper>
         </Grid>
