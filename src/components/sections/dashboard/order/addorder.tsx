@@ -181,11 +181,9 @@ const AdminAddOrderPage: React.FC = () => {
 
             <Grid container spacing={4}>
               {' '}
-              {/* Increased spacing from 3 to 4 */}
+              {/* Keep spacing at 4 for good gaps */}
               {filteredItems.map((item) => (
                 <Grid item key={item.id} xs={12} sm={6} md={4}>
-                  {' '}
-                  {/* Back to 3 columns */}
                   <Card
                     sx={{
                       height: '100%',
@@ -193,12 +191,13 @@ const AdminAddOrderPage: React.FC = () => {
                       flexDirection: 'column',
                       transition: 'all 0.3s',
                       '&:hover': { boxShadow: 6 },
-                      minWidth: 250, // Moderate minimum width
+                      width: '100%', // Ensure full width within grid item
+                      m: 0, // Reset any margins that might cause overlap
                     }}
                   >
                     <CardMedia
                       component="img"
-                      height="180" // Back to a reasonable height
+                      height="180"
                       image={item.image}
                       alt={item.name}
                       sx={{ objectFit: 'cover' }}
