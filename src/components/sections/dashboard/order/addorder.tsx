@@ -140,131 +140,163 @@ const AdminAddOrderPage: React.FC = () => {
       </Typography>
 
       <Paper sx={{ p: 3, mb: 3 }}>
-        <TextField
-          label="Customer Name"
-          variant="outlined"
-          fullWidth
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', sm: 'row' } }}>
+        <Box sx={{ mb: 3 }}>
           <TextField
-            label="Search Menu Items"
+            label="Customer Name"
             variant="outlined"
             fullWidth
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            sx={{ mb: 2 }}
           />
 
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              label="Category"
-            >
-              <MenuItem value="">All Categories</MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <TextField
+              label="Search Menu Items"
+              variant="outlined"
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <FormControl fullWidth sx={{ minWidth: 120 }}>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                label="Category"
+              >
+                <MenuItem value="">All Categories</MenuItem>
+                {categories.map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
         <Grid container spacing={3}>
-          {filteredItems.map((item) => (
-            <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={item.image}
-                  alt={item.name}
-                  sx={{ objectFit: 'cover' }}
-                />
-                <CardContent>
-                  <Typography gutterBottom variant="h6">
-                    {item.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.category}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mt: 1 }}>
-                    ₹{item.price}
-                  </Typography>
-                </CardContent>
+          {/* Menu Items Column */}
+          <Grid item xs={12} md={8}>
+            <Grid container spacing={3}>
+              {filteredItems.map((item) => (
+                <Grid item key={item.id} xs={12} sm={6} md={4} lg={3}>
+                  <Card
+                    sx={{
+                      maxWidth: 345,
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      width: '100%', // Added for full width
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="140"
+                      image={item.image}
+                      alt={item.name}
+                      sx={{ objectFit: 'cover' }}
+                    />
+                    <CardContent>
+                      <Typography gutterBottom variant="h6">
+                        {item.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {item.category}
+                      </Typography>
+                      <Typography variant="body1" sx={{ mt: 1 }}>
+                        ₹{item.price}
+                      </Typography>
+                    </CardContent>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      onClick={() => handleAddToOrder(item)}
+                      sx={{ mt: 'auto' }}
+                    >
+                      Add to Order
+                    </Button>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+
+          {/* Order Summary Column */}
+          <Grid item xs={12} md={4}>
+            {orderItems.length > 0 && (
+              <Paper
+                sx={{
+                  p: 2,
+                  position: 'sticky',
+                  top: 16,
+                  height: 'fit-content',
+                }}
+              >
+                <Typography variant="h5" gutterBottom>
+                  Order Summary
+                </Typography>
+
+                <List dense sx={{ maxHeight: 400, overflow: 'auto' }}>
+                  {orderItems.map((item) => (
+                    <ListItem key={item.id} divider>
+                      <Grid container alignItems="center" spacing={1}>
+                        <Grid item xs={7}>
+                          <Typography variant="body1" noWrap>
+                            {item.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ₹{item.price} x {item.quantity}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={5}>
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleQuantityChange(item.id, true)}
+                            >
+                              <Add />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleQuantityChange(item.id, false)}
+                            >
+                              <Remove />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleRemoveItem(item.id)}
+                              color="error"
+                            >
+                              <Delete />
+                            </IconButton>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                  ))}
+                </List>
+
+                <Typography variant="h6" sx={{ mt: 2, mb: 2 }}>
+                  Total: ₹{totalAmount}
+                </Typography>
+
                 <Button
                   variant="contained"
+                  color="primary"
                   fullWidth
-                  onClick={() => handleAddToOrder(item)}
-                  sx={{ mt: 'auto' }}
+                  size="large"
+                  onClick={handleSubmitOrder}
+                  disabled={!customerName}
                 >
-                  Add to Order
+                  Submit Order
                 </Button>
-              </Card>
-            </Grid>
-          ))}
+              </Paper>
+            )}
+          </Grid>
         </Grid>
       </Paper>
-
-      {orderItems.length > 0 && (
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            Order Summary
-          </Typography>
-
-          <List>
-            {orderItems.map((item) => (
-              <ListItem key={item.id} divider>
-                <Grid container alignItems="center" spacing={2}>
-                  <Grid item xs={6}>
-                    <Typography variant="body1">{item.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      ₹{item.price} x {item.quantity}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      <IconButton size="small" onClick={() => handleQuantityChange(item.id, true)}>
-                        <Add />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleQuantityChange(item.id, false)}>
-                        <Remove />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveItem(item.id)}
-                        color="error"
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </ListItem>
-            ))}
-          </List>
-
-          <Typography variant="h6" sx={{ mt: 2, mb: 2 }}>
-            Total: ₹{totalAmount}
-          </Typography>
-
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            size="large"
-            onClick={handleSubmitOrder}
-            disabled={!customerName}
-          >
-            Submit Order
-          </Button>
-        </Paper>
-      )}
     </Box>
   );
 };
