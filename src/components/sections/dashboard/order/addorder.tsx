@@ -17,6 +17,7 @@ import {
   ListItem,
   IconButton,
   Box,
+  Container,
 } from '@mui/material';
 import { Add, Remove, Delete } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -134,117 +135,118 @@ const AdminAddOrderPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
         Create New Order
       </Typography>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ mb: 3 }}>
-          <TextField
-            label="Customer Name"
-            variant="outlined"
-            fullWidth
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+      <Grid container spacing={3}>
+        {/* Left Column - Menu Items */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                label="Customer Name"
+                variant="outlined"
+                fullWidth
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <TextField
+                  label="Search Menu Items"
+                  variant="outlined"
+                  sx={{ flex: 1, minWidth: 200 }}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <FormControl sx={{ minWidth: 200 }}>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    label="Category"
+                  >
+                    <MenuItem value="">All Categories</MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category} value={category}>
+                        {category}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
 
-          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-            <TextField
-              label="Search Menu Items"
-              variant="outlined"
-              fullWidth
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <FormControl fullWidth sx={{ minWidth: 120 }}>
-              <InputLabel>Category</InputLabel>
-              <Select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                label="Category"
-              >
-                <MenuItem value="">All Categories</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
-
-        <Grid container spacing={3}>
-          {/* Menu Items Column */}
-          <Grid item xs={12} md={8}>
             <Grid container spacing={3}>
               {filteredItems.map((item) => (
-                <Grid item key={item.id} xs={12} sm={6} md={6} lg={4}>
+                <Grid item key={item.id} xs={12} sm={6} md={4}>
                   <Card
                     sx={{
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      width: '100%', // Added for full width
+                      transition: 'all 0.3s',
+                      '&:hover': { boxShadow: 6 },
                     }}
                   >
                     <CardMedia
                       component="img"
-                      height="160"
+                      height="180"
                       image={item.image}
                       alt={item.name}
                       sx={{ objectFit: 'cover' }}
                     />
-                    <CardContent>
-                      <Typography gutterBottom variant="h6">
+                    <CardContent sx={{ flexGrow: 1 }}>
+                      <Typography gutterBottom variant="h6" component="div">
                         {item.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         {item.category}
                       </Typography>
-                      <Typography variant="body1" sx={{ mt: 1 }}>
+                      <Typography variant="body1" sx={{ mt: 1, fontWeight: 'medium' }}>
                         ₹{item.price}
                       </Typography>
                     </CardContent>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      onClick={() => handleAddToOrder(item)}
-                      sx={{ mt: 'auto' }}
-                    >
-                      Add to Order
-                    </Button>
+                    <Box sx={{ p: 2, pt: 0 }}>
+                      <Button variant="contained" fullWidth onClick={() => handleAddToOrder(item)}>
+                        Add to Order
+                      </Button>
+                    </Box>
                   </Card>
                 </Grid>
               ))}
             </Grid>
-          </Grid>
+          </Paper>
+        </Grid>
 
-          {/* Order Summary Column */}
-          <Grid item xs={12} md={4}>
-            {orderItems.length > 0 && (
-              <Paper
-                sx={{
-                  p: 2,
-                  position: 'sticky',
-                  top: 16,
-                  height: 'fit-content',
-                }}
-              >
-                <Typography variant="h5" gutterBottom>
-                  Order Summary
-                </Typography>
+        {/* Right Column - Order Summary */}
+        <Grid item xs={12} md={4}>
+          <Paper
+            sx={{
+              p: 3,
+              position: 'sticky',
+              top: 16,
+              minHeight: 200,
+            }}
+          >
+            <Typography variant="h5" gutterBottom>
+              Order Summary
+            </Typography>
 
+            {orderItems.length === 0 ? (
+              <Typography color="text.secondary" sx={{ py: 2 }}>
+                No items added yet. Start by adding items from the menu.
+              </Typography>
+            ) : (
+              <>
                 <List dense sx={{ maxHeight: 400, overflow: 'auto' }}>
                   {orderItems.map((item) => (
                     <ListItem key={item.id} divider>
                       <Grid container alignItems="center" spacing={1}>
                         <Grid item xs={7}>
-                          <Typography variant="body1" noWrap>
-                            {item.name}
-                          </Typography>
+                          <Typography variant="body1">{item.name}</Typography>
                           <Typography variant="body2" color="text.secondary">
                             ₹{item.price} x {item.quantity}
                           </Typography>
@@ -277,7 +279,7 @@ const AdminAddOrderPage: React.FC = () => {
                   ))}
                 </List>
 
-                <Typography variant="h6" sx={{ mt: 2, mb: 2 }}>
+                <Typography variant="h6" sx={{ mt: 2, mb: 2, fontWeight: 'bold' }}>
                   Total: ₹{totalAmount}
                 </Typography>
 
@@ -291,12 +293,12 @@ const AdminAddOrderPage: React.FC = () => {
                 >
                   Submit Order
                 </Button>
-              </Paper>
+              </>
             )}
-          </Grid>
+          </Paper>
         </Grid>
-      </Paper>
-    </Box>
+      </Grid>
+    </Container>
   );
 };
 
