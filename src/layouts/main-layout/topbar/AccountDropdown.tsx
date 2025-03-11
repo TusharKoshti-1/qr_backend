@@ -27,13 +27,21 @@ const AccountDropdown = () => {
     const fetchProfilePhoto = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/user/profile`, {
+          `${import.meta.env.VITE_API_URL}/api/user/profile`, 
+          {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             }
           }
         );
-        setProfileImage(response.data.photoUrl);
+        
+        // Ensure proper handling of base64 data URL
+        if (response.data.photoUrl?.startsWith('data:')) {
+          setProfileImage(response.data.photoUrl);
+        } else if (response.data.photoUrl) {
+          // Handle legacy URLs if needed
+          setProfileImage(`${import.meta.env.VITE_API_URL}/${response.data.photoUrl}`);
+        }
       } catch (error) {
         console.error('Error fetching profile photo:', error);
       }
@@ -50,11 +58,16 @@ const AccountDropdown = () => {
   };
 
   const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+  
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append('profileImage', file);
-
+  
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/upload-profile-photo`,
         formData,
@@ -65,7 +78,12 @@ const AccountDropdown = () => {
           }
         }
       );
-
+  
+      // Clear file input after successful upload
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+  
       setProfileImage(response.data.profilePhoto);
     } catch (error) {
       console.error('Upload failed:', error);
@@ -79,6 +97,29 @@ const AccountDropdown = () => {
     fileInputRef.current?.click();
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (5MB example)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size too large (max 5MB)');
+        return;
+      }
+      
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setProfileImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+      
+      // Then upload
+      handleFileUpload(file);
+    }
+  };
+
   return (
     <>
       <input
@@ -86,11 +127,7 @@ const AccountDropdown = () => {
         ref={fileInputRef}
         style={{ display: 'none' }}
         accept="image/*"
-        onChange={(e) => {
-          if (e.target.files?.[0]) {
-            handleFileUpload(e.target.files[0]);
-          }
-        }}
+        onChange={handleFileChange}
       />
 
       <Button
