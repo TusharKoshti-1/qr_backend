@@ -86,24 +86,12 @@ const CartPage: React.FC = () => {
         items,
         total_amount: calculateTotal(),
         payment_method: method,
-        restaurant_id : sessionData.restaurantId,
+        restaurant_id: sessionData.restaurantId,
       }, {
         headers: { 'ngrok-skip-browser-warning': 'true' }
       });
-
-      if (method === 'Online') {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/upiId?restaurant_id=${sessionData.restaurantId}`);
-        const upiId = response.data; // Adjust this based on the structure of your response
-        const upiLink = `tez://upi/pay?pa=${upiId}&am=${calculateTotal()}&tn=Order%20Payment`;
-        console.log("UPI Link:", upiId);
-        window.open(upiLink, '_blank'); 
-        
-        const confirmed = window.confirm(
-          "Please complete the UPI payment and confirm.\nShow confirmation at the counter."
-        );
-        if (!confirmed) return;
-      }
-
+  
+      // Remove UPI-related code for Online payment
       sessionStorage.removeItem('selectedItems');
       sessionStorage.removeItem('userSession');
       navigate('/thankyou', { 
@@ -116,7 +104,7 @@ const CartPage: React.FC = () => {
       console.error("Payment error:", error);
       alert("Payment failed. Please try again.");
     } finally {
-      setIsProcessing(false); // Re-enable buttons
+      setIsProcessing(false);
     }
   };
 

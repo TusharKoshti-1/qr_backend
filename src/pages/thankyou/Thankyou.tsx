@@ -1,8 +1,19 @@
 // src/ThankYouForOrder.js
 import { Container, Typography,  Box, Paper } from '@mui/material';
 import { CheckCircleOutline } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom'; // Add this import
+
 
 const ThankYouForOrder = () => {
+  const location = useLocation();
+  const { payment, total } = location.state || {}; // Get payment details
+
+  // Dynamic message based on payment method
+  const paymentMessage = payment === 'Cash' 
+    ? `Please pay ₹${total} at the counter.`
+    : payment === 'Online'
+    ? `Please go to the counter and scan the QR code to pay ₹${total}.`
+    : 'You will receive a confirmation and food soon.';
   return (
     <Container
       maxWidth="sm"
@@ -36,7 +47,7 @@ const ThankYouForOrder = () => {
           to make sure you have an amazing experience.
         </Typography>
         <Typography variant="body1" color="textSecondary" paragraph>
-          You will receive a confirmation and food soon.
+          {paymentMessage}
         </Typography>
       </Paper>
     </Container>
