@@ -28,7 +28,7 @@ const LandingPage: React.FC = () => {
 
   const fetchRestaurantName = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/upiId?restaurant_id=${restaurantId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/restaurant-name?restaurant_id=${restaurantId}`);
       setRestaurantName(response.data); // Assuming the response contains the restaurant name directly
     } catch (error) {
       console.error('Error fetching restaurant name:', error);
