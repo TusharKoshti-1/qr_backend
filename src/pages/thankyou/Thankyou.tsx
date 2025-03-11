@@ -1,19 +1,35 @@
 // src/ThankYouForOrder.js
 import { Container, Typography,  Box, Paper } from '@mui/material';
 import { CheckCircleOutline } from '@mui/icons-material';
-import { useLocation } from 'react-router-dom'; // Add this import
-
+import { useLocation } from 'react-router-dom';
 
 const ThankYouForOrder = () => {
   const location = useLocation();
-  const { payment, total } = location.state || {}; // Get payment details
+  const { payment, total } = location.state || {};
 
-  // Dynamic message based on payment method
-  const paymentMessage = payment === 'Cash' 
-    ? `Please pay ₹${total} at the counter.`
-    : payment === 'Online'
-    ? `Please go to the counter and scan the QR code to pay ₹${total}.`
-    : 'You will receive a confirmation and food soon.';
+  // Dynamic message with color styling
+  const paymentMessage = () => {
+    if (payment === 'Cash') {
+      return {
+        text: `Please pay ₹${total} at the counter.`,
+        color: '#ed6c02', // Orange color for cash
+        bgcolor: '#fff3e0' // Light orange background
+      };
+    }
+    if (payment === 'Online') {
+      return {
+        text: `Please go to the counter and scan the QR code to pay ₹${total}.`,
+        color: '#1976d2', // Blue color for online
+        bgcolor: '#e3f2fd' // Light blue background
+      };
+    }
+    return {
+      text: 'You will receive a confirmation and food soon.',
+      color: 'textSecondary',
+      bgcolor: 'transparent'
+    };
+  };
+
   return (
     <Container
       maxWidth="sm"
@@ -46,8 +62,21 @@ const ThankYouForOrder = () => {
           We're excited to prepare your delicious meal. Our team is working hard
           to make sure you have an amazing experience.
         </Typography>
-        <Typography variant="body1" color="textSecondary" paragraph>
-          {paymentMessage}
+        
+        {/* Highlighted Payment Message */}
+        <Typography 
+          variant="body1" 
+          paragraph
+          sx={{
+            fontWeight: 'bold',
+            fontSize: '1.1rem',
+            p: 2,
+            borderRadius: 1,
+            color: paymentMessage().color,
+            backgroundColor: paymentMessage().bgcolor,
+          }}
+        >
+          {paymentMessage().text}
         </Typography>
       </Paper>
     </Container>
