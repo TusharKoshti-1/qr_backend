@@ -8,12 +8,14 @@ import {
   Typography,
   Paper,
 } from "@mui/material";
+import axios from "axios";
 
 
 const queryParams = new URLSearchParams(location.search);
 const restaurantId = queryParams.get('restaurant_id');
 
 const LandingPage: React.FC = () => {
+  const [restaurantName, setRestaurantName] = useState('');
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
@@ -23,6 +25,17 @@ const LandingPage: React.FC = () => {
       navigate('/customerpage');
     }
   }, [navigate]);
+
+  const fetchRestaurantName = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/upiId?restaurant_id=${restaurantId}`);
+      setRestaurantName(response.data); // Assuming the response contains the restaurant name directly
+    } catch (error) {
+      console.error('Error fetching restaurant name:', error);
+    }
+  };
+
+  fetchRestaurantName();
 
   const isValidPhoneNumber = (phone: string) => /^[6-9]\d{9}$/.test(phone);
 
@@ -48,7 +61,6 @@ const LandingPage: React.FC = () => {
     }));
     navigate("/customerpage");
   };
-
   return (
     <Container
       maxWidth="sm"
@@ -62,7 +74,7 @@ const LandingPage: React.FC = () => {
     >
       <Paper elevation={3} sx={{ padding: "2rem", width: "100%", textAlign: "center" }}>
         <Typography variant="h4" gutterBottom>
-          Welcome to Our Restaurant!
+        {`Welcome to Our ${restaurantName}!`}
         </Typography>
         
         <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
