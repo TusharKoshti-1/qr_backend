@@ -10,11 +10,12 @@ import {
   MenuItem,
   Grid,
   IconButton,
+  Badge,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { Add, Remove, Delete } from '@mui/icons-material';
-import './MenuItem.css'; // Assuming shared CSS
+import { Add, Remove, Delete, Star } from '@mui/icons-material';
+import './MenuItem.css';
 
 interface MenuItem {
   id: string;
@@ -22,6 +23,7 @@ interface MenuItem {
   price: number;
   image: string;
   category: string;
+  bestSeller?: boolean; // Added for best seller indication
 }
 
 interface CartItem extends MenuItem {
@@ -41,7 +43,7 @@ const useSessionCheck = () => {
 
     const session = JSON.parse(sessionData);
     const currentTime = Date.now();
-    if (currentTime - session.timestamp > 900000) { // 15 minutes
+    if (currentTime - session.timestamp > 900000) {
       sessionStorage.removeItem('userSession');
       sessionStorage.removeItem('selectedItems');
       navigate('/scanqrcodeagain');
@@ -55,6 +57,7 @@ const CustomerPage: React.FC = () => {
   const navigate = useNavigate();
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
+  const [bestSellers, setBestSellers] = useState<MenuItem[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>(sessionData.name || '');
   const [selectedItems, setSelectedItems] = useState<CartItem[]>(() => {
@@ -84,10 +87,14 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
+        // Filter best sellers (assuming API includes 'bestSeller' field)
+        const bestSellerItems = items.filter((item) => item.bestSeller);
+        setBestSellers(bestSellerItems);
+
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
-              acc[category] = false; // Closed by default
+              acc[category] = false;
               return acc;
             },
             {} as Record<string, boolean>
@@ -238,6 +245,63 @@ const CustomerPage: React.FC = () => {
             </Box>
           </Box>
 
+          {/* Best Sellers Section */}
+          {bestSellers.length > 0 && (
+            <Box sx={{ marginBottom: '2rem' }}>
+              <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold', mb: '1rem' }}>
+                Best Sellers
+              </Typography>
+              <Box sx={{ overflowX: 'auto', width: '100%' }}>
+                <Grid container spacing={2} sx={{ flexWrap: 'nowrap' }}>
+                  {bestSellers.map((item) => (
+                    <Grid item key={item.id} sx={{ minWidth: { xs: '250px', sm: '300px' } }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                          padding: '1rem',
+                          minHeight: '70px',
+                          backgroundColor: '#fffde7', // Light yellow for emphasis
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
+                          />
+                          <Box>
+                            <Badge
+                              badgeContent={<Star sx={{ color: '#f57c00', fontSize: '16px' }} />}
+                              overlap="rectangular"
+                              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                            >
+                              <Typography variant="body1">{item.name}</Typography>
+                            </Badge>
+                            <Typography variant="body2" color="text.secondary">
+                              ₹{item.price}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleAddItem(item)}
+                          sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
+                        >
+                          Add
+                        </Button>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            </Box>
+          )}
+
           {/* Categories Sections */}
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
@@ -290,7 +354,17 @@ const CustomerPage: React.FC = () => {
                                 style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
                               />
                               <Box>
-                                <Typography variant="body1">{item.name}</Typography>
+                                <Badge
+                                  badgeContent={
+                                    item.bestSeller ? (
+                                      <Star sx={{ color: '#f57c00', fontSize: '16px' }} />
+                                    ) : null
+                                  }
+                                  overlap="rectangular"
+                                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                >
+                                  <Typography variant="body1">{item.name}</Typography>
+                                </Badge>
                                 <Typography variant="body2" color="text.secondary">
                                   ₹{item.price}
                                 </Typography>
@@ -314,7 +388,7 @@ const CustomerPage: React.FC = () => {
             })}
         </Box>
 
-        {/* Right Side: Cart (Sticky on Desktop, Bottom on Mobile) */}
+        {/* Right Side: Cart */}
         <Box
           sx={{
             flex: { xs: 'none', md: 1 },
