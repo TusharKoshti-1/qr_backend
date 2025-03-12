@@ -24,6 +24,11 @@ interface MenuItem {
   category: string;
 }
 
+interface TopSellerItem extends MenuItem {
+  rank: number;
+  quantitySold: number;
+}
+
 interface CartItem extends MenuItem {
   quantity: number;
 }
@@ -55,6 +60,7 @@ const CustomerPage: React.FC = () => {
   const navigate = useNavigate();
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
+  const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>(sessionData.name || '');
   const [selectedItems, setSelectedItems] = useState<CartItem[]>(() => {
@@ -68,6 +74,7 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch menu items
         const menuResponse = await axios.get<MenuItem[]>(
           `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`,
           { headers: { 'ngrok-skip-browser-warning': 'true' } }
@@ -84,18 +91,26 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
+        // Fetch top sellers
+        const topSellersResponse = await axios.get<TopSellerItem[]>(
+          `${import.meta.env.VITE_API_URL}/api/customer/top-sellers?restaurant_id=${sessionData.restaurantId}`,
+          { headers: { 'ngrok-skip-browser-warning': 'true' } }
+        );
+        setTopSellers(topSellersResponse.data);
+
+        // Set open categories, with "Best Sellers" default open
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
-              acc[category] = false; // Closed by default
+              acc[category] = false; // Other categories closed by default
               return acc;
             },
-            {} as Record<string, boolean>
+            { 'Best Sellers': true } as Record<string, boolean> // Best Sellers open by default
           )
         );
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to load menu. Please try refreshing the page.');
+        alert('Failed to load menu or top sellers. Please try refreshing the page.');
       }
     };
 
@@ -106,7 +121,7 @@ const CustomerPage: React.FC = () => {
     sessionStorage.setItem('selectedItems', JSON.stringify(selectedItems));
   }, [selectedItems]);
 
-  const handleAddItem = (item: MenuItem) => {
+  const handleAddItem = (item: MenuItem | TopSellerItem) => {
     setSelectedItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       return existing
@@ -226,6 +241,7 @@ const CustomerPage: React.FC = () => {
                   }}
                 >
                   <MenuItem value="All">All</MenuItem>
+                  <MenuItem value="Best Sellers">Best Sellers</MenuItem>
                   {Object.keys(groupedItems)
                     .sort()
                     .map((category) => (
@@ -238,7 +254,77 @@ const CustomerPage: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Categories Sections */}
+          {/* Best Sellers Section */}
+          {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Sellers') && (
+            <Box sx={{ marginBottom: '2rem' }}>
+              <Box
+                onClick={() =>
+                  setOpenCategories((prev) => ({ ...prev, 'Best Sellers': !prev['Best Sellers'] }))
+                }
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px solid black',
+                  paddingBottom: '1rem',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#f5f5f5' },
+                }}
+              >
+                <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
+                  Best Sellers
+                </Typography>
+                {openCategories['Best Sellers'] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </Box>
+              {openCategories['Best Sellers'] && (
+                <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
+                  {topSellers
+                    .filter((item) =>
+                      searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
+                    )
+                    .map((item) => (
+                      <Grid item xs={12} key={item.id}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            padding: '1rem',
+                            minHeight: '70px',
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
+                            />
+                            <Box>
+                              <Typography variant="body1">{item.name}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                ₹{item.price}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleAddItem(item)}
+                            sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
+                          >
+                            Add
+                          </Button>
+                        </Box>
+                      </Grid>
+                    ))}
+                </Grid>
+              )}
+            </Box>
+          )}
+
+          {/* Other Categories Sections */}
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
             .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
@@ -314,7 +400,7 @@ const CustomerPage: React.FC = () => {
             })}
         </Box>
 
-        {/* Right Side: Cart (Sticky on Desktop, Bottom on Mobile) */}
+        {/* Right Side: Cart */}
         <Box
           sx={{
             flex: { xs: 'none', md: 1 },
