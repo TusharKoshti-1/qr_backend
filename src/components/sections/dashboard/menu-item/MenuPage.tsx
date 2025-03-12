@@ -12,6 +12,7 @@ import {
   TextField,
   Select,
   MenuItem,
+  Box, // Added Box import
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -26,7 +27,6 @@ interface MenuItemType {
 }
 
 const MenuPage: React.FC = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
@@ -180,33 +180,38 @@ const MenuPage: React.FC = () => {
             }}
           >
             <MenuItem value="All">All</MenuItem>
-            {Object.keys(groupedItems).map((category) => (
-              <MenuItem key={category} value={category}>
-                {category}
-              </MenuItem>
-            ))}
+            {Object.keys(groupedItems)
+              .sort()
+              .map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
           </Select>
         </div>
       </div>
 
       {/* Best Sellers Section */}
       <div style={{ marginTop: '2rem' }}>
-        <div
+        <Box
           onClick={() => setOpenBestSellers(!openBestSellers)}
-          style={{
+          sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: '2px solid black',
             paddingBottom: '1rem',
             cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: '#f5f5f5',
+            },
           }}
         >
           <Typography variant="h4" sx={{ color: 'secondary.main' }}>
             Best Sellers
           </Typography>
           {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </div>
+        </Box>
         {openBestSellers &&
           (() => {
             const filteredBestSellers = searchQuery
@@ -254,6 +259,7 @@ const MenuPage: React.FC = () => {
 
       {/* Categories Sections */}
       {Object.entries(groupedItems)
+        .sort(([a], [b]) => a.localeCompare(b))
         .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
         .map(([category, items]) => {
           const filteredItems = searchQuery
@@ -264,27 +270,27 @@ const MenuPage: React.FC = () => {
           }
           return (
             <div key={category} style={{ marginTop: '2rem' }}>
-              <div
+              <Box
                 onClick={() =>
                   setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
                 }
-                style={{
+                sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   borderBottom: '2px solid black',
                   paddingBottom: '1rem',
                   cursor: 'pointer',
-                  backgroundColor: isHovered ? '#f5f5f5' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
                 }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
               >
                 <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
                   {category}
                 </Typography>
                 {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </div>
+              </Box>
               {openCategories[category] && (
                 <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
                   {filteredItems.map((item) => (
