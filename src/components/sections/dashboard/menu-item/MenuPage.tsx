@@ -199,7 +199,7 @@ const MenuPage: React.FC = () => {
                           {item.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          Price: ${item.price}
+                          Price: ₹{item.price}
                         </Typography>
                       </CardContent>
                       <CardActions>
