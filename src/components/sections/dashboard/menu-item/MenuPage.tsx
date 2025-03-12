@@ -26,6 +26,7 @@ interface MenuItemType {
 }
 
 const MenuPage: React.FC = () => {
+  const [isHovered, setIsHovered] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
@@ -274,7 +275,10 @@ const MenuPage: React.FC = () => {
                   borderBottom: '2px solid black',
                   paddingBottom: '1rem',
                   cursor: 'pointer',
+                  backgroundColor: isHovered ? '#f5f5f5' : 'transparent',
                 }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
               >
                 <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
                   {category}
