@@ -14,14 +14,14 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Add, Remove, Delete } from '@mui/icons-material';
-import './MenuItem.css'; // Assuming this CSS file is shared
+import './MenuItem.css';
 
 interface MenuItem {
   id: number;
   name: string;
   price: number;
   image: string;
-  category: string; // Added category to MenuItem
+  category: string;
 }
 
 interface OrderItem {
@@ -44,7 +44,6 @@ const EditOrder: React.FC = () => {
   const { order } = state as { order: Order };
   const navigate = useNavigate();
 
-  // const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
   const [editedItems, setEditedItems] = useState<OrderItem[]>(order.items || []);
   const [total, setTotal] = useState<number>(order.total_amount || 0);
@@ -63,7 +62,6 @@ const EditOrder: React.FC = () => {
           },
         });
         const items = response.data;
-        // setMenuItems(items);
 
         const grouped = items.reduce(
           (acc, item) => {
@@ -75,7 +73,6 @@ const EditOrder: React.FC = () => {
         );
         setGroupedItems(grouped);
 
-        // Initialize all categories as closed by default
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
@@ -192,181 +189,199 @@ const EditOrder: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Search Bar and Category Filter */}
-      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
-        <TextField
-          label="Search for items"
-          variant="outlined"
-          fullWidth
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
-          <div
-            onClick={handleBarClick}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '1rem',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              backgroundColor: '#fff',
-              borderBottom: '2px solid black',
-            }}
-          >
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              {selectedCategory}
-            </Typography>
-            <ExpandMoreIcon />
-          </div>
-          <Select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value as string)}
-            inputRef={selectRef}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              opacity: 0,
-            }}
-          >
-            <MenuItem value="All">All</MenuItem>
-            {Object.keys(groupedItems)
-              .sort() // Sort categories alphabetically
-              .map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
-                </MenuItem>
-              ))}
-          </Select>
-        </div>
-      </div>
-
-      {/* Categories Sections */}
-      {Object.entries(groupedItems)
-        .sort(([a], [b]) => a.localeCompare(b)) // Sort categories alphabetically
-        .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
-        .map(([category, items]) => {
-          const filteredItems = searchTerm
-            ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-            : items;
-          if (filteredItems.length === 0) {
-            return null;
-          }
-          return (
-            <div key={category} style={{ marginTop: '2rem' }}>
-              <Box
-                onClick={() =>
-                  setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
-                }
-                sx={{
+      {/* Main Content: Two Columns */}
+      <Box sx={{ display: 'flex', gap: '2rem' }}>
+        {/* Left Side: Menu Items */}
+        <Box sx={{ flex: 1 }}>
+          {/* Search Bar and Category Filter */}
+          <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+            <TextField
+              label="Search for items"
+              variant="outlined"
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
+              <div
+                onClick={handleBarClick}
+                style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  borderBottom: '2px solid black',
-                  paddingBottom: '1rem',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                  },
-                }}
-              >
-                <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
-                  {category}
-                </Typography>
-                {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </Box>
-              {openCategories[category] && (
-                <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
-                  {filteredItems.map((item) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          border: '1px solid #ccc',
-                          borderRadius: '4px',
-                          padding: '1rem',
-                        }}
-                      >
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          style={{ width: 50, height: 50, marginRight: '10px' }}
-                        />
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="body1">{item.name}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            ₹{item.price}
-                          </Typography>
-                        </Box>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleAddItem(item)}
-                        >
-                          Add
-                        </Button>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              )}
-            </div>
-          );
-        })}
-
-      {/* Order Items Section */}
-      <Box sx={{ marginTop: '2rem' }}>
-        <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
-          Order Items
-        </Typography>
-        <Grid container spacing={3} justifyContent="left">
-          {editedItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
+                  padding: '1rem',
                   border: '1px solid #ccc',
                   borderRadius: '4px',
-                  padding: '1rem',
+                  cursor: 'pointer',
+                  backgroundColor: '#fff',
+                  borderBottom: '2px solid black',
                 }}
               >
-                <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="body1">{item.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ₹{item.price} x {item.quantity}
-                  </Typography>
-                </Box>
-                <IconButton onClick={() => handleIncreaseQuantity(item)}>
-                  <Add />
-                </IconButton>
-                <IconButton onClick={() => handleDecreaseQuantity(item)}>
-                  <Remove />
-                </IconButton>
-                <IconButton onClick={() => handleRemoveItem(item)}>
-                  <Delete />
-                </IconButton>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-        <Typography variant="h6" sx={{ marginTop: '2rem' }}>
-          Total: ₹{total}
-        </Typography>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleSaveOrder}
-          sx={{ marginTop: '1rem', width: '200px' }}
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                  {selectedCategory}
+                </Typography>
+                <ExpandMoreIcon />
+              </div>
+              <Select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value as string)}
+                inputRef={selectRef}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0,
+                }}
+              >
+                <MenuItem value="All">All</MenuItem>
+                {Object.keys(groupedItems)
+                  .sort()
+                  .map((category) => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Categories Sections */}
+          {Object.entries(groupedItems)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+            .map(([category, items]) => {
+              const filteredItems = searchTerm
+                ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                : items;
+              if (filteredItems.length === 0) {
+                return null;
+              }
+              return (
+                <div key={category} style={{ marginTop: '2rem' }}>
+                  <Box
+                    onClick={() =>
+                      setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                    }
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderBottom: '2px solid black',
+                      paddingBottom: '1rem',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: '#f5f5f5',
+                      },
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                      {category}
+                    </Typography>
+                    {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </Box>
+                  {openCategories[category] && (
+                    <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                      {filteredItems.map((item) => (
+                        <Grid item xs={12} sm={6} md={4} key={item.id}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1px solid #ccc',
+                              borderRadius: '4px',
+                              padding: '1rem',
+                            }}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{ width: 50, height: 50, marginRight: '10px' }}
+                            />
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="body1">{item.name}</Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                ₹{item.price}
+                              </Typography>
+                            </Box>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleAddItem(item)}
+                            >
+                              Add
+                            </Button>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </div>
+              );
+            })}
+        </Box>
+
+        {/* Right Side: Order Items */}
+        <Box
+          sx={{
+            flex: 1,
+            position: 'sticky',
+            top: '2rem',
+            alignSelf: 'flex-start',
+            maxHeight: 'calc(100vh - 4rem)',
+            overflowY: 'auto',
+            padding: '1rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+          }}
         >
-          Save Order
-        </Button>
+          <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+            Order Items
+          </Typography>
+          <Grid container spacing={2} justifyContent="left">
+            {editedItems.map((item) => (
+              <Grid item xs={12} key={item.id}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '1rem',
+                  }}
+                >
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography variant="body1">{item.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      ₹{item.price} x {item.quantity}
+                    </Typography>
+                  </Box>
+                  <IconButton onClick={() => handleIncreaseQuantity(item)}>
+                    <Add />
+                  </IconButton>
+                  <IconButton onClick={() => handleDecreaseQuantity(item)}>
+                    <Remove />
+                  </IconButton>
+                  <IconButton onClick={() => handleRemoveItem(item)}>
+                    <Delete />
+                  </IconButton>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
+            Total: ₹{total}
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleSaveOrder}
+            sx={{ marginTop: '1rem', width: '100%' }}
+          >
+            Save Order
+          </Button>
+        </Box>
       </Box>
     </div>
   );
