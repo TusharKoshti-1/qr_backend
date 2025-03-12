@@ -144,21 +144,20 @@ const AdminAddOrderPage: React.FC = () => {
       {/* Header */}
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          padding: '1rem',
+          textAlign: 'center',
           marginBottom: '2rem',
         }}
       >
         <Typography variant="h4">Create New Order</Typography>
       </Box>
 
-      {/* Main Content: Two Columns */}
-      <Box sx={{ display: 'flex', gap: '2rem' }}>
+      {/* Main Content */}
+      <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
         {/* Left Side: Menu Items */}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
           {/* Customer Name, Search Bar, and Category Filter */}
-          <Box style={{ marginBottom: '2rem' }}>
+          <Box sx={{ marginBottom: '2rem' }}>
             <TextField
               label="Customer Name *"
               variant="outlined"
@@ -171,24 +170,24 @@ const AdminAddOrderPage: React.FC = () => {
               sx={{
                 marginBottom: '1rem',
                 '& .MuiInputLabel-root': {
-                  fontWeight: 'bold', // Bold label
+                  fontWeight: 'bold',
                 },
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#fff9c4', // Light yellow background
+                  backgroundColor: '#fff9c4',
                   '& fieldset': {
-                    borderColor: '#f57c00', // Orange border
-                    borderWidth: '2px', // Thicker border
+                    borderColor: '#f57c00',
+                    borderWidth: '2px',
                   },
                   '&:hover fieldset': {
-                    borderColor: '#ef6c00', // Darker orange on hover
+                    borderColor: '#ef6c00',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#e65100', // Even darker orange when focused
+                    borderColor: '#e65100',
                   },
                 },
               }}
             />
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '1rem' }}>
               <TextField
                 label="Search Menu Items"
                 variant="outlined"
@@ -196,10 +195,10 @@ const AdminAddOrderPage: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
-                <div
+              <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
+                <Box
                   onClick={handleBarClick}
-                  style={{
+                  sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -215,7 +214,7 @@ const AdminAddOrderPage: React.FC = () => {
                     {selectedCategory}
                   </Typography>
                   <ExpandMoreIcon />
-                </div>
+                </Box>
                 <Select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value as string)}
@@ -238,8 +237,8 @@ const AdminAddOrderPage: React.FC = () => {
                       </MenuItem>
                     ))}
                 </Select>
-              </div>
-            </div>
+              </Box>
+            </Box>
           </Box>
 
           {/* Categories Sections */}
@@ -250,11 +249,9 @@ const AdminAddOrderPage: React.FC = () => {
               const filteredItems = searchTerm
                 ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
                 : items;
-              if (filteredItems.length === 0) {
-                return null;
-              }
+              if (filteredItems.length === 0) return null;
               return (
-                <div key={category} style={{ marginBottom: '2rem' }}>
+                <Box key={category} sx={{ marginBottom: '2rem' }}>
                   <Box
                     onClick={() =>
                       setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
@@ -271,13 +268,13 @@ const AdminAddOrderPage: React.FC = () => {
                       },
                     }}
                   >
-                    <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                    <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
                       {category}
                     </Typography>
                     {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                   </Box>
                   {openCategories[category] && (
-                    <Grid container spacing={2} style={{ marginTop: '1rem' }}>
+                    <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
                       {filteredItems.map((item) => (
                         <Grid item xs={12} key={item.id}>
                           <Box
@@ -295,7 +292,12 @@ const AdminAddOrderPage: React.FC = () => {
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                style={{ width: 50, height: 50, marginRight: '10px' }}
+                                style={{
+                                  width: 50,
+                                  height: 50,
+                                  marginRight: '10px',
+                                  borderRadius: '4px',
+                                }}
                               />
                               <Box>
                                 <Typography variant="body1">{item.name}</Typography>
@@ -308,7 +310,7 @@ const AdminAddOrderPage: React.FC = () => {
                               variant="contained"
                               color="primary"
                               onClick={() => handleAddToOrder(item)}
-                              sx={{ marginLeft: '1rem' }}
+                              sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
                             >
                               Add
                             </Button>
@@ -317,7 +319,7 @@ const AdminAddOrderPage: React.FC = () => {
                       ))}
                     </Grid>
                   )}
-                </div>
+                </Box>
               );
             })}
         </Box>
@@ -325,15 +327,17 @@ const AdminAddOrderPage: React.FC = () => {
         {/* Right Side: Order Summary */}
         <Box
           sx={{
-            flex: 1,
-            position: 'sticky',
-            top: '2rem',
-            alignSelf: 'flex-start',
-            maxHeight: 'calc(100vh - 4rem)',
-            overflowY: 'auto',
+            flex: { xs: 'none', md: 1 },
+            position: { xs: 'static', md: 'sticky' },
+            top: { md: '2rem' },
+            alignSelf: { md: 'flex-start' },
+            maxHeight: { md: 'calc(100vh - 4rem)' },
+            overflowY: { md: 'auto' },
             padding: '1rem',
             border: '1px solid #ccc',
             borderRadius: '4px',
+            width: { xs: '100%', md: 'auto' },
+            mt: { xs: '2rem', md: 0 },
           }}
         >
           <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
@@ -344,7 +348,7 @@ const AdminAddOrderPage: React.FC = () => {
               No items added yet
             </Typography>
           ) : (
-            <Grid container spacing={2} justifyContent="left">
+            <Grid container spacing={2}>
               {orderItems.map((item) => (
                 <Grid item xs={12} key={item.id}>
                   <Box
@@ -364,15 +368,28 @@ const AdminAddOrderPage: React.FC = () => {
                         ₹{item.price} x {item.quantity}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton onClick={() => handleQuantityChange(item.id, true)}>
-                        <Add />
-                      </IconButton>{' '}
-                      <IconButton onClick={() => handleQuantityChange(item.id, false)}>
-                        <Remove />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconButton
+                        onClick={() => handleQuantityChange(item.id, true)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Add fontSize="small" />
                       </IconButton>
-                      <IconButton onClick={() => handleRemoveItem(item.id)}>
-                        <Delete />
+                      <IconButton
+                        onClick={() => handleQuantityChange(item.id, false)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Remove fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleRemoveItem(item.id)}
+                        size="small"
+                        color="error"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Delete fontSize="small" />
                       </IconButton>
                     </Box>
                   </Box>
@@ -388,7 +405,7 @@ const AdminAddOrderPage: React.FC = () => {
             color="secondary"
             onClick={handleSubmitOrder}
             disabled={!customerName}
-            sx={{ marginTop: '1rem', width: '100%' }}
+            sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
           >
             Submit Order
           </Button>
