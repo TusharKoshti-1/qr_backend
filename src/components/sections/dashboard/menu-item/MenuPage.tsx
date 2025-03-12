@@ -275,7 +275,7 @@ const MenuPage: React.FC = () => {
                   borderBottom: '2px solid black',
                   paddingBottom: '1rem',
                   cursor: 'pointer',
-                  backgroundColor: isHovered ? '#ADAEB3' : 'transparent',
+                  backgroundColor: isHovered ? '#f5f5f5' : 'transparent',
                 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
