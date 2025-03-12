@@ -175,7 +175,7 @@ const MenuPage: React.FC = () => {
               left: 0,
               width: '100%',
               height: '100%',
-              opacity: 0, // Make it invisible but still functional
+              opacity: 0,
             }}
           >
             <MenuItem value="All">All</MenuItem>
@@ -191,20 +191,20 @@ const MenuPage: React.FC = () => {
       {/* Best Sellers Section */}
       <div style={{ marginTop: '2rem' }}>
         <div
+          onClick={() => setOpenBestSellers(!openBestSellers)}
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             borderBottom: '2px solid black',
             paddingBottom: '1rem',
+            cursor: 'pointer',
           }}
         >
           <Typography variant="h4" sx={{ color: 'secondary.main' }}>
             Best Sellers
           </Typography>
-          <Button onClick={() => setOpenBestSellers(!openBestSellers)}>
-            {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </Button>
+          {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </div>
         {openBestSellers &&
           (() => {
@@ -264,24 +264,22 @@ const MenuPage: React.FC = () => {
           return (
             <div key={category} style={{ marginTop: '2rem' }}>
               <div
+                onClick={() =>
+                  setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                }
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   borderBottom: '2px solid black',
                   paddingBottom: '1rem',
+                  cursor: 'pointer',
                 }}
               >
                 <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
                   {category}
                 </Typography>
-                <Button
-                  onClick={() =>
-                    setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
-                  }
-                >
-                  {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </Button>
+                {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </div>
               {openCategories[category] && (
                 <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
