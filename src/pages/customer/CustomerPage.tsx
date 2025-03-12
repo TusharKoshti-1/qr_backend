@@ -74,7 +74,14 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch menu items
+        // Fetch top sellers first
+        const topSellersResponse = await axios.get<TopSellerItem[]>(
+          `${import.meta.env.VITE_API_URL}/api/customer/top-sellers?restaurant_id=${sessionData.restaurantId}`,
+          { headers: { 'ngrok-skip-browser-warning': 'true' } }
+        );
+        setTopSellers(topSellersResponse.data);
+
+        // Then fetch menu items
         const menuResponse = await axios.get<MenuItem[]>(
           `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`,
           { headers: { 'ngrok-skip-browser-warning': 'true' } }
@@ -90,13 +97,6 @@ const CustomerPage: React.FC = () => {
           {}
         );
         setGroupedItems(grouped);
-
-        // Fetch top sellers
-        const topSellersResponse = await axios.get<TopSellerItem[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/top-sellers?restaurant_id=${sessionData.restaurantId}`,
-          { headers: { 'ngrok-skip-browser-warning': 'true' } }
-        );
-        setTopSellers(topSellersResponse.data);
 
         // Set open categories, with "Best Selling" default open
         setOpenCategories(
