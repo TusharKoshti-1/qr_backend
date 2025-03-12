@@ -10,12 +10,11 @@ import {
   MenuItem,
   Grid,
   IconButton,
-  Badge,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { Add, Remove, Delete, Star } from '@mui/icons-material';
-import './MenuItem.css';
+import { Add, Remove, Delete } from '@mui/icons-material';
+import './MenuItem.css'; // Assuming shared CSS
 
 interface MenuItem {
   id: string;
@@ -23,12 +22,6 @@ interface MenuItem {
   price: number;
   image: string;
   category: string;
-  bestSeller?: boolean;
-}
-
-interface TopSellerItem extends MenuItem {
-  rank: number;
-  quantitySold: number;
 }
 
 interface CartItem extends MenuItem {
@@ -48,7 +41,7 @@ const useSessionCheck = () => {
 
     const session = JSON.parse(sessionData);
     const currentTime = Date.now();
-    if (currentTime - session.timestamp > 900000) {
+    if (currentTime - session.timestamp > 900000) { // 15 minutes
       sessionStorage.removeItem('userSession');
       sessionStorage.removeItem('selectedItems');
       navigate('/scanqrcodeagain');
@@ -62,7 +55,6 @@ const CustomerPage: React.FC = () => {
   const navigate = useNavigate();
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
-  const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>(sessionData.name || '');
   const [selectedItems, setSelectedItems] = useState<CartItem[]>(() => {
@@ -76,7 +68,6 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch menu items
         const menuResponse = await axios.get<MenuItem[]>(
           `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`,
           { headers: { 'ngrok-skip-browser-warning': 'true' } }
@@ -93,18 +84,10 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
-        // Fetch top sellers
-        const topSellersResponse = await axios.get<TopSellerItem[]>(
-          `${import.meta.env.VITE_API_URL}/api/customer/top-sellers?restaurant_id=${sessionData.restaurantId}`,
-          { headers: { 'ngrok-skip-browser-warning': 'true' } }
-        );
-        setTopSellers(topSellersResponse.data);
-
-        // Set initial open state for categories
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
-              acc[category] = false;
+              acc[category] = false; // Closed by default
               return acc;
             },
             {} as Record<string, boolean>
@@ -112,7 +95,7 @@ const CustomerPage: React.FC = () => {
         );
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to load menu or top sellers. Please try refreshing the page.');
+        alert('Failed to load menu. Please try refreshing the page.');
       }
     };
 
@@ -123,7 +106,7 @@ const CustomerPage: React.FC = () => {
     sessionStorage.setItem('selectedItems', JSON.stringify(selectedItems));
   }, [selectedItems]);
 
-  const handleAddItem = (item: MenuItem | TopSellerItem) => {
+  const handleAddItem = (item: MenuItem) => {
     setSelectedItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       return existing
@@ -255,63 +238,6 @@ const CustomerPage: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Top Sellers Section */}
-          {topSellers.length > 0 && (
-            <Box sx={{ marginBottom: '2rem' }}>
-              <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold', mb: '1rem' }}>
-                Best Selling
-              </Typography>
-              <Box sx={{ overflowX: 'auto', width: '100%' }}>
-                <Grid container spacing={2} sx={{ flexWrap: 'nowrap' }}>
-                  {topSellers.map((item) => (
-                    <Grid item key={item.id} sx={{ minWidth: { xs: '250px', sm: '300px' } }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          border: '1px solid #ccc',
-                          borderRadius: '4px',
-                          padding: '1rem',
-                          minHeight: '70px',
-                          backgroundColor: '#fffde7', // Light yellow for emphasis
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
-                          />
-                          <Box>
-                            <Badge
-                              badgeContent={<Star sx={{ color: '#f57c00', fontSize: '16px' }} />}
-                              overlap="rectangular"
-                              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                            >
-                              <Typography variant="body1">{item.name}</Typography>
-                            </Badge>
-                            <Typography variant="body2" color="text.secondary">
-                              ₹{item.price} • {item.quantitySold} sold
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          onClick={() => handleAddItem(item)}
-                          sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
-                        >
-                          Add
-                        </Button>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            </Box>
-          )}
-
           {/* Categories Sections */}
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
@@ -364,17 +290,7 @@ const CustomerPage: React.FC = () => {
                                 style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
                               />
                               <Box>
-                                <Badge
-                                  badgeContent={
-                                    item.bestSeller ? (
-                                      <Star sx={{ color: '#f57c00', fontSize: '16px' }} />
-                                    ) : null
-                                  }
-                                  overlap="rectangular"
-                                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                                >
-                                  <Typography variant="body1">{item.name}</Typography>
-                                </Badge>
+                                <Typography variant="body1">{item.name}</Typography>
                                 <Typography variant="body2" color="text.secondary">
                                   ₹{item.price}
                                 </Typography>
@@ -398,7 +314,7 @@ const CustomerPage: React.FC = () => {
             })}
         </Box>
 
-        {/* Right Side: Cart */}
+        {/* Right Side: Cart (Sticky on Desktop, Bottom on Mobile) */}
         <Box
           sx={{
             flex: { xs: 'none', md: 1 },
