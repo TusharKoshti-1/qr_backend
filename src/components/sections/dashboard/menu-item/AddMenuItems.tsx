@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   TextField,
@@ -11,11 +11,12 @@ import {
   Typography,
   Grid,
   Alert,
-  FormControl,
+  Box,
 } from '@mui/material';
-
-import './MenuItem.css';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from 'react-router-dom';
+import './MenuItem.css';
 
 type MenuItem = {
   id: number;
@@ -26,15 +27,17 @@ type MenuItem = {
 
 const AddMenuItems: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  // const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<string>('');
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     fetchMenuItems();
   }, []);
+
   const fetchMenuItems = async () => {
     try {
       const response = await axios.get<MenuItem[]>(
@@ -46,23 +49,38 @@ const AddMenuItems: React.FC = () => {
           },
         },
       );
-      setMenuItems(response.data);
-      setFilteredItems(response.data);
-      const uniqueCategories: string[] = [
-        ...new Set(response.data.map((item: MenuItem) => item.category)),
-      ];
-      setCategories(uniqueCategories);
+      const items = response.data;
+      // setMenuItems(items);
+
+      const grouped = items.reduce(
+        (acc, item) => {
+          acc[item.category] = acc[item.category] || [];
+          acc[item.category].push(item);
+          return acc;
+        },
+        {} as Record<string, MenuItem[]>,
+      );
+      setGroupedItems(grouped);
+
+      // Initialize all categories as closed by default
+      setOpenCategories(
+        Object.keys(grouped).reduce(
+          (acc, category) => {
+            acc[category] = false; // Closed by default
+            return acc;
+          },
+          {} as Record<string, boolean>,
+        ),
+      );
     } catch (error) {
       console.error('Error fetching menu items:', error);
     }
   };
 
-  const handleCategoryFilter = (category: string) => {
-    setSelectedCategory(category);
-    if (category === '') {
-      setFilteredItems(menuItems);
-    } else {
-      setFilteredItems(menuItems.filter((item) => item.category === category));
+  const handleBarClick = () => {
+    if (selectRef.current) {
+      selectRef.current.focus();
+      selectRef.current.click();
     }
   };
 
@@ -110,6 +128,7 @@ const AddMenuItems: React.FC = () => {
       setMessage('Error occurred while adding item');
     }
   };
+
   const handleRemoveItem = async (id: number) => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/remove-itemofmenu/${id}`, {
@@ -125,84 +144,164 @@ const AddMenuItems: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }} className="menu__container">
+    <div className="menu__container">
+      {/* Add New Items Button */}
       <div
         style={{
-          marginBottom: '20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          marginBottom: '2rem',
         }}
-        className="menu__item"
       >
-        {/* Search Bar - Centered */}
-        <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <TextField
-            label="Search items"
-            variant="outlined"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', maxWidth: '400px' }}
-          />
-        </div>
+        <Link to="/addnewitems">
+          <Button variant="contained" color="primary">
+            Add New Items
+          </Button>
+        </Link>
+      </div>
 
-        {/* Button and Filter - Right Aligned */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Link to="/addnewitems">
-            <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
-              Add New Items
-            </Button>
-          </Link>
-          <FormControl sx={{ minWidth: 120 }}>
-            <Select
-              value={selectedCategory}
-              onChange={(e) => handleCategoryFilter(e.target.value)}
-              displayEmpty
-            >
-              <MenuItem value="">
-                <em>All</em>
-              </MenuItem>
-              {categories.map((category) => (
+      {/* Search Bar and Category Filter */}
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+        <TextField
+          label="Search items"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
+          <div
+            onClick={handleBarClick}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              backgroundColor: '#fff',
+              borderBottom: '2px solid black',
+            }}
+          >
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {selectedCategory}
+            </Typography>
+            <ExpandMoreIcon />
+          </div>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value as string)}
+            inputRef={selectRef}
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0,
+            }}
+          >
+            <MenuItem value="All">All</MenuItem>
+            {Object.keys(groupedItems)
+              .sort() // Sort categories alphabetically
+              .map((category) => (
                 <MenuItem key={category} value={category}>
                   {category}
                 </MenuItem>
               ))}
-            </Select>
-          </FormControl>
+          </Select>
         </div>
       </div>
-      {message && <Alert severity="info">{message}</Alert>}
-      <Grid container spacing={3} justifyContent="left">
-        {filteredItems
-          .filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-          .map((item) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-              <Card sx={{ maxWidth: 345 }}>
-                <CardMedia component="img" height="140" image={`${item.image}`} alt={item.name} />
-                <CardContent>
-                  <Typography variant="h5">{item.name}</Typography>
-                  <Typography variant="body2">Category: {item.category}</Typography>
-                  <div style={{ flexGrow: 1, display: 'flex', gap: '10px' }}>
-                    <Button
-                      size="small"
-                      style={{ marginTop: '10px' }}
-                      onClick={() => addItemToMenu(item)}
-                    >
-                      Add to Menu
-                    </Button>
-                    <Button
-                      size="small"
-                      style={{ marginTop: '10px' }}
-                      onClick={() => handleRemoveItem(item.id)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-      </Grid>
+
+      {/* Message Alert */}
+      {message && (
+        <Alert severity="info" sx={{ marginBottom: '2rem' }}>
+          {message}
+        </Alert>
+      )}
+
+      {/* Categories Sections */}
+      {Object.entries(groupedItems)
+        .sort(([a], [b]) => a.localeCompare(b)) // Sort categories alphabetically
+        .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+        .map(([category, items]) => {
+          const filteredItems = searchTerm
+            ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            : items;
+          if (filteredItems.length === 0) {
+            return null;
+          }
+          return (
+            <div key={category} style={{ marginTop: '2rem' }}>
+              <Box
+                onClick={() =>
+                  setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                }
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px solid black',
+                  paddingBottom: '1rem',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                }}
+              >
+                <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                  {category}
+                </Typography>
+                {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </Box>
+              {openCategories[category] && (
+                <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                  {filteredItems.map((item) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                      <Card
+                        sx={{
+                          maxWidth: 345,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          height="140"
+                          image={item.image}
+                          alt={item.name}
+                        />
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Typography gutterBottom variant="h5" component="div">
+                            {item.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Category: {item.category}
+                          </Typography>
+                        </CardContent>
+                        <div style={{ display: 'flex', gap: '8px', padding: '8px' }}>
+                          <Button size="small" onClick={() => addItemToMenu(item)}>
+                            Add to Menu
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </div>
+          );
+        })}
     </div>
   );
 };
