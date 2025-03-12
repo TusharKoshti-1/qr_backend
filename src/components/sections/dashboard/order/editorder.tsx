@@ -259,7 +259,7 @@ const EditOrder: React.FC = () => {
                 return null;
               }
               return (
-                <div key={category} style={{ marginTop: '2rem' }}>
+                <div key={category} style={{ marginBottom: '2rem' }}>
                   <Box
                     onClick={() =>
                       setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
@@ -282,33 +282,38 @@ const EditOrder: React.FC = () => {
                     {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                   </Box>
                   {openCategories[category] && (
-                    <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                    <Grid container spacing={2} style={{ marginTop: '1rem' }}>
                       {filteredItems.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} key={item.id}>
+                        <Grid item xs={12} key={item.id}>
                           <Box
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
+                              justifyContent: 'space-between', // Ensure content is spaced out
                               border: '1px solid #ccc',
                               borderRadius: '4px',
                               padding: '1rem',
+                              minHeight: '70px', // Consistent height
                             }}
                           >
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              style={{ width: 50, height: 50, marginRight: '10px' }}
-                            />
-                            <Box sx={{ flexGrow: 1 }}>
-                              <Typography variant="body1">{item.name}</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                ₹{item.price}
-                              </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                style={{ width: 50, height: 50, marginRight: '10px' }}
+                              />
+                              <Box>
+                                <Typography variant="body1">{item.name}</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  ₹{item.price}
+                                </Typography>
+                              </Box>
                             </Box>
                             <Button
                               variant="contained"
                               color="primary"
                               onClick={() => handleAddItem(item)}
+                              sx={{ marginLeft: '1rem' }} // Add spacing to prevent overlap
                             >
                               Add
                             </Button>
@@ -346,26 +351,30 @@ const EditOrder: React.FC = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'space-between',
                     border: '1px solid #ccc',
                     borderRadius: '4px',
                     padding: '1rem',
+                    minHeight: '70px',
                   }}
                 >
-                  <Box sx={{ flexGrow: 1 }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body1">{item.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       ₹{item.price} x {item.quantity}
                     </Typography>
                   </Box>
-                  <IconButton onClick={() => handleIncreaseQuantity(item)}>
-                    <Add />
-                  </IconButton>
-                  <IconButton onClick={() => handleDecreaseQuantity(item)}>
-                    <Remove />
-                  </IconButton>
-                  <IconButton onClick={() => handleRemoveItem(item)}>
-                    <Delete />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton onClick={() => handleIncreaseQuantity(item)}>
+                      <Add />
+                    </IconButton>
+                    <IconButton onClick={() => handleDecreaseQuantity(item)}>
+                      <Remove />
+                    </IconButton>
+                    <IconButton onClick={() => handleRemoveItem(item)}>
+                      <Delete />
+                    </IconButton>
+                  </Box>
                 </Box>
               </Grid>
             ))}
