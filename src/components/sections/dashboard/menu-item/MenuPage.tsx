@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import {
@@ -12,8 +12,6 @@ import {
   TextField,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -36,6 +34,7 @@ const MenuPage: React.FC = () => {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openBestSellers, setOpenBestSellers] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   const fetchMenuItems = async () => {
     try {
@@ -112,6 +111,13 @@ const MenuPage: React.FC = () => {
     }
   };
 
+  const handleBarClick = () => {
+    if (selectRef.current) {
+      selectRef.current.focus();
+      selectRef.current.click();
+    }
+  };
+
   return (
     <div className="menu__container">
       {/* Add Menu Items Button */}
@@ -139,12 +145,38 @@ const MenuPage: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <FormControl fullWidth sx={{ minWidth: 120 }}>
-          <InputLabel>Category</InputLabel>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
+          <div
+            onClick={handleBarClick}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              backgroundColor: '#fff',
+              borderBottom: '2px solid black',
+            }}
+          >
+            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+              {selectedCategory}
+            </Typography>
+            <ExpandMoreIcon />
+          </div>
           <Select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as string)}
-            label="Category"
+            inputRef={selectRef}
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0, // Make it invisible but still functional
+            }}
           >
             <MenuItem value="All">All</MenuItem>
             {Object.keys(groupedItems).map((category) => (
@@ -153,7 +185,7 @@ const MenuPage: React.FC = () => {
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </div>
       </div>
 
       {/* Best Sellers Section */}
@@ -274,7 +306,7 @@ const MenuPage: React.FC = () => {
                             {item.name}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Price: ${item.price}
+                            Price: ₹{item.price}
                           </Typography>
                         </CardContent>
                         <CardActions>
