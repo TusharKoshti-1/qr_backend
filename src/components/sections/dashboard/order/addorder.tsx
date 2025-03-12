@@ -367,8 +367,7 @@ const AdminAddOrderPage: React.FC = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <IconButton onClick={() => handleQuantityChange(item.id, true)}>
                         <Add />
-                      </IconButton>
-                      E{' '}
+                      </IconButton>{' '}
                       <IconButton onClick={() => handleQuantityChange(item.id, false)}>
                         <Remove />
                       </IconButton>
