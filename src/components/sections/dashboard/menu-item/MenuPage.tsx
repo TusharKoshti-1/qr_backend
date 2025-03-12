@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Button, CardActions, Grid, Card, CardContent, Typography, CardMedia } from '@mui/material';
+import {
+  Button,
+  CardActions,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  CardMedia,
+  TextField,
+} from '@mui/material';
 import './MenuItem.css';
 
 interface MenuItemType {
@@ -15,9 +24,10 @@ interface MenuItemType {
 const MenuPage: React.FC = () => {
   const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
-  // const [categories, setCategories] = useState<string[]>([]);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
 
   const fetchMenuItems = async () => {
     try {
@@ -29,7 +39,6 @@ const MenuPage: React.FC = () => {
       });
       setMenuItems(response.data);
 
-      // Group items by category
       const grouped = response.data.reduce(
         (acc, item) => {
           acc[item.category] = acc[item.category] || [];
@@ -40,7 +49,6 @@ const MenuPage: React.FC = () => {
       );
 
       setGroupedItems(grouped);
-      // setCategories(Object.keys(grouped));
     } catch (error) {
       console.error('Error fetching menu items:', error);
     }
@@ -50,13 +58,24 @@ const MenuPage: React.FC = () => {
     fetchMenuItems();
   }, []);
 
-  // Mock best sellers (first 4 items for demonstration)
+  useEffect(() => {
+    if (Object.keys(groupedItems).length > 0) {
+      setOpenCategories(
+        Object.keys(groupedItems).reduce(
+          (acc, category) => {
+            acc[category] = true;
+            return acc;
+          },
+          {} as Record<string, boolean>,
+        ),
+      );
+    }
+  }, [groupedItems]);
+
   const bestSellers = menuItems.slice(0, 4);
 
   const handleRateChange = async (id: number, newRate: string) => {
-    const data = {
-      price: newRate,
-    };
+    const data = { price: newRate };
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/api/update-item/${id}`, data, {
         headers: {
@@ -85,8 +104,33 @@ const MenuPage: React.FC = () => {
     }
   };
 
+  const handleExpandAll = () => {
+    setOpenCategories(
+      Object.keys(groupedItems).reduce(
+        (acc, category) => {
+          acc[category] = true;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
+  };
+
+  const handleCollapseAll = () => {
+    setOpenCategories(
+      Object.keys(groupedItems).reduce(
+        (acc, category) => {
+          acc[category] = false;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
+  };
+
   return (
     <div className="menu__container">
+      {/* Add Menu Items Button */}
       <div
         style={{
           display: 'flex',
@@ -102,14 +146,30 @@ const MenuPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Categories Sections */}
-      {Object.entries(groupedItems).map(([category, items]) => (
-        <div key={category}>
-          <Typography variant="h4" sx={{ marginBottom: '2rem', color: 'primary.main' }}>
-            {category}
-          </Typography>
+      {/* Search Bar */}
+      <div style={{ marginBottom: '2rem' }}>
+        <TextField
+          label="Search menu items"
+          variant="outlined"
+          fullWidth
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Best Sellers Section */}
+      <Typography variant="h4" sx={{ margin: '2rem 0', color: 'secondary.main' }}>
+        Best Sellers
+      </Typography>
+      {(() => {
+        const filteredBestSellers = searchQuery
+          ? bestSellers.filter((item) =>
+              item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+            )
+          : bestSellers;
+        return filteredBestSellers.length > 0 ? (
           <Grid container spacing={3} justifyContent="left">
-            {items.map((item) => (
+            {filteredBestSellers.map((item) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
                 <Card
                   sx={{ maxWidth: 345, height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -124,67 +184,116 @@ const MenuPage: React.FC = () => {
                     </Typography>
                   </CardContent>
                   <CardActions>
-                    {editingItemId === item.id ? (
-                      <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                        <input
-                          type="text"
-                          value={newRate}
-                          onChange={(e) => setNewRate(e.target.value)}
-                          placeholder="New price"
-                          style={{ flex: 1 }}
-                        />
-                        <Button size="small" onClick={() => handleRateChange(item.id, newRate)}>
-                          Save
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          setEditingItemId(item.id);
-                          setNewRate('');
-                        }}
-                      >
-                        Set Rate
-                      </Button>
-                    )}
-                    <Button size="small" color="error" onClick={() => handleRemoveItem(item.id)}>
-                      Remove
+                    <Button size="small" color="secondary">
+                      Popular Choice
                     </Button>
                   </CardActions>
                 </Card>
               </Grid>
             ))}
           </Grid>
-        </div>
-      ))}
+        ) : (
+          <Typography>No best sellers match your search.</Typography>
+        );
+      })()}
 
-      {/* Best Sellers Section */}
-      <Typography variant="h4" sx={{ margin: '4rem 0 2rem', color: 'secondary.main' }}>
-        Best Sellers
-      </Typography>
-      <Grid container spacing={3} justifyContent="left">
-        {bestSellers.map((item) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-            <Card sx={{ maxWidth: 345, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardMedia component="img" height="140" image={item.image} alt={item.name} />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography gutterBottom variant="h5" component="div">
-                  {item.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Price: ${item.price}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" color="secondary">
-                  Popular Choice
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {/* Expand/Collapse Buttons */}
+      <div style={{ margin: '2rem 0' }}>
+        <Button onClick={handleExpandAll}>Expand All</Button>
+        <Button onClick={handleCollapseAll}>Collapse All</Button>
+      </div>
+
+      {/* Categories Sections */}
+      {Object.entries(groupedItems).map(([category, items]) => {
+        const filteredItems = searchQuery
+          ? items.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+          : items;
+        if (searchQuery && filteredItems.length === 0) {
+          return null;
+        }
+        return (
+          <div key={category}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem',
+              }}
+            >
+              <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                {category}
+              </Typography>
+              <Button
+                onClick={() =>
+                  setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                }
+              >
+                {openCategories[category] ? 'Close' : 'Open'}
+              </Button>
+            </div>
+            {openCategories[category] && (
+              <Grid container spacing={3} justifyContent="left">
+                {filteredItems.map((item) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                    <Card
+                      sx={{
+                        maxWidth: 345,
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      <CardMedia component="img" height="140" image={item.image} alt={item.name} />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography gutterBottom variant="h5" component="div">
+                          {item.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Price: ${item.price}
+                        </Typography>
+                      </CardContent>
+                      <CardActions>
+                        {editingItemId === item.id ? (
+                          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                            <input
+                              type="text"
+                              value={newRate}
+                              onChange={(e) => setNewRate(e.target.value)}
+                              placeholder="New price"
+                              style={{ flex: 1 }}
+                            />
+                            <Button size="small" onClick={() => handleRateChange(item.id, newRate)}>
+                              Save
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              setEditingItemId(item.id);
+                              setNewRate('');
+                            }}
+                          >
+                            Set Rate
+                          </Button>
+                        )}
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          Remove
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
