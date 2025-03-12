@@ -11,6 +11,8 @@ import {
   CardMedia,
   TextField,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import './MenuItem.css';
 
 interface MenuItemType {
@@ -28,6 +30,7 @@ const MenuPage: React.FC = () => {
   const [newRate, setNewRate] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const [openBestSellers, setOpenBestSellers] = useState<boolean>(true);
 
   const fetchMenuItems = async () => {
     try {
@@ -104,30 +107,6 @@ const MenuPage: React.FC = () => {
     }
   };
 
-  const handleExpandAll = () => {
-    setOpenCategories(
-      Object.keys(groupedItems).reduce(
-        (acc, category) => {
-          acc[category] = true;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      ),
-    );
-  };
-
-  const handleCollapseAll = () => {
-    setOpenCategories(
-      Object.keys(groupedItems).reduce(
-        (acc, category) => {
-          acc[category] = false;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      ),
-    );
-  };
-
   return (
     <div className="menu__container">
       {/* Add Menu Items Button */}
@@ -158,49 +137,66 @@ const MenuPage: React.FC = () => {
       </div>
 
       {/* Best Sellers Section */}
-      <Typography variant="h4" sx={{ margin: '2rem 0', color: 'secondary.main' }}>
-        Best Sellers
-      </Typography>
-      {(() => {
-        const filteredBestSellers = searchQuery
-          ? bestSellers.filter((item) =>
-              item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-            )
-          : bestSellers;
-        return filteredBestSellers.length > 0 ? (
-          <Grid container spacing={3} justifyContent="left">
-            {filteredBestSellers.map((item) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                <Card
-                  sx={{ maxWidth: 345, height: '100%', display: 'flex', flexDirection: 'column' }}
-                >
-                  <CardMedia component="img" height="140" image={item.image} alt={item.name} />
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography gutterBottom variant="h5" component="div">
-                      {item.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Price: ${item.price}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button size="small" color="secondary">
-                      Popular Choice
-                    </Button>
-                  </CardActions>
-                </Card>
+      <div style={{ marginTop: '2rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '2px solid black',
+            paddingBottom: '1rem',
+          }}
+        >
+          <Typography variant="h4" sx={{ color: 'secondary.main' }}>
+            Best Sellers
+          </Typography>
+          <Button onClick={() => setOpenBestSellers(!openBestSellers)}>
+            {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </Button>
+        </div>
+        {openBestSellers &&
+          (() => {
+            const filteredBestSellers = searchQuery
+              ? bestSellers.filter((item) =>
+                  item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                )
+              : bestSellers;
+            return filteredBestSellers.length > 0 ? (
+              <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                {filteredBestSellers.map((item) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                    <Card
+                      sx={{
+                        maxWidth: 345,
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      <CardMedia component="img" height="140" image={item.image} alt={item.name} />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography gutterBottom variant="h5" component="div">
+                          {item.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Price: ${item.price}
+                        </Typography>
+                      </CardContent>
+                      <CardActions>
+                        <Button size="small" color="secondary">
+                          Popular Choice
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Typography>No best sellers match your search.</Typography>
-        );
-      })()}
-
-      {/* Expand/Collapse Buttons */}
-      <div style={{ margin: '2rem 0' }}>
-        <Button onClick={handleExpandAll}>Expand All</Button>
-        <Button onClick={handleCollapseAll}>Collapse All</Button>
+            ) : (
+              <Typography style={{ marginTop: '1rem' }}>
+                No best sellers match your search.
+              </Typography>
+            );
+          })()}
       </div>
 
       {/* Categories Sections */}
@@ -212,13 +208,14 @@ const MenuPage: React.FC = () => {
           return null;
         }
         return (
-          <div key={category}>
+          <div key={category} style={{ marginTop: '2rem' }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '2rem',
+                borderBottom: '2px solid black',
+                paddingBottom: '1rem',
               }}
             >
               <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
@@ -229,11 +226,11 @@ const MenuPage: React.FC = () => {
                   setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
                 }
               >
-                {openCategories[category] ? 'Close' : 'Open'}
+                {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </Button>
             </div>
             {openCategories[category] && (
-              <Grid container spacing={3} justifyContent="left">
+              <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
                 {filteredItems.map((item) => (
                   <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
                     <Card
