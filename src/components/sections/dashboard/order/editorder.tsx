@@ -63,14 +63,11 @@ const EditOrder: React.FC = () => {
         });
         const items = response.data;
 
-        const grouped = items.reduce(
-          (acc, item) => {
-            acc[item.category] = acc[item.category] || [];
-            acc[item.category].push(item);
-            return acc;
-          },
-          {} as Record<string, MenuItem[]>,
-        );
+        const grouped = items.reduce((acc: Record<string, MenuItem[]>, item: MenuItem) => {
+          acc[item.category] = acc[item.category] || [];
+          acc[item.category].push(item);
+          return acc;
+        }, {});
         setGroupedItems(grouped);
 
         setOpenCategories(
@@ -177,9 +174,13 @@ const EditOrder: React.FC = () => {
       {/* Header */}
       <Box
         sx={{
+          padding: '1rem',
+          textAlign: 'center',
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: '1rem',
           marginBottom: '2rem',
         }}
       >
@@ -189,12 +190,19 @@ const EditOrder: React.FC = () => {
         </Typography>
       </Box>
 
-      {/* Main Content: Two Columns */}
-      <Box sx={{ display: 'flex', gap: '2rem' }}>
+      {/* Main Content */}
+      <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
         {/* Left Side: Menu Items */}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
           {/* Search Bar and Category Filter */}
-          <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
+          <Box
+            sx={{
+              marginBottom: '2rem',
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: '1rem',
+            }}
+          >
             <TextField
               label="Search for items"
               variant="outlined"
@@ -202,10 +210,10 @@ const EditOrder: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
-              <div
+            <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
+              <Box
                 onClick={handleBarClick}
-                style={{
+                sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -221,7 +229,7 @@ const EditOrder: React.FC = () => {
                   {selectedCategory}
                 </Typography>
                 <ExpandMoreIcon />
-              </div>
+              </Box>
               <Select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value as string)}
@@ -244,8 +252,8 @@ const EditOrder: React.FC = () => {
                     </MenuItem>
                   ))}
               </Select>
-            </div>
-          </div>
+            </Box>
+          </Box>
 
           {/* Categories Sections */}
           {Object.entries(groupedItems)
@@ -255,11 +263,9 @@ const EditOrder: React.FC = () => {
               const filteredItems = searchTerm
                 ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
                 : items;
-              if (filteredItems.length === 0) {
-                return null;
-              }
+              if (filteredItems.length === 0) return null;
               return (
-                <div key={category} style={{ marginBottom: '2rem' }}>
+                <Box key={category} sx={{ marginBottom: '2rem' }}>
                   <Box
                     onClick={() =>
                       setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
@@ -271,36 +277,39 @@ const EditOrder: React.FC = () => {
                       borderBottom: '2px solid black',
                       paddingBottom: '1rem',
                       cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: '#f5f5f5',
-                      },
+                      '&:hover': { backgroundColor: '#f5f5f5' },
                     }}
                   >
-                    <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                    <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
                       {category}
                     </Typography>
                     {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                   </Box>
                   {openCategories[category] && (
-                    <Grid container spacing={2} style={{ marginTop: '1rem' }}>
+                    <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
                       {filteredItems.map((item) => (
                         <Grid item xs={12} key={item.id}>
                           <Box
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'space-between', // Ensure content is spaced out
+                              justifyContent: 'space-between',
                               border: '1px solid #ccc',
                               borderRadius: '4px',
                               padding: '1rem',
-                              minHeight: '70px', // Consistent height
+                              minHeight: '70px',
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                style={{ width: 50, height: 50, marginRight: '10px' }}
+                                style={{
+                                  width: 50,
+                                  height: 50,
+                                  marginRight: '10px',
+                                  borderRadius: '4px',
+                                }}
                               />
                               <Box>
                                 <Typography variant="body1">{item.name}</Typography>
@@ -313,7 +322,7 @@ const EditOrder: React.FC = () => {
                               variant="contained"
                               color="primary"
                               onClick={() => handleAddItem(item)}
-                              sx={{ marginLeft: '1rem' }} // Add spacing to prevent overlap
+                              sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
                             >
                               Add
                             </Button>
@@ -322,7 +331,7 @@ const EditOrder: React.FC = () => {
                       ))}
                     </Grid>
                   )}
-                </div>
+                </Box>
               );
             })}
         </Box>
@@ -330,21 +339,23 @@ const EditOrder: React.FC = () => {
         {/* Right Side: Order Items */}
         <Box
           sx={{
-            flex: 1,
-            position: 'sticky',
-            top: '2rem',
-            alignSelf: 'flex-start',
-            maxHeight: 'calc(100vh - 4rem)',
-            overflowY: 'auto',
+            flex: { xs: 'none', md: 1 },
+            position: { xs: 'static', md: 'sticky' },
+            top: { md: '2rem' },
+            alignSelf: { md: 'flex-start' },
+            maxHeight: { md: 'calc(100vh - 4rem)' },
+            overflowY: { md: 'auto' },
             padding: '1rem',
             border: '1px solid #ccc',
             borderRadius: '4px',
+            width: { xs: '100%', md: 'auto' },
+            mt: { xs: '2rem', md: 0 },
           }}
         >
           <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
             Order Items
           </Typography>
-          <Grid container spacing={2} justifyContent="left">
+          <Grid container spacing={2}>
             {editedItems.map((item) => (
               <Grid item xs={12} key={item.id}>
                 <Box
@@ -364,15 +375,28 @@ const EditOrder: React.FC = () => {
                       ₹{item.price} x {item.quantity}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <IconButton onClick={() => handleIncreaseQuantity(item)}>
-                      <Add />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <IconButton
+                      onClick={() => handleIncreaseQuantity(item)}
+                      size="small"
+                      sx={{ padding: '4px' }}
+                    >
+                      <Add fontSize="small" />
                     </IconButton>
-                    <IconButton onClick={() => handleDecreaseQuantity(item)}>
-                      <Remove />
+                    <IconButton
+                      onClick={() => handleDecreaseQuantity(item)}
+                      size="small"
+                      sx={{ padding: '4px' }}
+                    >
+                      <Remove fontSize="small" />
                     </IconButton>
-                    <IconButton onClick={() => handleRemoveItem(item)}>
-                      <Delete />
+                    <IconButton
+                      onClick={() => handleRemoveItem(item)}
+                      size="small"
+                      color="error"
+                      sx={{ padding: '4px' }}
+                    >
+                      <Delete fontSize="small" />
                     </IconButton>
                   </Box>
                 </Box>
@@ -386,7 +410,7 @@ const EditOrder: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleSaveOrder}
-            sx={{ marginTop: '1rem', width: '100%' }}
+            sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
           >
             Save Order
           </Button>
