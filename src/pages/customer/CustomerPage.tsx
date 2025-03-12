@@ -98,14 +98,14 @@ const CustomerPage: React.FC = () => {
         );
         setTopSellers(topSellersResponse.data);
 
-        // Set open categories, with "Best Sellers" default open
+        // Set open categories, with "Best Selling" default open
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
               acc[category] = false; // Other categories closed by default
               return acc;
             },
-            { 'Best Sellers': true } as Record<string, boolean> // Best Sellers open by default
+            { 'Best Selling': true } as Record<string, boolean> // Best Selling open by default
           )
         );
       } catch (error) {
@@ -241,7 +241,7 @@ const CustomerPage: React.FC = () => {
                   }}
                 >
                   <MenuItem value="All">All</MenuItem>
-                  <MenuItem value="Best Sellers">Best Sellers</MenuItem>
+                  <MenuItem value="Best Selling">Best Selling</MenuItem>
                   {Object.keys(groupedItems)
                     .sort()
                     .map((category) => (
@@ -254,12 +254,12 @@ const CustomerPage: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Best Sellers Section */}
-          {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Sellers') && (
+          {/* Best Selling Section */}
+          {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Selling') && (
             <Box sx={{ marginBottom: '2rem' }}>
               <Box
                 onClick={() =>
-                  setOpenCategories((prev) => ({ ...prev, 'Best Sellers': !prev['Best Sellers'] }))
+                  setOpenCategories((prev) => ({ ...prev, 'Best Selling': !prev['Best Selling'] }))
                 }
                 sx={{
                   display: 'flex',
@@ -272,11 +272,11 @@ const CustomerPage: React.FC = () => {
                 }}
               >
                 <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
-                  Best Sellers
+                  Best Selling
                 </Typography>
-                {openCategories['Best Sellers'] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                {openCategories['Best Selling'] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </Box>
-              {openCategories['Best Sellers'] && (
+              {openCategories['Best Selling'] && (
                 <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
                   {topSellers
                     .filter((item) =>
