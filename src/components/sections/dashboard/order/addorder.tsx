@@ -52,7 +52,6 @@ const AdminAddOrderPage: React.FC = () => {
         );
 
         const items = menuResponse.data;
-        // Removed unused 'menuItems' state since we only need 'groupedItems'
         const grouped = items.reduce((acc: Record<string, MenuItemType[]>, item: MenuItemType) => {
           acc[item.category] = acc[item.category] || [];
           acc[item.category].push(item);
@@ -161,12 +160,33 @@ const AdminAddOrderPage: React.FC = () => {
           {/* Customer Name, Search Bar, and Category Filter */}
           <Box style={{ marginBottom: '2rem' }}>
             <TextField
-              label="Customer Name"
+              label="Customer Name *"
               variant="outlined"
               fullWidth
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              sx={{ marginBottom: '1rem' }}
+              required
+              helperText={!customerName ? 'This field is required' : ''}
+              FormHelperTextProps={{ style: { color: 'red' } }}
+              sx={{
+                marginBottom: '1rem',
+                '& .MuiInputLabel-root': {
+                  fontWeight: 'bold', // Bold label
+                },
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#fff9c4', // Light yellow background
+                  '& fieldset': {
+                    borderColor: '#f57c00', // Orange border
+                    borderWidth: '2px', // Thicker border
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#ef6c00', // Darker orange on hover
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#e65100', // Even darker orange when focused
+                  },
+                },
+              }}
             />
             <div style={{ display: 'flex', gap: '1rem' }}>
               <TextField
@@ -348,6 +368,7 @@ const AdminAddOrderPage: React.FC = () => {
                       <IconButton onClick={() => handleQuantityChange(item.id, true)}>
                         <Add />
                       </IconButton>
+                      E{' '}
                       <IconButton onClick={() => handleQuantityChange(item.id, false)}>
                         <Remove />
                       </IconButton>
