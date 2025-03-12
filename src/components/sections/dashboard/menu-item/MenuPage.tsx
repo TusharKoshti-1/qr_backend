@@ -10,6 +10,10 @@ import {
   Typography,
   CardMedia,
   TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -31,6 +35,7 @@ const MenuPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openBestSellers, setOpenBestSellers] = useState<boolean>(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const fetchMenuItems = async () => {
     try {
@@ -125,8 +130,8 @@ const MenuPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Search Bar */}
-      <div style={{ marginBottom: '2rem' }}>
+      {/* Search Bar and Category Filter */}
+      <div style={{ marginBottom: '2rem', display: 'flex', gap: '1rem' }}>
         <TextField
           label="Search menu items"
           variant="outlined"
@@ -134,6 +139,21 @@ const MenuPage: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        <FormControl fullWidth sx={{ minWidth: 120 }}>
+          <InputLabel>Category</InputLabel>
+          <Select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value as string)}
+            label="Category"
+          >
+            <MenuItem value="All">All</MenuItem>
+            {Object.keys(groupedItems).map((category) => (
+              <MenuItem key={category} value={category}>
+                {category}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </div>
 
       {/* Best Sellers Section */}
@@ -200,97 +220,107 @@ const MenuPage: React.FC = () => {
       </div>
 
       {/* Categories Sections */}
-      {Object.entries(groupedItems).map(([category, items]) => {
-        const filteredItems = searchQuery
-          ? items.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-          : items;
-        if (searchQuery && filteredItems.length === 0) {
-          return null;
-        }
-        return (
-          <div key={category} style={{ marginTop: '2rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderBottom: '2px solid black',
-                paddingBottom: '1rem',
-              }}
-            >
-              <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
-                {category}
-              </Typography>
-              <Button
-                onClick={() =>
-                  setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
-                }
+      {Object.entries(groupedItems)
+        .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+        .map(([category, items]) => {
+          const filteredItems = searchQuery
+            ? items.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+            : items;
+          if (filteredItems.length === 0) {
+            return null;
+          }
+          return (
+            <div key={category} style={{ marginTop: '2rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px solid black',
+                  paddingBottom: '1rem',
+                }}
               >
-                {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-              </Button>
-            </div>
-            {openCategories[category] && (
-              <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
-                {filteredItems.map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                    <Card
-                      sx={{
-                        maxWidth: 345,
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <CardMedia component="img" height="140" image={item.image} alt={item.name} />
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography gutterBottom variant="h5" component="div">
-                          {item.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Price: ${item.price}
-                        </Typography>
-                      </CardContent>
-                      <CardActions>
-                        {editingItemId === item.id ? (
-                          <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                            <input
-                              type="text"
-                              value={newRate}
-                              onChange={(e) => setNewRate(e.target.value)}
-                              placeholder="New price"
-                              style={{ flex: 1 }}
-                            />
-                            <Button size="small" onClick={() => handleRateChange(item.id, newRate)}>
-                              Save
+                <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
+                  {category}
+                </Typography>
+                <Button
+                  onClick={() =>
+                    setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                  }
+                >
+                  {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </Button>
+              </div>
+              {openCategories[category] && (
+                <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                  {filteredItems.map((item) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                      <Card
+                        sx={{
+                          maxWidth: 345,
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          height="140"
+                          image={item.image}
+                          alt={item.name}
+                        />
+                        <CardContent sx={{ flexGrow: 1 }}>
+                          <Typography gutterBottom variant="h5" component="div">
+                            {item.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Price: ${item.price}
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          {editingItemId === item.id ? (
+                            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                              <input
+                                type="text"
+                                value={newRate}
+                                onChange={(e) => setNewRate(e.target.value)}
+                                placeholder="New price"
+                                style={{ flex: 1 }}
+                              />
+                              <Button
+                                size="small"
+                                onClick={() => handleRateChange(item.id, newRate)}
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                setEditingItemId(item.id);
+                                setNewRate('');
+                              }}
+                            >
+                              Set Rate
                             </Button>
-                          </div>
-                        ) : (
+                          )}
                           <Button
                             size="small"
-                            onClick={() => {
-                              setEditingItemId(item.id);
-                              setNewRate('');
-                            }}
+                            color="error"
+                            onClick={() => handleRemoveItem(item.id)}
                           >
-                            Set Rate
+                            Remove
                           </Button>
-                        )}
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => handleRemoveItem(item.id)}
-                        >
-                          Remove
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            )}
-          </div>
-        );
-      })}
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </div>
+          );
+        })}
     </div>
   );
 };
