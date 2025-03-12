@@ -23,7 +23,12 @@ interface MenuItem {
   price: number;
   image: string;
   category: string;
-  bestSeller?: boolean; // Added for best seller indication
+  bestSeller?: boolean;
+}
+
+interface TopSellerItem extends MenuItem {
+  rank: number;
+  quantitySold: number;
 }
 
 interface CartItem extends MenuItem {
@@ -57,7 +62,7 @@ const CustomerPage: React.FC = () => {
   const navigate = useNavigate();
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
-  const [bestSellers, setBestSellers] = useState<MenuItem[]>([]);
+  const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>(sessionData.name || '');
   const [selectedItems, setSelectedItems] = useState<CartItem[]>(() => {
@@ -71,6 +76,7 @@ const CustomerPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch menu items
         const menuResponse = await axios.get<MenuItem[]>(
           `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`,
           { headers: { 'ngrok-skip-browser-warning': 'true' } }
@@ -87,10 +93,14 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
-        // Filter best sellers (assuming API includes 'bestSeller' field)
-        const bestSellerItems = items.filter((item) => item.bestSeller);
-        setBestSellers(bestSellerItems);
+        // Fetch top sellers
+        const topSellersResponse = await axios.get<TopSellerItem[]>(
+          `${import.meta.env.VITE_API_URL}/api/customer/top-sellers?restaurant_id=${sessionData.restaurantId}`,
+          { headers: { 'ngrok-skip-browser-warning': 'true' } }
+        );
+        setTopSellers(topSellersResponse.data);
 
+        // Set initial open state for categories
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
@@ -102,7 +112,7 @@ const CustomerPage: React.FC = () => {
         );
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to load menu. Please try refreshing the page.');
+        alert('Failed to load menu or top sellers. Please try refreshing the page.');
       }
     };
 
@@ -113,7 +123,7 @@ const CustomerPage: React.FC = () => {
     sessionStorage.setItem('selectedItems', JSON.stringify(selectedItems));
   }, [selectedItems]);
 
-  const handleAddItem = (item: MenuItem) => {
+  const handleAddItem = (item: MenuItem | TopSellerItem) => {
     setSelectedItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       return existing
@@ -245,15 +255,15 @@ const CustomerPage: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Best Sellers Section */}
-          {bestSellers.length > 0 && (
+          {/* Top Sellers Section */}
+          {topSellers.length > 0 && (
             <Box sx={{ marginBottom: '2rem' }}>
               <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold', mb: '1rem' }}>
-                Best Sellers
+                Best Selling
               </Typography>
               <Box sx={{ overflowX: 'auto', width: '100%' }}>
                 <Grid container spacing={2} sx={{ flexWrap: 'nowrap' }}>
-                  {bestSellers.map((item) => (
+                  {topSellers.map((item) => (
                     <Grid item key={item.id} sx={{ minWidth: { xs: '250px', sm: '300px' } }}>
                       <Box
                         sx={{
@@ -282,7 +292,7 @@ const CustomerPage: React.FC = () => {
                               <Typography variant="body1">{item.name}</Typography>
                             </Badge>
                             <Typography variant="body2" color="text.secondary">
-                              ₹{item.price}
+                              ₹{item.price} • {item.quantitySold} sold
                             </Typography>
                           </Box>
                         </Box>
