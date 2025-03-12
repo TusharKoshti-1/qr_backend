@@ -12,7 +12,7 @@ import {
   TextField,
   Select,
   MenuItem,
-  Box, // Added Box import
+  Box,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -26,8 +26,14 @@ interface MenuItemType {
   image: string;
 }
 
+interface TopSellerItem extends MenuItemType {
+  rank: number;
+  quantitySold: number;
+}
+
 const MenuPage: React.FC = () => {
-  const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  // const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
+  const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<string>('');
@@ -37,17 +43,33 @@ const MenuPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const selectRef = useRef<HTMLSelectElement>(null);
 
-  const fetchMenuItems = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get<MenuItemType[]>(`${import.meta.env.VITE_API_URL}/api/menu`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+      // Fetch top sellers
+      const topSellersResponse = await axios.get<TopSellerItem[]>(
+        `${import.meta.env.VITE_API_URL}/api/top-sellers`,
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
-      });
-      setMenuItems(response.data);
+      );
+      setTopSellers(topSellersResponse.data);
 
-      const grouped = response.data.reduce(
+      // Fetch menu items
+      const menuResponse = await axios.get<MenuItemType[]>(
+        `${import.meta.env.VITE_API_URL}/api/menu`,
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+      // setMenuItems(menuResponse.data);
+
+      const grouped = menuResponse.data.reduce(
         (acc, item) => {
           acc[item.category] = acc[item.category] || [];
           acc[item.category].push(item);
@@ -55,15 +77,14 @@ const MenuPage: React.FC = () => {
         },
         {} as Record<string, MenuItemType[]>,
       );
-
       setGroupedItems(grouped);
     } catch (error) {
-      console.error('Error fetching menu items:', error);
+      console.error('Error fetching data:', error);
     }
   };
 
   useEffect(() => {
-    fetchMenuItems();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -80,8 +101,6 @@ const MenuPage: React.FC = () => {
     }
   }, [groupedItems]);
 
-  const bestSellers = menuItems.slice(0, 4);
-
   const handleRateChange = async (id: number, newRate: string) => {
     const data = { price: newRate };
     try {
@@ -92,7 +111,7 @@ const MenuPage: React.FC = () => {
         },
       });
       setEditingItemId(null);
-      fetchMenuItems();
+      fetchData(); // Refresh both menu and top sellers
     } catch (error) {
       console.error('Error updating rate:', error);
     }
@@ -106,7 +125,7 @@ const MenuPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      fetchMenuItems();
+      fetchData(); // Refresh both menu and top sellers
     } catch (error) {
       console.error('Error removing item:', error);
     }
@@ -180,6 +199,7 @@ const MenuPage: React.FC = () => {
             }}
           >
             <MenuItem value="All">All</MenuItem>
+            <MenuItem value="Best Sellers">Best Sellers</MenuItem>
             {Object.keys(groupedItems)
               .sort()
               .map((category) => (
@@ -192,70 +212,115 @@ const MenuPage: React.FC = () => {
       </div>
 
       {/* Best Sellers Section */}
-      <div style={{ marginTop: '2rem' }}>
-        <Box
-          onClick={() => setOpenBestSellers(!openBestSellers)}
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '2px solid black',
-            paddingBottom: '1rem',
-            cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: '#f5f5f5',
-            },
-          }}
-        >
-          <Typography variant="h4" sx={{ color: 'secondary.main' }}>
-            Best Sellers
-          </Typography>
-          {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </Box>
-        {openBestSellers &&
-          (() => {
-            const filteredBestSellers = searchQuery
-              ? bestSellers.filter((item) =>
-                  item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-                )
-              : bestSellers;
-            return filteredBestSellers.length > 0 ? (
-              <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
-                {filteredBestSellers.map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                    <Card
-                      sx={{
-                        maxWidth: 345,
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <CardMedia component="img" height="140" image={item.image} alt={item.name} />
-                      <CardContent sx={{ flexGrow: 1 }}>
-                        <Typography gutterBottom variant="h5" component="div">
-                          {item.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Price: ₹{item.price}
-                        </Typography>
-                      </CardContent>
-                      <CardActions>
-                        <Button size="small" color="secondary">
-                          Popular Choice
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              <Typography style={{ marginTop: '1rem' }}>
-                No best sellers match your search.
+      {topSellers.length > 0 &&
+        (selectedCategory === 'All' || selectedCategory === 'Best Sellers') && (
+          <div style={{ marginTop: '2rem' }}>
+            <Box
+              onClick={() => setOpenBestSellers(!openBestSellers)}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '2px solid black',
+                paddingBottom: '1rem',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                },
+              }}
+            >
+              <Typography variant="h4" sx={{ color: 'secondary.main' }}>
+                Best Sellers
               </Typography>
-            );
-          })()}
-      </div>
+              {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </Box>
+            {openBestSellers &&
+              (() => {
+                const filteredBestSellers = searchQuery
+                  ? topSellers.filter((item) =>
+                      item.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                    )
+                  : topSellers;
+                return filteredBestSellers.length > 0 ? (
+                  <Grid container spacing={3} justifyContent="left" style={{ marginTop: '1rem' }}>
+                    {filteredBestSellers.map((item) => (
+                      <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                        <Card
+                          sx={{
+                            maxWidth: 345,
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          <CardMedia
+                            component="img"
+                            height="140"
+                            image={item.image}
+                            alt={item.name}
+                          />
+                          <CardContent sx={{ flexGrow: 1 }}>
+                            <Typography gutterBottom variant="h5" component="div">
+                              {item.name}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Price: ₹{item.price}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Sold: {item.quantitySold} units
+                            </Typography>
+                          </CardContent>
+                          <CardActions>
+                            <Button size="small" color="secondary">
+                              Rank: {item.rank}
+                            </Button>
+                            {editingItemId === item.id ? (
+                              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                                <input
+                                  type="text"
+                                  value={newRate}
+                                  onChange={(e) => setNewRate(e.target.value)}
+                                  placeholder="New price"
+                                  style={{ flex: 1 }}
+                                />
+                                <Button
+                                  size="small"
+                                  onClick={() => handleRateChange(item.id, newRate)}
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  setEditingItemId(item.id);
+                                  setNewRate('');
+                                }}
+                              >
+                                Set Rate
+                              </Button>
+                            )}
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveItem(item.id)}
+                            >
+                              Remove
+                            </Button>
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  <Typography style={{ marginTop: '1rem' }}>
+                    No best sellers match your search.
+                  </Typography>
+                );
+              })()}
+          </div>
+        )}
 
       {/* Categories Sections */}
       {Object.entries(groupedItems)
