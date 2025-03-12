@@ -1,0 +1,17 @@
+.menu__container {
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.menu__item .css-3e0jyh-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
+  padding: 8.5px 14px !important;
+}
