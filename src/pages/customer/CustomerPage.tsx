@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -6,6 +6,8 @@ import {
   Typography,
   TextField,
   Button,
+  Select,
+  MenuItem,
   Grid,
   IconButton,
   AppBar,
@@ -16,6 +18,8 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Add, Remove, Delete, ShoppingCart } from '@mui/icons-material';
 import './MenuItem.css'; // Assuming shared CSS
 
@@ -62,7 +66,7 @@ const CustomerPage: React.FC = () => {
 
   const navigate = useNavigate();
   const sessionData = JSON.parse(sessionStorage.getItem('userSession') || '{}');
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
   const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>(sessionData.name || '');
@@ -70,8 +74,11 @@ const CustomerPage: React.FC = () => {
     const savedItems = sessionStorage.getItem('selectedItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,10 +93,30 @@ const CustomerPage: React.FC = () => {
           `${import.meta.env.VITE_API_URL}/api/customer/menu?restaurant_id=${sessionData.restaurantId}`,
           { headers: { 'ngrok-skip-browser-warning': 'true' } }
         );
-        setMenuItems(menuResponse.data);
+
+        const items = menuResponse.data;
+        const grouped = items.reduce(
+          (acc: Record<string, MenuItem[]>, item: MenuItem) => {
+            acc[item.category] = acc[item.category] || [];
+            acc[item.category].push(item);
+            return acc;
+          },
+          {}
+        );
+        setGroupedItems(grouped);
+
+        setOpenCategories(
+          Object.keys(grouped).reduce(
+            (acc, category) => {
+              acc[category] = false;
+              return acc;
+            },
+            { 'Best Selling': true } as Record<string, boolean>
+          )
+        );
       } catch (error) {
         console.error('Error fetching data:', error);
-        alert('Failed to load menu. Please try again.');
+        alert('Failed to load menu or top sellers. Please try refreshing the page.');
       }
     };
 
@@ -144,17 +171,21 @@ const CustomerPage: React.FC = () => {
   };
 
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const filteredItems = menuItems.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  const handleBarClick = () => {
+    if (selectRef.current) {
+      selectRef.current.focus();
+      selectRef.current.click();
+    }
+  };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', paddingBottom: '80px' }}>
+    <div className="menu__container">
       {/* Sticky Header with Cart Icon */}
       <AppBar position="sticky" color="default" elevation={1}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Order Food
+            Welcome to Our Menu
           </Typography>
           <IconButton onClick={() => navigate('/cartpage')} color="inherit">
             <ShoppingCart />
@@ -183,101 +214,268 @@ const CustomerPage: React.FC = () => {
       </AppBar>
 
       {/* Main Content */}
-      <Box sx={{ padding: '1rem' }}>
-        {/* Customer Name */}
-        <TextField
-          label="Your Name *"
-          variant="outlined"
-          fullWidth
-          value={customerName}
-          onChange={(e) => setCustomerName(e.target.value)}
-          required
-          sx={{ mb: 2, backgroundColor: 'white' }}
-        />
+      <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
+        {/* Left Side: Menu Items */}
+        <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
+          {/* Customer Name, Search Bar, and Category Filter */}
+          <Box sx={{ marginBottom: '2rem', pt: 2 }}>
+            <TextField
+              label="Your Name *"
+              variant="outlined"
+              fullWidth
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              required
+              helperText={!customerName ? 'This field is required' : ''}
+              FormHelperTextProps={{ style: { color: 'red' } }}
+              sx={{
+                marginBottom: '1rem',
+                '& .MuiInputLabel-root': { fontWeight: 'bold' },
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#fff9c4',
+                  '& fieldset': { borderColor: '#f57c00', borderWidth: '2px' },
+                  '&:hover fieldset': { borderColor: '#ef6c00' },
+                  '&.Mui-focused fieldset': { borderColor: '#e65100' },
+                },
+              }}
+            />
+            <Box sx={{ display: 'flex', gap: '1rem', flexDirection: { xs: 'column', sm: 'row' } }}>
+              <TextField
+                label="Search Menu Items"
+                variant="outlined"
+                fullWidth
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
+                <Box
+                  onClick={handleBarClick}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    backgroundColor: '#fff',
+                    borderBottom: '2px solid black',
+                  }}
+                >
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {selectedCategory}
+                  </Typography>
+                  <ExpandMoreIcon />
+                </Box>
+                <Select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as string)}
+                  inputRef={selectRef}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    opacity: 0,
+                  }}
+                >
+                  <MenuItem value="All">All</MenuItem>
+                  <MenuItem value="Best Selling">Best Selling</MenuItem>
+                  {Object.keys(groupedItems)
+                    .sort()
+                    .map((category) => (
+                      <MenuItem key={category} value={category}>
+                        {category}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </Box>
+            </Box>
+          </Box>
 
-        {/* Search Bar */}
-        <TextField
-          label="Search Items"
-          variant="outlined"
-          fullWidth
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ mb: 2, backgroundColor: 'white' }}
-        />
+          {/* Best Selling Section */}
+          {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Selling') && (
+            <Box sx={{ marginBottom: '2rem' }}>
+              <Box
+                onClick={() =>
+                  setOpenCategories((prev) => ({ ...prev, 'Best Selling': !prev['Best Selling'] }))
+                }
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px solid black',
+                  paddingBottom: '1rem',
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#f5f5f5' },
+                }}
+              >
+                <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
+                  Best Selling
+                </Typography>
+                {openCategories['Best Selling'] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </Box>
+              {openCategories['Best Selling'] && (
+                <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
+                  {topSellers
+                    .filter((item) =>
+                      searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
+                    )
+                    .map((item) => (
+                      <Grid item xs={12} key={item.id}>
+                        <ItemCard
+                          item={item}
+                          selectedItems={selectedItems}
+                          onAdd={handleAddItem}
+                          onQuantityChange={handleQuantity}
+                          onRemove={handleDeleteClick}
+                        />
+                      </Grid>
+                    ))}
+                </Grid>
+              )}
+            </Box>
+          )}
 
-        {/* Top Sellers Section */}
-        {topSellers.length > 0 && (
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold', color: '#d81b60' }}>
-              Top Picks
+          {/* Other Categories Sections */}
+          {Object.entries(groupedItems)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+            .map(([category, items]) => {
+              const filteredItems = searchTerm
+                ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                : items;
+              if (filteredItems.length === 0) return null;
+              return (
+                <Box key={category} sx={{ marginBottom: '2rem' }}>
+                  <Box
+                    onClick={() =>
+                      setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                    }
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      borderBottom: '2px solid black',
+                      paddingBottom: '1rem',
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: '#f5f5f5' },
+                    }}
+                  >
+                    <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
+                      {category}
+                    </Typography>
+                    {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  </Box>
+                  {openCategories[category] && (
+                    <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
+                      {filteredItems.map((item) => (
+                        <Grid item xs={12} key={item.id}>
+                          <ItemCard
+                            item={item}
+                            selectedItems={selectedItems}
+                            onAdd={handleAddItem}
+                            onQuantityChange={handleQuantity}
+                            onRemove={handleDeleteClick}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Box>
+              );
+            })}
+        </Box>
+
+        {/* Right Side: Cart */}
+        <Box
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            position: { xs: 'static', md: 'sticky' },
+            top: { md: '2rem' },
+            alignSelf: { md: 'flex-start' },
+            maxHeight: { md: 'calc(100vh - 4rem)' },
+            overflowY: { md: 'auto' },
+            padding: '1rem',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            width: { xs: '100%', md: 'auto' },
+            mt: { xs: '2rem', md: 0 },
+          }}
+        >
+          <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+            Your Cart
+          </Typography>
+          {selectedItems.length === 0 ? (
+            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+              No items in cart yet
             </Typography>
+          ) : (
             <Grid container spacing={2}>
-              {topSellers.map((item) => (
+              {selectedItems.map((item) => (
                 <Grid item xs={12} key={item.id}>
-                  <ItemCard
-                    item={item}
-                    selectedItems={selectedItems}
-                    onAdd={handleAddItem}
-                    onQuantityChange={handleQuantity}
-                    onRemove={handleDeleteClick} // Updated to use confirmation
-                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      padding: '1rem',
+                      minHeight: '70px',
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1">{item.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ₹{item.price} x {item.quantity}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconButton
+                        onClick={() => handleQuantity(item.id, true)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Add fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleQuantity(item.id, false)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Remove fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDeleteClick(item.id)}
+                        size="small"
+                        color="error"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
                 </Grid>
               ))}
             </Grid>
-          </Box>
-        )}
-
-        {/* All Items Section */}
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
-            Menu
-          </Typography>
-          <Grid container spacing={2}>
-            {filteredItems.map((item) => (
-              <Grid item xs={12} key={item.id}>
-                <ItemCard
-                  item={item}
-                  selectedItems={selectedItems}
-                  onAdd={handleAddItem}
-                  onQuantityChange={handleQuantity}
-                  onRemove={handleDeleteClick} // Updated to use confirmation
-                />
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Box>
-
-      {/* Sticky Cart Footer */}
-      {selectedItems.length > 0 && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: '#fff',
-            boxShadow: '0 -2px 5px rgba(0,0,0,0.2)',
-            padding: '1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Typography variant="h6">
+          )}
+          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
             Total: ₹{total}
           </Typography>
           <Button
             variant="contained"
             color="success"
+            fullWidth
             onClick={() => navigate('/cartpage')}
-            disabled={!customerName}
-            sx={{ padding: '0.5rem 2rem' }}
+            disabled={selectedItems.length === 0 || !customerName}
+            sx={{ marginTop: '1rem', padding: '0.75rem' }}
           >
-            Review Order
+            Go to Cart
           </Button>
         </Box>
-      )}
+      </Box>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -301,7 +499,7 @@ const CustomerPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };
 
@@ -320,24 +518,25 @@ const ItemCard: React.FC<{
       sx={{
         display: 'flex',
         alignItems: 'center',
-        backgroundColor: 'white',
-        borderRadius: '8px',
+        justifyContent: 'space-between',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
         padding: '1rem',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        minHeight: '70px',
       }}
     >
-      <img
-        src={item.image}
-        alt={item.name}
-        style={{ width: 60, height: 60, borderRadius: '4px', marginRight: '1rem' }}
-      />
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-          {item.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          ₹{item.price}
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+        <img
+          src={item.image}
+          alt={item.name}
+          style={{ width: 50, height: 50, marginRight: '10px', borderRadius: '4px' }}
+        />
+        <Box>
+          <Typography variant="body1">{item.name}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            ₹{item.price}
+          </Typography>
+        </Box>
       </Box>
       {cartItem ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -357,7 +556,7 @@ const ItemCard: React.FC<{
           variant="contained"
           color="primary"
           onClick={() => onAdd(item)}
-          sx={{ padding: '0.5rem 1rem' }}
+          sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
         >
           Add
         </Button>
