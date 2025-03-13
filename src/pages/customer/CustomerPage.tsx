@@ -10,8 +10,6 @@ import {
   MenuItem,
   Grid,
   IconButton,
-  AppBar,
-  Toolbar,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -156,20 +154,34 @@ const CustomerPage: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px' }}>
-      {/* Sticky Header with Just Cart Icon */}
-      <AppBar position="sticky" color="default" elevation={1}>
-        <Toolbar sx={{ justifyContent: 'flex-end' }}>
-          <IconButton onClick={() => navigate('/cartpage')} color="inherit">
-            <ShoppingCart />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
       {/* Main Content */}
       <Box sx={{ padding: '1rem' }}>
-        {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 2 }}>
-          <Typography variant="h4">Welcome to Our Menu</Typography>
+        {/* Header with Cart Icon */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4">Welcome</Typography>
+          <IconButton onClick={() => navigate('/cartpage')} color="inherit">
+            <ShoppingCart />
+            {selectedItems.length > 0 && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 5,
+                  backgroundColor: 'red',
+                  borderRadius: '50%',
+                  width: 18,
+                  height: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '12px',
+                }}
+              >
+                {selectedItems.length}
+              </Box>
+            )}
+          </IconButton>
         </Box>
 
         {/* Customer Name, Search Bar, and Category Filter */}
