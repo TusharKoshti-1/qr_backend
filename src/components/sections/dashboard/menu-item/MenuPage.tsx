@@ -13,6 +13,11 @@ import {
   Select,
   MenuItem,
   Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -32,7 +37,6 @@ interface TopSellerItem extends MenuItemType {
 }
 
 const MenuPage: React.FC = () => {
-  // const [menuItems, setMenuItems] = useState<MenuItemType[]>([]);
   const [topSellers, setTopSellers] = useState<TopSellerItem[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
@@ -41,13 +45,15 @@ const MenuPage: React.FC = () => {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openBestSellers, setOpenBestSellers] = useState<boolean>(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
 
   const fetchData = async () => {
     try {
-      // Fetch top sellers
+      const restaurantId = localStorage.getItem('restaurantId'); // Adjust source as needed
       const topSellersResponse = await axios.get<TopSellerItem[]>(
-        `${import.meta.env.VITE_API_URL}/api/top-sellers`,
+        `${import.meta.env.VITE_API_URL}/api/top-sellers?restaurant_id=${restaurantId}`,
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -57,7 +63,6 @@ const MenuPage: React.FC = () => {
       );
       setTopSellers(topSellersResponse.data);
 
-      // Fetch menu items
       const menuResponse = await axios.get<MenuItemType[]>(
         `${import.meta.env.VITE_API_URL}/api/menu`,
         {
@@ -67,7 +72,6 @@ const MenuPage: React.FC = () => {
           },
         },
       );
-      // setMenuItems(menuResponse.data);
 
       const grouped = menuResponse.data.reduce(
         (acc, item) => {
@@ -111,7 +115,7 @@ const MenuPage: React.FC = () => {
         },
       });
       setEditingItemId(null);
-      fetchData(); // Refresh both menu and top sellers
+      fetchData();
     } catch (error) {
       console.error('Error updating rate:', error);
     }
@@ -125,10 +129,28 @@ const MenuPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      fetchData(); // Refresh both menu and top sellers
+      fetchData();
     } catch (error) {
       console.error('Error removing item:', error);
     }
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setItemToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete !== null) {
+      handleRemoveItem(itemToDelete);
+    }
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
   };
 
   const handleBarClick = () => {
@@ -224,9 +246,7 @@ const MenuPage: React.FC = () => {
                 borderBottom: '2px solid black',
                 paddingBottom: '1rem',
                 cursor: 'pointer',
-                '&:hover': {
-                  backgroundColor: '#f5f5f5',
-                },
+                '&:hover': { backgroundColor: '#f5f5f5' },
               }}
             >
               <Typography variant="h4" sx={{ color: 'secondary.main' }}>
@@ -304,7 +324,7 @@ const MenuPage: React.FC = () => {
                             <Button
                               size="small"
                               color="error"
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => handleDeleteClick(item.id)}
                             >
                               Remove
                             </Button>
@@ -346,9 +366,7 @@ const MenuPage: React.FC = () => {
                   borderBottom: '2px solid black',
                   paddingBottom: '1rem',
                   cursor: 'pointer',
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5',
-                  },
+                  '&:hover': { backgroundColor: '#f5f5f5' },
                 }}
               >
                 <Typography variant="h4" sx={{ color: 'black', fontWeight: 'bold' }}>
@@ -413,7 +431,7 @@ const MenuPage: React.FC = () => {
                           <Button
                             size="small"
                             color="error"
-                            onClick={() => handleRemoveItem(item.id)}
+                            onClick={() => handleDeleteClick(item.id)}
                           >
                             Remove
                           </Button>
@@ -426,6 +444,29 @@ const MenuPage: React.FC = () => {
             </div>
           );
         })}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{'Confirm Deletion'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to remove this item? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
