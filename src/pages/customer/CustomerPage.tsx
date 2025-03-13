@@ -144,6 +144,7 @@ const CustomerPage: React.FC = () => {
   };
 
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalQuantity = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleBarClick = () => {
     if (selectRef.current) {
@@ -159,26 +160,27 @@ const CustomerPage: React.FC = () => {
         {/* Header with Cart Icon */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h4">Welcome</Typography>
-          <IconButton onClick={() => navigate('/cartpage')} color="inherit">
+          <IconButton onClick={() => navigate('/cartpage')} sx={{ color: 'green' }}>
             <ShoppingCart />
-            {selectedItems.length > 0 && (
+            {totalQuantity > 0 && (
               <Box
                 sx={{
                   position: 'absolute',
                   top: 5,
                   right: 5,
-                  backgroundColor: 'red',
+                  backgroundColor: 'white',
                   borderRadius: '50%',
                   width: 18,
                   height: 18,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: 'black',
                   fontSize: '12px',
+                  border: '1px solid #ccc',
                 }}
               >
-                {selectedItems.length}
+                {totalQuantity}
               </Box>
             )}
           </IconButton>
@@ -374,7 +376,7 @@ const CustomerPage: React.FC = () => {
           <Box>
             <Typography variant="h6">Total: ₹{total}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {selectedItems.length} Item{selectedItems.length > 1 ? 's' : ''} in Cart
+              {totalQuantity} Item{totalQuantity > 1 ? 's' : ''} in Cart
             </Typography>
           </Box>
           <Button
