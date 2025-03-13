@@ -12,6 +12,11 @@ import {
   Grid,
   Alert,
   Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -27,11 +32,12 @@ type MenuItem = {
 
 const AddMenuItems: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  // const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<string>('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -50,7 +56,6 @@ const AddMenuItems: React.FC = () => {
         },
       );
       const items = response.data;
-      // setMenuItems(items);
 
       const grouped = items.reduce(
         (acc, item) => {
@@ -62,7 +67,6 @@ const AddMenuItems: React.FC = () => {
       );
       setGroupedItems(grouped);
 
-      // Initialize all categories as closed by default
       setOpenCategories(
         Object.keys(grouped).reduce(
           (acc, category) => {
@@ -115,6 +119,7 @@ const AddMenuItems: React.FC = () => {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -141,6 +146,24 @@ const AddMenuItems: React.FC = () => {
     } catch (error) {
       console.error('Error removing item:', error);
     }
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setItemToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete !== null) {
+      handleRemoveItem(itemToDelete);
+    }
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -205,7 +228,7 @@ const AddMenuItems: React.FC = () => {
           >
             <MenuItem value="All">All</MenuItem>
             {Object.keys(groupedItems)
-              .sort() // Sort categories alphabetically
+              .sort()
               .map((category) => (
                 <MenuItem key={category} value={category}>
                   {category}
@@ -224,7 +247,7 @@ const AddMenuItems: React.FC = () => {
 
       {/* Categories Sections */}
       {Object.entries(groupedItems)
-        .sort(([a], [b]) => a.localeCompare(b)) // Sort categories alphabetically
+        .sort(([a], [b]) => a.localeCompare(b))
         .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
         .map(([category, items]) => {
           const filteredItems = searchTerm
@@ -289,7 +312,7 @@ const AddMenuItems: React.FC = () => {
                           <Button
                             size="small"
                             color="error"
-                            onClick={() => handleRemoveItem(item.id)}
+                            onClick={() => handleDeleteClick(item.id)}
                           >
                             Remove
                           </Button>
@@ -302,6 +325,29 @@ const AddMenuItems: React.FC = () => {
             </div>
           );
         })}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{'Confirm Deletion'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to remove this item? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
