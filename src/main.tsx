@@ -7,6 +7,10 @@ import router from 'routes/router';
 
 import { theme } from 'theme/theme';
 
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
