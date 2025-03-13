@@ -10,6 +10,11 @@ import {
   IconButton,
   AppBar,
   Toolbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import { Add, Remove, Delete, ShoppingCart } from '@mui/icons-material';
 import './MenuItem.css'; // Assuming shared CSS
@@ -65,6 +70,8 @@ const CustomerPage: React.FC = () => {
     const savedItems = sessionStorage.getItem('selectedItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +125,24 @@ const CustomerPage: React.FC = () => {
     setSelectedItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
+  const handleDeleteClick = (itemId: string) => {
+    setItemToDelete(itemId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete !== null) {
+      handleRemoveItem(itemToDelete);
+    }
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setItemToDelete(null);
+  };
+
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const filteredItems = menuItems.filter((item) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -125,7 +150,7 @@ const CustomerPage: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5', paddingBottom: '80px' }}>
-      {/* Sticky Header */}
+      {/* Sticky Header with Cart Icon */}
       <AppBar position="sticky" color="default" elevation={1}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -194,7 +219,7 @@ const CustomerPage: React.FC = () => {
                     selectedItems={selectedItems}
                     onAdd={handleAddItem}
                     onQuantityChange={handleQuantity}
-                    onRemove={handleRemoveItem}
+                    onRemove={handleDeleteClick} // Updated to use confirmation
                   />
                 </Grid>
               ))}
@@ -215,7 +240,7 @@ const CustomerPage: React.FC = () => {
                   selectedItems={selectedItems}
                   onAdd={handleAddItem}
                   onQuantityChange={handleQuantity}
-                  onRemove={handleRemoveItem}
+                  onRemove={handleDeleteClick} // Updated to use confirmation
                 />
               </Grid>
             ))}
@@ -253,6 +278,29 @@ const CustomerPage: React.FC = () => {
           </Button>
         </Box>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"Remove Item"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to remove this item from your cart?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
