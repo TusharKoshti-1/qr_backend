@@ -174,7 +174,7 @@ const CustomerPage: React.FC = () => {
         <Typography variant="h4">Welcome</Typography>
         <IconButton
           onClick={() => navigate('/cartpage')}
-          sx={{ color: '#000000' }} // Bright Black for highlight
+          sx={{ color: '#00cc00' }} // Bright Black for highlight
         >
           <ShoppingCart sx={{ fontSize: '2rem' }} /> {/* Increased size */}
           {totalQuantity > 0 && (
