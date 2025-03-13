@@ -154,38 +154,55 @@ const CustomerPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: '80px' }}>
+    <Box sx={{ minHeight: '100vh', pb: '80px', pt: '70px' }}>
+      {/* Sticky Header */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#fff',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+          padding: '1rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 1000,
+        }}
+      >
+        <Typography variant="h4">Welcome</Typography>
+        <IconButton
+          onClick={() => navigate('/cartpage')}
+          sx={{ color: '#00cc00' }} // Bright green for highlight
+        >
+          <ShoppingCart sx={{ fontSize: '2rem' }} /> {/* Increased size */}
+          {totalQuantity > 0 && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                backgroundColor: '#00ff00', // Bright green for highlight
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#000000', // Black text for contrast
+                fontSize: '12px',
+                fontWeight: 'bold',
+              }}
+            >
+              {totalQuantity}
+            </Box>
+          )}
+        </IconButton>
+      </Box>
+
       {/* Main Content */}
       <Box sx={{ padding: '1rem' }}>
-        {/* Header with Cart Icon */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h4">Welcome</Typography>
-          <IconButton onClick={() => navigate('/cartpage')} sx={{ color: 'green' }}>
-            <ShoppingCart />
-            {totalQuantity > 0 && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 5,
-                  right: 5,
-                  backgroundColor: 'white',
-                  borderRadius: '50%',
-                  width: 18,
-                  height: 18,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'black',
-                  fontSize: '12px',
-                  border: '1px solid #ccc',
-                }}
-              >
-                {totalQuantity}
-              </Box>
-            )}
-          </IconButton>
-        </Box>
-
         {/* Customer Name, Search Bar, and Category Filter */}
         <Box sx={{ mb: 2 }}>
           <TextField
