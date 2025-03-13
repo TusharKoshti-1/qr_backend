@@ -183,14 +183,14 @@ const CustomerPage: React.FC = () => {
                 position: 'absolute',
                 top: 0,
                 right: 0,
-                backgroundColor: '#00ff00', // Bright green for highlight
+                backgroundColor: '#000000', // Bright Black for highlight
                 borderRadius: '50%',
                 width: 20,
                 height: 20,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#000000', // Black text for contrast
+                color: '#fff', // White text for contrast
                 fontSize: '12px',
                 fontWeight: 'bold',
               }}
