@@ -52,6 +52,14 @@ const SalesReport: React.FC = () => {
         );
         setSales(sortedSales);
         setFilteredSales(sortedSales);
+
+        // Apply "Today" filter as default after data is fetched
+        const today = dayjs().startOf('day');
+        const todayEnd = today.endOf('day');
+        setStartDate(today);
+        setEndDate(todayEnd);
+        setActiveFilter('today');
+        applyDateFilter(today, todayEnd);
       } catch (error) {
         console.error('Error fetching sales data:', error);
         alert('Failed to fetch sales data. Please try again later.');
@@ -59,7 +67,7 @@ const SalesReport: React.FC = () => {
     };
 
     fetchSales();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only on mount
 
   // Updated filter to include boundaries and reset page to 1
   const applyDateFilter = (start: Dayjs, end: Dayjs) => {
