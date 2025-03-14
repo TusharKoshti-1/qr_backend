@@ -361,10 +361,10 @@ const Order: React.FC = () => {
                   Phone: {order.phone}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Payment Method: ${order.payment_method}
+                  Payment Method: {order.payment_method}
                 </Typography>
                 <Typography variant="h6" sx={{ marginTop: '10px' }}>
-                  Total Amount: ₹${order.total_amount}
+                  Total Amount: ₹{order.total_amount}
                 </Typography>
                 <Divider sx={{ marginY: '10px' }} />
                 <Typography variant="subtitle1">Items:</Typography>
