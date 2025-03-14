@@ -38,11 +38,9 @@ const SettingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
-  // Fetch settings and location on component mount
   useEffect(() => {
     const fetchSettingsAndLocation = async () => {
       try {
-        // Fetch existing settings
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/settings`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -50,21 +48,10 @@ const SettingsPage: React.FC = () => {
           },
         });
         const settingsData = response.data;
+        console.log('Fetched settings:', settingsData);
 
-        // Get user's location if address is empty
         if (!settingsData.address) {
-          setLocationLoading(true);
-          try {
-            const address = await getUserLocation();
-            setSettings({
-              ...settingsData,
-              address: address || settingsData.address,
-            });
-          } catch (locationErr) {
-            console.error('Error getting location:', locationErr);
-            setError('Could not fetch location. Please enter address manually.');
-          }
-          setLocationLoading(false);
+          await fetchLocation();
         } else {
           setSettings(settingsData);
         }
@@ -79,33 +66,54 @@ const SettingsPage: React.FC = () => {
     fetchSettingsAndLocation();
   }, []);
 
-  // Function to get user's location and convert to address
-  const getUserLocation = (): Promise<string> => {
-    return new Promise((resolve, reject) => {
+  const fetchLocation = async () => {
+    setLocationLoading(true);
+    setError(null);
+    try {
       if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by your browser'));
-        return;
+        throw new Error('Geolocation is not supported by your browser');
       }
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            // Use Nominatim (OpenStreetMap) for reverse geocoding
-            const response = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-            );
-            const address = response.data.display_name;
-            resolve(address);
-          } catch (err) {
-            reject(new Error('Error converting coordinates to address'));
-          }
-        },
-        (error) => {
-          reject(error);
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          maximumAge: 0,
+          enableHighAccuracy: true,
+        });
+      });
+
+      console.log('Position obtained:', position.coords);
+
+      const { latitude, longitude } = position.coords;
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'YourAppName/1.0',
+          },
         },
       );
-    });
+
+      console.log('Nominatim response:', response.data);
+      const address = response.data.display_name || 'Address not found';
+
+      setSettings((prev) => ({
+        ...prev,
+        address: address,
+      }));
+    } catch (err: GeolocationPositionError | unknown) {
+      // Updated type here
+      console.error('Location error:', err);
+      let errorMessage = 'Unable to fetch location';
+      if (err instanceof GeolocationPositionError) {
+        if (err.code === 1) errorMessage = 'Location permission denied';
+        else if (err.code === 2) errorMessage = 'Position unavailable';
+        else if (err.code === 3) errorMessage = 'Location request timed out';
+      }
+      setError(errorMessage);
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -183,6 +191,16 @@ const SettingsPage: React.FC = () => {
                 disabled={locationLoading}
                 helperText={locationLoading ? 'Fetching location...' : 'Edit address if needed'}
               />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                variant="outlined"
+                onClick={fetchLocation}
+                disabled={locationLoading}
+                sx={{ mb: 2 }}
+              >
+                {locationLoading ? 'Fetching Location...' : 'Get Current Location'}
+              </Button>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
