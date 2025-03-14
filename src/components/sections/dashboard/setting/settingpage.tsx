@@ -36,18 +36,38 @@ const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationLoading, setLocationLoading] = useState<boolean>(false);
 
+  // Fetch settings and location on component mount
   useEffect(() => {
-    // Fetch existing settings from your API endpoint
-    const fetchSettings = async () => {
+    const fetchSettingsAndLocation = async () => {
       try {
+        // Fetch existing settings
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/settings`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
           },
         });
-        setSettings(response.data);
+        const settingsData = response.data;
+
+        // Get user's location if address is empty
+        if (!settingsData.address) {
+          setLocationLoading(true);
+          try {
+            const address = await getUserLocation();
+            setSettings({
+              ...settingsData,
+              address: address || settingsData.address,
+            });
+          } catch (locationErr) {
+            console.error('Error getting location:', locationErr);
+            setError('Could not fetch location. Please enter address manually.');
+          }
+          setLocationLoading(false);
+        } else {
+          setSettings(settingsData);
+        }
         setLoading(false);
       } catch (err) {
         console.error('Error fetching settings:', err);
@@ -56,13 +76,40 @@ const SettingsPage: React.FC = () => {
       }
     };
 
-    fetchSettings();
+    fetchSettingsAndLocation();
   }, []);
 
-  // Updated change handler that checks if the target is a checkbox
+  // Function to get user's location and convert to address
+  const getUserLocation = (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Use Nominatim (OpenStreetMap) for reverse geocoding
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            );
+            const address = response.data.display_name;
+            resolve(address);
+          } catch (err) {
+            reject(new Error('Error converting coordinates to address'));
+          }
+        },
+        (error) => {
+          reject(error);
+        },
+      );
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // If the target is an input element and its type is checkbox, use the checked property
     const newValue =
       (e.target as HTMLInputElement).type === 'checkbox'
         ? (e.target as HTMLInputElement).checked
@@ -133,6 +180,8 @@ const SettingsPage: React.FC = () => {
                 name="address"
                 value={settings.address}
                 onChange={handleChange}
+                disabled={locationLoading}
+                helperText={locationLoading ? 'Fetching location...' : 'Edit address if needed'}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
