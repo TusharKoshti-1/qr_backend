@@ -26,7 +26,6 @@ interface ItemReport {
   total_revenue: number;
 }
 
-// Define an interface for the API response
 interface ItemReportApi {
   item_id: number | string;
   item_name: string;
@@ -36,9 +35,9 @@ interface ItemReportApi {
 
 const ItemReport: React.FC = () => {
   const [items, setItems] = useState<ItemReport[]>([]);
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('day'));
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().endOf('day'));
+  const [activeFilter, setActiveFilter] = useState<string | null>('today');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
 
@@ -58,7 +57,6 @@ const ItemReport: React.FC = () => {
             },
           },
         );
-        // Convert numeric fields explicitly
         const processedData = response.data.map((item) => ({
           ...item,
           total_revenue: Number(item.total_revenue),
@@ -66,7 +64,6 @@ const ItemReport: React.FC = () => {
           item_id: Number(item.item_id),
         }));
         setItems(processedData);
-        // Reset current page to 1 on new fetch
         setCurrentPage(1);
       } catch (error) {
         console.error('Error fetching items data:', error);
@@ -85,13 +82,11 @@ const ItemReport: React.FC = () => {
     switch (filter) {
       case 'today':
         setStartDate(today);
-        // Set end date to one day later to cover the full day
-        setEndDate(today.add(1, 'day'));
+        setEndDate(today.endOf('day'));
         break;
       case 'yesterday':
         setStartDate(yesterday);
-        // Set end date to one day later to cover the full day
-        setEndDate(yesterday.add(1, 'day'));
+        setEndDate(yesterday.endOf('day'));
         break;
       case 'thisWeek':
         setStartDate(today.startOf('week'));
@@ -113,7 +108,6 @@ const ItemReport: React.FC = () => {
         setStartDate(null);
         setEndDate(null);
     }
-    // Reset current page when applying a new filter
     setCurrentPage(1);
   };
 
@@ -125,7 +119,6 @@ const ItemReport: React.FC = () => {
     setCurrentPage(value);
   };
 
-  // Slice the items array for pagination
   const paginatedItems = items.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   return (
