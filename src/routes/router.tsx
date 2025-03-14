@@ -22,6 +22,7 @@ const SalesPage = lazy(() => import('pages/sales/SalesReport'));
 const ItemPage = lazy(() => import('pages/sales/ItemReport'));
 const SettingPage = lazy(() => import('pages/setting/Setting'));
 const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
+const ChargesPage = lazy(() => import('pages/setting/Charges'));
 const ScanQRAgainPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
 const QrPage = lazy(() => import('pages/setting/QrCode'));
 
@@ -118,6 +119,10 @@ export const routes = [
           {
             path: paths.qrcode,
             element: <QrPage />,
+          },
+          {
+            path: paths.charges,
+            element: <ChargesPage />,
           },
         ],
       },

@@ -130,6 +130,14 @@ const sitemap: MenuItem[] = [
     active: true,
   },
   {
+    id: 20,
+    name: 'View Charges',
+    path: '/charges',
+    pathName: 'charges',
+    icon: 'fluent:credit-card-24-regular',
+    active: true,
+  },
+  {
     id: 8,
     name: 'Sign Out',
     path: paths.signin,

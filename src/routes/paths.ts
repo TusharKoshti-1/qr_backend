@@ -20,6 +20,7 @@ export default {
   itemreport: '/itemreport',
   settingpage: '/settings',
   thankyou: '/thankyou',
+  charges: '/charges',
   scanqrcodeagain: '/scanqrcodeagain',
   qrcode: '/qr-code',
 };
