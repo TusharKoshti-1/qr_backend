@@ -36,9 +36,9 @@ interface ItemReportApi {
 
 const ItemReport: React.FC = () => {
   const [items, setItems] = useState<ItemReport[]>([]);
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('day')); // Default to today
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().endOf('day')); // Default to today end
+  const [activeFilter, setActiveFilter] = useState<string | null>('today'); // Default to 'today'
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
 
@@ -85,13 +85,11 @@ const ItemReport: React.FC = () => {
     switch (filter) {
       case 'today':
         setStartDate(today);
-        // Set end date to one day later to cover the full day
-        setEndDate(today.add(1, 'day'));
+        setEndDate(today.endOf('day')); // Corrected to end of today
         break;
       case 'yesterday':
         setStartDate(yesterday);
-        // Set end date to one day later to cover the full day
-        setEndDate(yesterday.add(1, 'day'));
+        setEndDate(yesterday.endOf('day')); // Corrected to end of yesterday
         break;
       case 'thisWeek':
         setStartDate(today.startOf('week'));
