@@ -30,14 +30,14 @@ const QRCodePage: React.FC = () => {
     const fetchQRCode = async () => {
       try {
         const token = localStorage.getItem('userLoggedIn');
-        console.log('Auth token:', token);
+        // console.log('Auth token:', token);
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/generate-qr`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log('API response:', response.data);
+        // console.log('API response:', response.data);
         setQrData(response.data);
       } catch (err: unknown) {
         // Use unknown instead of any
@@ -108,11 +108,11 @@ const QRCodePage: React.FC = () => {
       return;
     }
 
-    console.log('Sharing data:', {
-      title: `${qrData.restaurantName} - QR Code`,
-      text: `Order from ${qrData.restaurantName} at ${qrData.address}. Scan the QR code to get started!`,
-      url: qrData.qrImage,
-    });
+    // console.log('Sharing data:', {
+    //   title: `${qrData.restaurantName} - QR Code`,
+    //   text: `Order from ${qrData.restaurantName} at ${qrData.address}. Scan the QR code to get started!`,
+    //   url: qrData.qrImage,
+    // });
 
     if (navigator.share) {
       try {
