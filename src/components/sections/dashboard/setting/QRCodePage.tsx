@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import ShareIcon from '@mui/icons-material/Share';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import './QRCodePage.css';
 
 interface QRData {
@@ -29,14 +29,20 @@ const QRCodePage: React.FC = () => {
   useEffect(() => {
     const fetchQRCode = async () => {
       try {
+        const token = localStorage.getItem('userLoggedIn');
+        console.log('Auth token:', token);
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/generate-qr`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            Authorization: `Bearer ${token}`,
           },
         });
+        console.log('API response:', response.data);
         setQrData(response.data);
-      } catch (err) {
+      } catch (err: unknown) {
+        // Use unknown instead of any
+        const axiosError = err as AxiosError;
+        console.error('Error fetching QR code:', axiosError.response?.data || axiosError.message);
         setError('Failed to load QR code');
       } finally {
         setLoading(false);
@@ -47,7 +53,10 @@ const QRCodePage: React.FC = () => {
   }, []);
 
   const handlePrint = () => {
-    if (!qrData) return;
+    if (!qrData) {
+      setSnackbarMessage('No QR code data available to print.');
+      return;
+    }
 
     const printContent = `
       <html>
@@ -99,6 +108,12 @@ const QRCodePage: React.FC = () => {
       return;
     }
 
+    console.log('Sharing data:', {
+      title: `${qrData.restaurantName} - QR Code`,
+      text: `Order from ${qrData.restaurantName} at ${qrData.address}. Scan the QR code to get started!`,
+      url: qrData.qrImage,
+    });
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -107,18 +122,21 @@ const QRCodePage: React.FC = () => {
           url: qrData.qrImage,
         });
         setSnackbarMessage('Shared successfully!');
-      } catch (err) {
-        console.error('Sharing failed:', err);
-        setSnackbarMessage('Failed to share. Please try again.');
+      } catch (err: unknown) {
+        // Use unknown instead of any
+        const error = err as Error;
+        console.error('Sharing failed:', error.message);
+        setSnackbarMessage('Failed to share: ' + (error.message || 'Unknown error'));
       }
     } else {
-      // Fallback for desktop or unsupported browsers
       try {
         await navigator.clipboard.writeText(qrData.qrImage);
         setSnackbarMessage('QR code URL copied to clipboard!');
-      } catch (err) {
-        console.error('Clipboard copy failed:', err);
-        setSnackbarMessage('Failed to copy QR code URL.');
+      } catch (err: unknown) {
+        // Use unknown instead of any
+        const error = err as Error;
+        console.error('Clipboard copy failed:', error.message);
+        setSnackbarMessage('Failed to copy QR code URL: ' + (error.message || 'Unknown error'));
       }
     }
   };
@@ -185,7 +203,7 @@ const QRCodePage: React.FC = () => {
               color="secondary"
               startIcon={<ShareIcon />}
               onClick={handleShare}
-              disabled={!qrData} // Only disable if no qrData
+              disabled={!qrData}
             >
               Share
             </Button>
@@ -193,7 +211,6 @@ const QRCodePage: React.FC = () => {
         </Grid>
       </Paper>
 
-      {/* Hidden print-specific section */}
       <Box sx={{ display: 'none' }} className="print-only">
         {qrData && (
           <>
@@ -215,7 +232,6 @@ const QRCodePage: React.FC = () => {
         )}
       </Box>
 
-      {/* Snackbar for feedback */}
       <Snackbar
         open={!!snackbarMessage}
         autoHideDuration={3000}
