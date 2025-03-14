@@ -36,7 +36,7 @@ interface ItemReportApi {
 const ItemReport: React.FC = () => {
   const [items, setItems] = useState<ItemReport[]>([]);
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('day'));
-  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().endOf('day'));
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().startOf('day').add(1, 'day'));
   const [activeFilter, setActiveFilter] = useState<string | null>('today');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
@@ -82,11 +82,11 @@ const ItemReport: React.FC = () => {
     switch (filter) {
       case 'today':
         setStartDate(today);
-        setEndDate(today.endOf('day'));
+        setEndDate(today.add(1, 'day'));
         break;
       case 'yesterday':
         setStartDate(yesterday);
-        setEndDate(yesterday.endOf('day'));
+        setEndDate(yesterday.add(1, 'day'));
         break;
       case 'thisWeek':
         setStartDate(today.startOf('week'));
