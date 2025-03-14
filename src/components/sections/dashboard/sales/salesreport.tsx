@@ -31,9 +31,9 @@ interface Sale {
 const SalesReport: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('day'));
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs().endOf('day'));
+  const [activeFilter, setActiveFilter] = useState<string | null>('today');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
 
@@ -46,20 +46,22 @@ const SalesReport: React.FC = () => {
             Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
           },
         });
-        // Sort sales by created_on date (most recent first)
         const sortedSales = response.data.sort((a: Sale, b: Sale) =>
           dayjs(b.created_on).diff(dayjs(a.created_on)),
         );
         setSales(sortedSales);
-        setFilteredSales(sortedSales);
 
-        // Apply "Today" filter as default after data is fetched
-        const today = dayjs().startOf('day');
-        const todayEnd = today.endOf('day');
-        setStartDate(today);
-        setEndDate(todayEnd);
-        setActiveFilter('today');
-        applyDateFilter(today, todayEnd);
+        // Filter for today's sales by default
+        const todayStart = dayjs().startOf('day');
+        const todayEnd = dayjs().endOf('day');
+        const todaySales = sortedSales.filter((sale: Sale) => {
+          const saleDate = dayjs(sale.created_on);
+          return (
+            (saleDate.isAfter(todayStart) || saleDate.isSame(todayStart)) &&
+            (saleDate.isBefore(todayEnd) || saleDate.isSame(todayEnd))
+          );
+        });
+        setFilteredSales(todaySales);
       } catch (error) {
         console.error('Error fetching sales data:', error);
         alert('Failed to fetch sales data. Please try again later.');
@@ -67,9 +69,8 @@ const SalesReport: React.FC = () => {
     };
 
     fetchSales();
-  }, []); // Empty dependency array ensures this runs only on mount
+  }, []);
 
-  // Updated filter to include boundaries and reset page to 1
   const applyDateFilter = (start: Dayjs, end: Dayjs) => {
     const filtered = sales.filter((sale) => {
       const saleDate = dayjs(sale.created_on);
@@ -82,7 +83,6 @@ const SalesReport: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // When a quick filter is clicked, update the date picker values and apply filter
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);
     const today = dayjs().startOf('day');
@@ -121,10 +121,8 @@ const SalesReport: React.FC = () => {
         return;
     }
 
-    // Update the date pickers to reflect the chosen quick filter range
     setStartDate(newStart);
     setEndDate(newEnd);
-    // Apply the filter to update the sales displayed
     applyDateFilter(newStart, newEnd);
   };
 
@@ -139,7 +137,6 @@ const SalesReport: React.FC = () => {
     setCurrentPage(value);
   };
 
-  // Calculate current sales for the current page
   const paginatedSales = filteredSales.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage,
