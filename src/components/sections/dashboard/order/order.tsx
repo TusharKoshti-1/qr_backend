@@ -19,7 +19,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import QRCode from 'qrcode'; // Import QR code library
+import QRCode from 'qrcode'; // Ensure qrcode is installed
 
 interface OrderType {
   id: number;
@@ -55,7 +55,6 @@ const Order: React.FC = () => {
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const navigate = useNavigate();
 
-  // Function to aggregate items across orders
   const aggregateItems = (orders: OrderType[]) => {
     const itemMap: Record<string, AggregatedItemType> = {};
     orders.forEach((order) => {
@@ -70,7 +69,6 @@ const Order: React.FC = () => {
     setAggregatedItems(Object.values(itemMap));
   };
 
-  // Fetch orders and settings
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -168,7 +166,7 @@ const Order: React.FC = () => {
       return;
     }
 
-    // Prepare print content
+    // Prepare print content with explicit image loading
     const printContent = `
       <html>
         <head>
@@ -182,6 +180,10 @@ const Order: React.FC = () => {
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
+            img { max-width: 150px; }
+            @media print {
+              .qr img { display: block; }
+            }
           </style>
         </head>
         <body>
@@ -211,8 +213,15 @@ const Order: React.FC = () => {
           </div>
           <div class="qr">
             <p>Scan to Pay ₹${order.total_amount}</p>
-            <img src="${qrCodeUrl}" alt="UPI QR Code" />
+            <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" onerror="alert('Failed to load QR code')" />
           </div>
+          <script>
+            // Ensure the image is loaded before printing
+            const img = document.querySelector('img');
+            if (img.complete) {
+              window.print();
+            }
+          </script>
         </body>
       </html>
     `;
@@ -221,7 +230,10 @@ const Order: React.FC = () => {
     if (newWindow) {
       newWindow.document.write(printContent);
       newWindow.document.close();
-      newWindow.print();
+      // Delay print slightly to ensure image loads
+      newWindow.onload = () => {
+        newWindow.print();
+      };
     }
   };
 
@@ -293,7 +305,6 @@ const Order: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Aggregated Items Section */}
       <Box
         sx={{
           marginBottom: '30px',
@@ -338,7 +349,6 @@ const Order: React.FC = () => {
         </table>
       </Box>
 
-      {/* Orders Section */}
       <Grid container spacing={3}>
         {orders.map((order) => (
           <Grid item xs={12} sm={6} md={4} key={order.id}>
@@ -351,10 +361,10 @@ const Order: React.FC = () => {
                   Phone: {order.phone}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  Payment Method: {order.payment_method}
+                  Payment Method: ${order.payment_method}
                 </Typography>
                 <Typography variant="h6" sx={{ marginTop: '10px' }}>
-                  Total Amount: ₹{order.total_amount}
+                  Total Amount: ₹${order.total_amount}
                 </Typography>
                 <Divider sx={{ marginY: '10px' }} />
                 <Typography variant="subtitle1">Items:</Typography>
