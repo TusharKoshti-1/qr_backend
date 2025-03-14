@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -10,32 +10,52 @@ import {
 } from "@mui/material";
 import axios from "axios";
 
-
-const queryParams = new URLSearchParams(location.search);
-const restaurantId = queryParams.get('restaurant_id');
-
 const LandingPage: React.FC = () => {
-  const [restaurantName, setRestaurantName] = useState('');
+  const [restaurantName, setRestaurantName] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get restaurant_id from query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const restaurantId = queryParams.get("restaurant_id");
 
   useEffect(() => {
-    if (sessionStorage.getItem('userSession')) {
-      navigate('/customerpage');
+    // Check if the page is accessed without restaurant_id
+    if (!restaurantId) {
+      navigate("/error", { replace: true }); // Redirect to an error page
+      return;
     }
-  }, [navigate]);
 
-  const fetchRestaurantName = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/customer/restaurant-name?restaurant_id=${restaurantId}`);
-      setRestaurantName(response.data); // Assuming the response contains the restaurant name directly
-    } catch (error) {
-      console.error('Error fetching restaurant name:', error);
+    // Check if this is a fresh load (not from history)
+    const isFreshLoad = performance.navigation.type === 0; // 0 = TYPE_NAVIGATE (fresh load)
+    if (!isFreshLoad) {
+      navigate("/error", { replace: true }); // Redirect if accessed via history
+      return;
     }
-  };
 
-  fetchRestaurantName();
+    // If user already has a session, redirect to customer page
+    if (sessionStorage.getItem("userSession")) {
+      navigate("/customerpage", { replace: true });
+      return;
+    }
+
+    // Fetch restaurant name
+    const fetchRestaurantName = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/customer/restaurant-name?restaurant_id=${restaurantId}`
+        );
+        setRestaurantName(response.data); // Assuming response.data is the name
+      } catch (error) {
+        console.error("Error fetching restaurant name:", error);
+        navigate("/error", { replace: true }); // Redirect on API failure
+      }
+    };
+
+    fetchRestaurantName();
+  }, [navigate, restaurantId]);
 
   const isValidPhoneNumber = (phone: string) => /^[6-9]\d{9}$/.test(phone);
 
@@ -53,14 +73,23 @@ const LandingPage: React.FC = () => {
       return;
     }
 
-    sessionStorage.setItem("userSession", JSON.stringify({
-      name: cleanName,
-      phone: cleanPhone,
-      timestamp: Date.now(),
-      restaurantId: restaurantId,
-    }));
-    navigate("/customerpage");
+    sessionStorage.setItem(
+      "userSession",
+      JSON.stringify({
+        name: cleanName,
+        phone: cleanPhone,
+        timestamp: Date.now(),
+        restaurantId: restaurantId,
+      })
+    );
+    navigate("/customerpage", { replace: true });
   };
+
+  // If no restaurantId, don't render anything (redirect happens in useEffect)
+  if (!restaurantId) {
+    return null;
+  }
+
   return (
     <Container
       maxWidth="sm"
@@ -74,9 +103,9 @@ const LandingPage: React.FC = () => {
     >
       <Paper elevation={3} sx={{ padding: "2rem", width: "100%", textAlign: "center" }}>
         <Typography variant="h4" gutterBottom>
-        {`Welcome to Our ${restaurantName}!`}
+          {`Welcome to Our ${restaurantName || "Restaurant"}!`}
         </Typography>
-        
+
         <Box sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <TextField
             label="Enter Your Name"
@@ -86,7 +115,7 @@ const LandingPage: React.FC = () => {
             fullWidth
             inputProps={{ maxLength: 50 }}
           />
-          
+
           <TextField
             label="Enter Your Phone Number"
             variant="outlined"
@@ -96,7 +125,7 @@ const LandingPage: React.FC = () => {
             fullWidth
             inputProps={{ maxLength: 10 }}
           />
-          
+
           <Button
             variant="contained"
             color="primary"
