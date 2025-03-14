@@ -2,6 +2,7 @@ import { SvgIconProps } from '@mui/material';
 import paths, { rootPaths } from './paths';
 import DashboardIcon from 'components/icons/DashboardIcon';
 import { MouseEventHandler } from 'react';
+import { CreditCardClock24Regular } from '@fluentui/react-icons'; // Import Fluent UI icon
 
 export interface MenuItem {
   id: number;
@@ -26,29 +27,6 @@ const sitemap: MenuItem[] = [
     svgIcon: DashboardIcon,
     active: true,
   },
-  // {
-  //   id: 9,
-  //   name: 'Authentication',
-  //   pathName: 'authentication',
-  //   icon: 'material-symbols:security-rounded',
-  //   active: true,
-  //   items: [
-  //     {
-  //       id: 10,
-  //       name: 'Sign in',
-  //       path: paths.signin,
-  //       pathName: 'sign-in',
-  //       active: true,
-  //     },
-  //     {
-  //       id: 11,
-  //       name: 'Sign up',
-  //       path: paths.signup,
-  //       pathName: 'sign-up',
-  //       active: true,
-  //     },
-  //   ],
-  // },
   {
     id: 2,
     name: 'Menu',
@@ -134,7 +112,7 @@ const sitemap: MenuItem[] = [
     name: 'View Charges',
     path: '/charges',
     pathName: 'charges',
-    icon: 'fluent:credit-card-24-regular',
+    svgIcon: CreditCardClock24Regular, // Use Fluent UI component
     active: true,
   },
   {
