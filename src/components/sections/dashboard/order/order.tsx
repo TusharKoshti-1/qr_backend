@@ -19,6 +19,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
+import QRCode from 'qrcode'; // Import QR code library
 
 interface OrderType {
   id: number;
@@ -33,7 +34,7 @@ interface ItemType {
   id: number;
   name: string;
   quantity: number;
-  price: number; // Added price for accurate display
+  price: number;
 }
 
 interface AggregatedItemType {
@@ -41,33 +42,35 @@ interface AggregatedItemType {
   quantity: number;
 }
 
-const Order = () => {
+interface SettingsType {
+  restaurantName: string;
+  phone: string;
+  upiId: string;
+}
+
+const Order: React.FC = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [aggregatedItems, setAggregatedItems] = useState<AggregatedItemType[]>([]);
+  const [settings, setSettings] = useState<SettingsType | null>(null);
   const navigate = useNavigate();
 
   // Function to aggregate items across orders
   const aggregateItems = (orders: OrderType[]) => {
     const itemMap: Record<string, AggregatedItemType> = {};
-
     orders.forEach((order) => {
       order.items.forEach((item) => {
         if (itemMap[item.name]) {
           itemMap[item.name].quantity += item.quantity;
         } else {
-          itemMap[item.name] = {
-            name: item.name,
-            quantity: item.quantity,
-          };
+          itemMap[item.name] = { name: item.name, quantity: item.quantity };
         }
       });
     });
-
     setAggregatedItems(Object.values(itemMap));
   };
 
-  // Fetch orders and set WebSocket connection
+  // Fetch orders and settings
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -87,18 +90,34 @@ const Order = () => {
       }
     };
 
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get<SettingsType>(
+          `${import.meta.env.VITE_API_URL}/api/settings`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          },
+        );
+        setSettings(response.data);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+
     fetchOrders();
+    fetchSettings();
 
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
-
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-
         if (data.type === 'delete_order') {
           setOrders((prevOrders) => {
             const updatedOrders = prevOrders.filter((order) => order.id !== data.id);
-            aggregateItems(updatedOrders); // Use the filtered array
+            aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'new_order') {
@@ -112,7 +131,7 @@ const Order = () => {
             const updatedOrders = prevOrders.map((order) =>
               order.id === data.id ? { ...order, status: data.status } : order,
             );
-            aggregateItems(updatedOrders); // Use the mapped array
+            aggregateItems(updatedOrders);
             return updatedOrders;
           });
         }
@@ -121,27 +140,86 @@ const Order = () => {
       }
     };
 
-    return () => {
-      ws.close();
-    };
+    return () => ws.close();
   }, []);
 
   const handleEditOrder = (order: OrderType) => {
     navigate('/editorder', { state: { order } });
   };
 
-  const handlePrintOrder = (order: OrderType) => {
-    const orderDetails = `
-      Customer: ${order.customer_name}
-      Phone: ${order.phone}
-      Items:
-      ${order.items.map((item) => ` - ${item.name}: ₹${item.price} x ${item.quantity}`).join('\n')}
-      Total Amount: ₹${order.total_amount}
-      Payment Method: ${order.payment_method}
+  const handlePrintOrder = async (order: OrderType) => {
+    if (!settings || !settings.upiId) {
+      alert('UPI ID not configured in settings. Cannot generate QR code.');
+      return;
+    }
+
+    // Generate UPI payment link
+    const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
+      settings.restaurantName,
+    )}&am=${order.total_amount}&cu=INR`;
+
+    // Generate QR code as a data URL
+    let qrCodeUrl = '';
+    try {
+      qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 });
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      alert('Failed to generate QR code.');
+      return;
+    }
+
+    // Prepare print content
+    const printContent = `
+      <html>
+        <head>
+          <title>Order Receipt</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .details { margin-bottom: 20px; }
+            .items { margin-bottom: 20px; }
+            .qr { text-align: center; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>${settings.restaurantName}</h2>
+            <p>Phone: ${settings.phone}</p>
+          </div>
+          <div class="details">
+            <p><strong>Customer:</strong> ${order.customer_name}</p>
+            <p><strong>Phone:</strong> ${order.phone}</p>
+            <p><strong>Payment Method:</strong> ${order.payment_method}</p>
+            <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
+          </div>
+          <div class="items">
+            <h3>Items:</h3>
+            <table>
+              <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
+              ${order.items
+                .map(
+                  (item) =>
+                    `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${
+                      item.price * item.quantity
+                    }</td></tr>`,
+                )
+                .join('')}
+            </table>
+          </div>
+          <div class="qr">
+            <p>Scan to Pay ₹${order.total_amount}</p>
+            <img src="${qrCodeUrl}" alt="UPI QR Code" />
+          </div>
+        </body>
+      </html>
     `;
+
     const newWindow = window.open('', 'Print', 'height=600,width=800');
     if (newWindow) {
-      newWindow.document.write(`<pre>${orderDetails}</pre>`);
+      newWindow.document.write(printContent);
       newWindow.document.close();
       newWindow.print();
     }
@@ -163,7 +241,7 @@ const Order = () => {
       console.error('Error marking order as completed:', error);
     }
   };
-  // Add delete handler function
+
   const handleDeleteOrder = async (id: number) => {
     setConfirmDeleteId(null);
     try {
