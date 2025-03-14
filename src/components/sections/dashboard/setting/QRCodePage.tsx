@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Typography, Button, Box, Grid, CircularProgress } from '@mui/material';
+import {
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Box,
+  Grid,
+  CircularProgress,
+  Snackbar,
+} from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import ShareIcon from '@mui/icons-material/Share';
 import axios from 'axios';
@@ -15,6 +24,7 @@ const QRCodePage: React.FC = () => {
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchQRCode = async () => {
@@ -84,19 +94,37 @@ const QRCodePage: React.FC = () => {
   };
 
   const handleShare = async () => {
-    if (qrData && navigator.share) {
+    if (!qrData) {
+      setSnackbarMessage('No QR code data available to share.');
+      return;
+    }
+
+    if (navigator.share) {
       try {
         await navigator.share({
           title: `${qrData.restaurantName} - QR Code`,
           text: `Order from ${qrData.restaurantName} at ${qrData.address}. Scan the QR code to get started!`,
-          url: qrData.qrImage, // Share the QR code image URL
+          url: qrData.qrImage,
         });
+        setSnackbarMessage('Shared successfully!');
       } catch (err) {
         console.error('Sharing failed:', err);
+        setSnackbarMessage('Failed to share. Please try again.');
       }
     } else {
-      alert('Sharing is not supported on this device/browser.');
+      // Fallback for desktop or unsupported browsers
+      try {
+        await navigator.clipboard.writeText(qrData.qrImage);
+        setSnackbarMessage('QR code URL copied to clipboard!');
+      } catch (err) {
+        console.error('Clipboard copy failed:', err);
+        setSnackbarMessage('Failed to copy QR code URL.');
+      }
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarMessage(null);
   };
 
   if (loading) {
@@ -157,7 +185,7 @@ const QRCodePage: React.FC = () => {
               color="secondary"
               startIcon={<ShareIcon />}
               onClick={handleShare}
-              disabled={!navigator.share || !qrData}
+              disabled={!qrData} // Only disable if no qrData
             >
               Share
             </Button>
@@ -186,6 +214,14 @@ const QRCodePage: React.FC = () => {
           </>
         )}
       </Box>
+
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={!!snackbarMessage}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+      />
     </Container>
   );
 };
