@@ -26,8 +26,8 @@ const AddNewItem: React.FC = () => {
     const fetchCategories = async () => {
       try {
         const token = localStorage.getItem('userLoggedIn');
-        console.log('Fetching categories with token:', token);
-        console.log('API URL:', import.meta.env.VITE_API_URL);
+        // console.log('Fetching categories with token:', token);
+        // console.log('API URL:', import.meta.env.VITE_API_URL);
 
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/categories`, {
           headers: {
@@ -36,18 +36,18 @@ const AddNewItem: React.FC = () => {
           },
         });
 
-        console.log('API Response:', response.data);
+        // console.log('API Response:', response.data);
 
         // Backend returns a flat array, so use response.data directly
         const fetchedCategories = Array.isArray(response.data) ? response.data : [];
         setCategories(fetchedCategories);
 
         if (fetchedCategories.length === 0) {
-          console.log('No categories found in the database.');
+          // console.log('No categories found in the database.');
           setError('No existing categories found. You can add a new one.');
         }
       } catch (error) {
-        console.error('Error fetching categories:', error.response?.data || error.message);
+        // console.error('Error fetching categories:', error.response?.data || error.message);
         setError('Failed to load categories. You can still add a new one.');
       } finally {
         setLoadingCategories(false);
@@ -86,7 +86,7 @@ const AddNewItem: React.FC = () => {
       // Refresh categories if a new one was added
       if (!categories.includes(category)) {
         setCategories([...categories, category]);
-        console.log('Added new category to list:', category);
+        // console.log('Added new category to list:', category);
       }
     } catch (error) {
       console.error('Error adding menu item:', error.response?.data || error.message);
@@ -142,11 +142,6 @@ const AddNewItem: React.FC = () => {
                       />
                     )}
                   />
-                  {categories.length > 0 && (
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                      Existing categories: {categories.join(', ')}
-                    </Typography>
-                  )}
                 </>
               )}
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
