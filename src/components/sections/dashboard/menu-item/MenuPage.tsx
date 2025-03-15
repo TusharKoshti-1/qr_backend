@@ -51,7 +51,7 @@ const MenuPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const restaurantId = localStorage.getItem('restaurantId'); // Adjust source as needed
+      const restaurantId = localStorage.getItem('restaurantId');
       const topSellersResponse = await axios.get<TopSellerItem[]>(
         `${import.meta.env.VITE_API_URL}/api/top-sellers?restaurant_id=${restaurantId}`,
         {
@@ -115,10 +115,16 @@ const MenuPage: React.FC = () => {
         },
       });
       setEditingItemId(null);
+      setNewRate('');
       fetchData();
     } catch (error) {
       console.error('Error updating rate:', error);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setNewRate('');
   };
 
   const handleRemoveItem = async (id: number) => {
@@ -290,44 +296,51 @@ const MenuPage: React.FC = () => {
                               Sold: {item.quantitySold} units
                             </Typography>
                           </CardContent>
-                          <CardActions>
+                          <CardActions sx={{ justifyContent: 'space-between', padding: '8px' }}>
                             <Button size="small" color="secondary">
                               Rank: {item.rank}
                             </Button>
                             {editingItemId === item.id ? (
-                              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                                <input
-                                  type="text"
+                              <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
+                                <TextField
+                                  size="small"
                                   value={newRate}
                                   onChange={(e) => setNewRate(e.target.value)}
                                   placeholder="New price"
-                                  style={{ flex: 1 }}
+                                  type="number"
+                                  sx={{ flexGrow: 1 }}
                                 />
                                 <Button
                                   size="small"
+                                  variant="contained"
                                   onClick={() => handleRateChange(item.id, newRate)}
                                 >
                                   Save
                                 </Button>
-                              </div>
+                                <Button size="small" onClick={handleCancelEdit}>
+                                  Cancel
+                                </Button>
+                              </Box>
                             ) : (
-                              <Button
-                                size="small"
-                                onClick={() => {
-                                  setEditingItemId(item.id);
-                                  setNewRate('');
-                                }}
-                              >
-                                Set Rate
-                              </Button>
+                              <>
+                                <Button
+                                  size="small"
+                                  onClick={() => {
+                                    setEditingItemId(item.id);
+                                    setNewRate(item.price.toString());
+                                  }}
+                                >
+                                  Set Rate
+                                </Button>
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDeleteClick(item.id)}
+                                >
+                                  Remove
+                                </Button>
+                              </>
                             )}
-                            <Button
-                              size="small"
-                              color="error"
-                              onClick={() => handleDeleteClick(item.id)}
-                            >
-                              Remove
-                            </Button>
                           </CardActions>
                         </Card>
                       </Grid>
@@ -400,41 +413,48 @@ const MenuPage: React.FC = () => {
                             Price: ₹{item.price}
                           </Typography>
                         </CardContent>
-                        <CardActions>
+                        <CardActions sx={{ justifyContent: 'space-between', padding: '8px' }}>
                           {editingItemId === item.id ? (
-                            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                              <input
-                                type="text"
+                            <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
+                              <TextField
+                                size="small"
                                 value={newRate}
                                 onChange={(e) => setNewRate(e.target.value)}
                                 placeholder="New price"
-                                style={{ flex: 1 }}
+                                type="number"
+                                sx={{ flexGrow: 1 }}
                               />
                               <Button
                                 size="small"
+                                variant="contained"
                                 onClick={() => handleRateChange(item.id, newRate)}
                               >
                                 Save
                               </Button>
-                            </div>
+                              <Button size="small" onClick={handleCancelEdit}>
+                                Cancel
+                              </Button>
+                            </Box>
                           ) : (
-                            <Button
-                              size="small"
-                              onClick={() => {
-                                setEditingItemId(item.id);
-                                setNewRate('');
-                              }}
-                            >
-                              Set Rate
-                            </Button>
+                            <>
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  setEditingItemId(item.id);
+                                  setNewRate(item.price.toString());
+                                }}
+                              >
+                                Set Rate
+                              </Button>
+                              <Button
+                                size="small"
+                                color="error"
+                                onClick={() => handleDeleteClick(item.id)}
+                              >
+                                Remove
+                              </Button>
+                            </>
                           )}
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteClick(item.id)}
-                          >
-                            Remove
-                          </Button>
                         </CardActions>
                       </Card>
                     </Grid>
