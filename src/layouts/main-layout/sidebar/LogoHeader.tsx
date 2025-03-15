@@ -9,7 +9,7 @@ interface LogoHeaderProps {
 }
 
 const LogoHeader = (props: LogoHeaderProps) => {
-  const [restaurantName, setRestaurantName] = useState('Restaurant Name');
+  const [restaurantName, setRestaurantName] = useState('SSK Product For Restaurant');
 
   useEffect(() => {
     const fetchRestaurantName = async () => {
