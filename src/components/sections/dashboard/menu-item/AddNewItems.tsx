@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, TextField, Grid, Card, CardContent, Typography, CardActions } from '@mui/material';
+import {
+  Button,
+  TextField,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  CardActions,
+  Autocomplete,
+  CircularProgress,
+} from '@mui/material';
 
 const AddNewItem: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -8,6 +18,30 @@ const AddNewItem: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+
+  // Fetch existing categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/categories`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        });
+        setCategories(response.data.categories || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setError('Failed to load categories. You can still add a new one.');
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleAddMenuItem = async () => {
     if (!name || !category || !image) {
@@ -19,8 +53,6 @@ const AddNewItem: React.FC = () => {
     formData.append('name', name);
     formData.append('category', category);
     formData.append('image', image);
-
-    // const token = localStorage.getItem('userLoggedIn');
 
     try {
       await axios.post(`${import.meta.env.VITE_API_URL}/api/add-menuitem`, formData, {
@@ -37,6 +69,10 @@ const AddNewItem: React.FC = () => {
       setImage(null);
       setImagePreview(null);
       setError('');
+      // Optionally refresh categories if a new one was added
+      if (!categories.includes(category)) {
+        setCategories([...categories, category]);
+      }
     } catch (error) {
       console.error('Error adding menu item:', error);
       setError('Failed to add menu item. Please try again.');
@@ -47,13 +83,17 @@ const AddNewItem: React.FC = () => {
     if (e.target.files) {
       const selectedImage = e.target.files[0];
       setImage(selectedImage);
-      setImagePreview(URL.createObjectURL(selectedImage)); // Create image preview URL
+      setImagePreview(URL.createObjectURL(selectedImage));
     }
   };
 
   return (
-    <div className="menu__container">
-      {error && <Typography color="error">{error}</Typography>}
+    <div className="menu__container" style={{ padding: '20px' }}>
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
       <Grid container spacing={3} justifyContent="center">
         <Grid item xs={12} sm={6} md={4} lg={5}>
           <Card>
@@ -66,20 +106,33 @@ const AddNewItem: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 sx={{ marginBottom: 2 }}
               />
-              <TextField
-                fullWidth
-                label="Category"
-                variant="outlined"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                sx={{ marginBottom: 2 }}
-              />
+              {loadingCategories ? (
+                <CircularProgress size={24} sx={{ display: 'block', mx: 'auto', mb: 2 }} />
+              ) : (
+                <Autocomplete
+                  freeSolo
+                  options={categories}
+                  value={category}
+                  onChange={(event, newValue) => setCategory(newValue || '')}
+                  onInputChange={(event, newInputValue) => setCategory(newInputValue)}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      label="Category"
+                      variant="outlined"
+                      sx={{ marginBottom: 2 }}
+                      helperText="Select an existing category or type a new one"
+                    />
+                  )}
+                />
+              )}
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
                 Upload Image
                 <input type="file" accept="image/*" hidden onChange={handleImageChange} />
               </Button>
               {image && (
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
                   Selected file: {image.name}
                 </Typography>
               )}
