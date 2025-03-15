@@ -38,8 +38,8 @@ const AddNewItem: React.FC = () => {
 
         // console.log('API Response:', response.data);
 
-        // Backend returns a flat array, so use response.data directly
-        const fetchedCategories = Array.isArray(response.data) ? response.data : [];
+        // Backend returns a flat array, so use response.data directly and sort alphabetically
+        const fetchedCategories = Array.isArray(response.data) ? response.data.sort() : [];
         setCategories(fetchedCategories);
 
         if (fetchedCategories.length === 0) {
@@ -83,10 +83,11 @@ const AddNewItem: React.FC = () => {
       setImage(null);
       setImagePreview(null);
       setError('');
-      // Refresh categories if a new one was added
+      // Refresh categories if a new one was added, keeping the list sorted
       if (!categories.includes(category)) {
-        setCategories([...categories, category]);
-        // console.log('Added new category to list:', category);
+        const updatedCategories = [...categories, category].sort();
+        setCategories(updatedCategories);
+        // console.log('Added new category to sorted list:', updatedCategories);
       }
     } catch (error) {
       console.error('Error adding menu item:', error.response?.data || error.message);
@@ -142,6 +143,11 @@ const AddNewItem: React.FC = () => {
                       />
                     )}
                   />
+                  {categories.length > 0 && (
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      Existing categories: {categories.join(', ')}
+                    </Typography>
+                  )}
                 </>
               )}
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
