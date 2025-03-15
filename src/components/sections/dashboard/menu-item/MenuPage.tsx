@@ -296,33 +296,47 @@ const MenuPage: React.FC = () => {
                               Sold: {item.quantitySold} units
                             </Typography>
                           </CardContent>
-                          <CardActions sx={{ justifyContent: 'space-between', padding: '8px' }}>
+                          <CardActions
+                            sx={{
+                              flexDirection: 'column',
+                              alignItems: 'flex-start',
+                              padding: '8px',
+                            }}
+                          >
                             <Button size="small" color="secondary">
                               Rank: {item.rank}
                             </Button>
                             {editingItemId === item.id ? (
-                              <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  width: '100%',
+                                  gap: 1,
+                                }}
+                              >
                                 <TextField
                                   size="small"
                                   value={newRate}
                                   onChange={(e) => setNewRate(e.target.value)}
                                   placeholder="New price"
                                   type="number"
-                                  sx={{ flexGrow: 1 }}
+                                  fullWidth
                                 />
-                                <Button
-                                  size="small"
-                                  variant="contained"
-                                  onClick={() => handleRateChange(item.id, newRate)}
-                                >
-                                  Save
-                                </Button>
-                                <Button size="small" onClick={handleCancelEdit}>
-                                  Cancel
-                                </Button>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                  <Button
+                                    size="small"
+                                    onClick={() => handleRateChange(item.id, newRate)}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button size="small" onClick={handleCancelEdit}>
+                                    Cancel
+                                  </Button>
+                                </Box>
                               </Box>
                             ) : (
-                              <>
+                              <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Button
                                   size="small"
                                   onClick={() => {
@@ -339,7 +353,7 @@ const MenuPage: React.FC = () => {
                                 >
                                   Remove
                                 </Button>
-                              </>
+                              </Box>
                             )}
                           </CardActions>
                         </Card>
@@ -413,30 +427,40 @@ const MenuPage: React.FC = () => {
                             Price: ₹{item.price}
                           </Typography>
                         </CardContent>
-                        <CardActions sx={{ justifyContent: 'space-between', padding: '8px' }}>
+                        <CardActions
+                          sx={{ flexDirection: 'column', alignItems: 'flex-start', padding: '8px' }}
+                        >
                           {editingItemId === item.id ? (
-                            <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                width: '100%',
+                                gap: 1,
+                              }}
+                            >
                               <TextField
                                 size="small"
                                 value={newRate}
                                 onChange={(e) => setNewRate(e.target.value)}
                                 placeholder="New price"
                                 type="number"
-                                sx={{ flexGrow: 1 }}
+                                fullWidth
                               />
-                              <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => handleRateChange(item.id, newRate)}
-                              >
-                                Save
-                              </Button>
-                              <Button size="small" onClick={handleCancelEdit}>
-                                Cancel
-                              </Button>
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Button
+                                  size="small"
+                                  onClick={() => handleRateChange(item.id, newRate)}
+                                >
+                                  Save
+                                </Button>
+                                <Button size="small" onClick={handleCancelEdit}>
+                                  Cancel
+                                </Button>
+                              </Box>
                             </Box>
                           ) : (
-                            <>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
                               <Button
                                 size="small"
                                 onClick={() => {
@@ -453,7 +477,7 @@ const MenuPage: React.FC = () => {
                               >
                                 Remove
                               </Button>
-                            </>
+                            </Box>
                           )}
                         </CardActions>
                       </Card>
