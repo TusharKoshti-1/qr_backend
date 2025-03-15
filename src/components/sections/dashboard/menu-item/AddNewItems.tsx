@@ -143,11 +143,6 @@ const AddNewItem: React.FC = () => {
                       />
                     )}
                   />
-                  {categories.length > 0 && (
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                      Existing categories: {categories.join(', ')}
-                    </Typography>
-                  )}
                 </>
               )}
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
