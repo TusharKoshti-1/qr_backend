@@ -227,7 +227,7 @@ const MenuPage: React.FC = () => {
             }}
           >
             <MenuItem value="All">All</MenuItem>
-            <MenuItem value="Best Sellers">Best Sellers</MenuItem>
+            <MenuItem value="Best Selling">Best Selling</MenuItem>
             {Object.keys(groupedItems)
               .sort()
               .map((category) => (
@@ -239,9 +239,9 @@ const MenuPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Best Sellers Section */}
+      {/* Best Selling Section */}
       {topSellers.length > 0 &&
-        (selectedCategory === 'All' || selectedCategory === 'Best Sellers') && (
+        (selectedCategory === 'All' || selectedCategory === 'Best Selling') && (
           <div style={{ marginTop: '2rem' }}>
             <Box
               onClick={() => setOpenBestSellers(!openBestSellers)}
@@ -256,7 +256,7 @@ const MenuPage: React.FC = () => {
               }}
             >
               <Typography variant="h4" sx={{ color: 'secondary.main' }}>
-                Best Sellers
+                Best Selling
               </Typography>
               {openBestSellers ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </Box>
@@ -362,7 +362,7 @@ const MenuPage: React.FC = () => {
                   </Grid>
                 ) : (
                   <Typography style={{ marginTop: '1rem' }}>
-                    No best sellers match your search.
+                    No Best Selling match your search.
                   </Typography>
                 );
               })()}
