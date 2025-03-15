@@ -25,15 +25,29 @@ const AddNewItem: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        const token = localStorage.getItem('userLoggedIn');
+        console.log('Fetching categories with token:', token);
+        console.log('API URL:', import.meta.env.VITE_API_URL);
+
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/categories`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        setCategories(response.data.categories || []);
+
+        console.log('API Response:', response.data);
+
+        // Backend returns a flat array, so use response.data directly
+        const fetchedCategories = Array.isArray(response.data) ? response.data : [];
+        setCategories(fetchedCategories);
+
+        if (fetchedCategories.length === 0) {
+          console.log('No categories found in the database.');
+          setError('No existing categories found. You can add a new one.');
+        }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching categories:', error.response?.data || error.message);
         setError('Failed to load categories. You can still add a new one.');
       } finally {
         setLoadingCategories(false);
@@ -69,12 +83,13 @@ const AddNewItem: React.FC = () => {
       setImage(null);
       setImagePreview(null);
       setError('');
-      // Optionally refresh categories if a new one was added
+      // Refresh categories if a new one was added
       if (!categories.includes(category)) {
         setCategories([...categories, category]);
+        console.log('Added new category to list:', category);
       }
     } catch (error) {
-      console.error('Error adding menu item:', error);
+      console.error('Error adding menu item:', error.response?.data || error.message);
       setError('Failed to add menu item. Please try again.');
     }
   };
@@ -109,23 +124,30 @@ const AddNewItem: React.FC = () => {
               {loadingCategories ? (
                 <CircularProgress size={24} sx={{ display: 'block', mx: 'auto', mb: 2 }} />
               ) : (
-                <Autocomplete
-                  freeSolo
-                  options={categories}
-                  value={category}
-                  onChange={(event, newValue) => setCategory(newValue || '')}
-                  onInputChange={(event, newInputValue) => setCategory(newInputValue)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      fullWidth
-                      label="Category"
-                      variant="outlined"
-                      sx={{ marginBottom: 2 }}
-                      helperText="Select an existing category or type a new one"
-                    />
+                <>
+                  <Autocomplete
+                    freeSolo
+                    options={categories}
+                    value={category}
+                    onChange={(event, newValue) => setCategory(newValue || '')}
+                    onInputChange={(event, newInputValue) => setCategory(newInputValue)}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        label="Category"
+                        variant="outlined"
+                        sx={{ marginBottom: 2 }}
+                        helperText="Select an existing category or type a new one"
+                      />
+                    )}
+                  />
+                  {categories.length > 0 && (
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      Existing categories: {categories.join(', ')}
+                    </Typography>
                   )}
-                />
+                </>
               )}
               <Button variant="contained" component="label" fullWidth sx={{ marginBottom: 2 }}>
                 Upload Image
