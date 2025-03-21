@@ -22,5 +22,6 @@ export default {
   thankyou: '/thankyou',
   charges: '/charges',
   scanqrcodeagain: '/scanqrcodeagain',
+  contactus: '/contactus',
   qrcode: '/qr-code',
 };

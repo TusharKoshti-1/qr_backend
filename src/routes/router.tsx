@@ -25,6 +25,7 @@ const ThankyouPage = lazy(() => import('pages/thankyou/Thankyou'));
 const ChargesPage = lazy(() => import('pages/setting/Charges'));
 const ScanQRAgainPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
 const QrPage = lazy(() => import('pages/setting/QrCode'));
+const ContactUs = lazy(() => import('pages/contactus/ContactUs'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -123,6 +124,10 @@ export const routes = [
           {
             path: paths.charges,
             element: <ChargesPage />,
+          },
+          {
+            path: paths.contactus,
+            element: <ContactUs />,
           },
         ],
       },

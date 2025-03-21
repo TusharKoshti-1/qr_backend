@@ -2,7 +2,7 @@ import { SvgIconProps } from '@mui/material';
 import paths, { rootPaths } from './paths';
 import DashboardIcon from 'components/icons/DashboardIcon';
 import { MouseEventHandler } from 'react';
-import { CreditCardClock24Regular } from '@fluentui/react-icons'; // Import Fluent UI icon
+import { CreditCardClock24Regular, Mail24Regular } from '@fluentui/react-icons'; // Import Fluent UI icon
 
 export interface MenuItem {
   id: number;
@@ -113,6 +113,14 @@ const sitemap: MenuItem[] = [
     path: '/charges',
     pathName: 'charges',
     svgIcon: CreditCardClock24Regular, // Use Fluent UI component
+    active: true,
+  },
+  {
+    id: 25,
+    name: 'Contact Us',
+    path: '/contactus',
+    pathName: 'contactus',
+    svgIcon: Mail24Regular, // Use Fluent UI component
     active: true,
   },
   {
