@@ -36,9 +36,9 @@ const ContactUs: React.FC = () => {
     } else {
       // Hardcoded permanent contact data
       const hardcodedData: ContactInfo = {
-        email: 'support@qrordering.com',
-        phone: '+91 987-654-3210',
-        address: '123 Food Street, Mumbai, Maharashtra, India',
+        email: 'supportqrordering@gmail.com',
+        phone: '+91 7984623076',
+        address: '144 Parishram Estate, Ramol , Ahmedabad - 382449',
         supportHours: 'Monday - Friday, 9:00 AM - 6:00 PM IST',
       };
       setContactData(hardcodedData);
