@@ -12,7 +12,6 @@ import {
   TableRow,
   CircularProgress,
 } from '@mui/material';
-import axios from 'axios';
 
 // Define the type for the contact information
 interface ContactInfo {
@@ -27,16 +26,15 @@ const ContactUs: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContactData = async () => {
+  const loadContactData = () => {
     setLoading(true);
     setError(null);
-    try {
-      // Simulate an API call to check admin authentication
-      await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/check`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}` },
-      });
 
-      // Hardcoded contact data (non-changeable)
+    // Check if the user is an admin (based on localStorage token)
+    if (!localStorage.getItem('userLoggedIn')) {
+      setError('You must be an admin to view this page.');
+    } else {
+      // Hardcoded permanent contact data
       const hardcodedData: ContactInfo = {
         email: 'support@qrordering.com',
         phone: '+91 987-654-3210',
@@ -44,16 +42,12 @@ const ContactUs: React.FC = () => {
         supportHours: 'Monday - Friday, 9:00 AM - 6:00 PM IST',
       };
       setContactData(hardcodedData);
-    } catch (error) {
-      console.error('Error verifying admin:', error);
-      setError('You must be an admin to view this page.');
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchContactData();
+    loadContactData();
   }, []);
 
   return (
