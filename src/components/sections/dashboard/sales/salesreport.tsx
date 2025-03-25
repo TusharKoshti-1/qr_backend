@@ -21,8 +21,9 @@ import dayjs, { Dayjs } from 'dayjs';
 
 interface Sale {
   id: string;
-  customer_name: string;
-  phone: string;
+  customer_name: string | null; // Allow null for table orders
+  table_number: string | null; // Add table_number for table orders
+  phone: string | null; // Allow null for table orders
   total_amount: string;
   payment_method: string;
   created_on: string;
@@ -247,8 +248,8 @@ const SalesReport: React.FC = () => {
               {paginatedSales.map((sale, index) => (
                 <TableRow key={sale.id}>
                   <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                  <TableCell>{sale.customer_name}</TableCell>
-                  <TableCell>{sale.phone}</TableCell>
+                  <TableCell>{sale.customer_name ?? sale.table_number ?? '-'}</TableCell>
+                  <TableCell>{sale.phone ?? '-'}</TableCell>
                   <TableCell>₹{sale.total_amount}</TableCell>
                   <TableCell>{sale.payment_method}</TableCell>
                   <TableCell>{dayjs(sale.created_on).format('DD/MM/YYYY')}</TableCell>
