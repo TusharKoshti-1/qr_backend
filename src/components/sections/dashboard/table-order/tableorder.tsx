@@ -80,7 +80,6 @@ const TableOrdersPage: React.FC = () => {
             },
           },
         );
-        // Filter to show only table orders (where table_number is not null)
         const tableOrders = response.data.filter((order) => order.table_number !== null);
         setOrders(tableOrders);
         aggregateItems(tableOrders);
@@ -143,7 +142,7 @@ const TableOrdersPage: React.FC = () => {
   }, []);
 
   const handleEditOrder = (order: OrderType) => {
-    navigate('/edit-table-order', { state: { order } }); // Adjust route as needed
+    navigate('/edit-table-order', { state: { order } });
   };
 
   const handlePrintOrder = async (order: OrderType) => {
@@ -190,7 +189,7 @@ const TableOrdersPage: React.FC = () => {
             <p>Phone: ${settings.phone}</p>
           </div>
           <div class="details">
-            <p><strong>Table Number:</strong> ${order.table_number}</p>
+            <p><strong>Table:</strong> ${order.table_number}</p>
             <p><strong>Payment Method:</strong> ${order.payment_method}</p>
             <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
           </div>
@@ -274,7 +273,7 @@ const TableOrdersPage: React.FC = () => {
       <div
         style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingBottom: '20px' }}
       >
-        <Link to="/addtableorder">
+        <Link to="/add-table-order">
           <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
             Add Table Order
           </Button>
@@ -310,7 +309,7 @@ const TableOrdersPage: React.FC = () => {
         }}
       >
         <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', marginBottom: '20px' }}>
-          Total Quantities (Table Orders)
+          Total Quantities
         </Typography>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
