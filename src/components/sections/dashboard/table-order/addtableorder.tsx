@@ -112,7 +112,7 @@ const AdminAddTableOrderPage: React.FC = () => {
     }
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/tableorders`,
+        `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
           customer_name: null, // Null for table orders
           phone: null, // Null for table orders

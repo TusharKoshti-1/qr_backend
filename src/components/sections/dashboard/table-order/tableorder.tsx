@@ -274,7 +274,7 @@ const TableOrdersPage: React.FC = () => {
       <div
         style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingBottom: '20px' }}
       >
-        <Link to="/add-table-order">
+        <Link to="/addtableorder">
           <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
             Add Table Order
           </Button>
