@@ -13,6 +13,7 @@ export default {
   order: '/order',
   editorder: '/editorder',
   addorder: '/addorder',
+  addtableorder: '/addtableorder',
   landingpage: `/welcome`,
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,
