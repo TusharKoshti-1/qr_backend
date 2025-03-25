@@ -248,7 +248,7 @@ const SalesReport: React.FC = () => {
               {paginatedSales.map((sale, index) => (
                 <TableRow key={sale.id}>
                   <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                  <TableCell>{sale.customer_name ?? sale.table_number ?? '-'}</TableCell>
+                  <TableCell>{sale.customer_name ?? 'Table' + sale.table_number ?? '-'}</TableCell>
                   <TableCell>{sale.phone ?? '-'}</TableCell>
                   <TableCell>₹{sale.total_amount}</TableCell>
                   <TableCell>{sale.payment_method}</TableCell>
