@@ -87,7 +87,7 @@ const sitemap: MenuItem[] = [
     name: 'Table Order',
     path: '/tableorder',
     pathName: 'order',
-    icon: 'ph:shopping-cart-light',
+    icon: 'ph:table-light',
     active: true,
     items: [
       {
