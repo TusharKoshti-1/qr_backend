@@ -188,11 +188,11 @@ const TableOrdersPage: React.FC = () => {
             <h2>${settings.restaurantName}</h2>
             <p>Phone: ${settings.phone}</p>
           </div>
-          <div class="details">
-            <p><strong>Table:</strong> ${order.table_number}</p>
-            <p><strong>Payment Method:</strong> ${order.payment_method}</p>
-            <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
-          </div>
+          // <div class="details">
+          //   <p><strong>Table:</strong> ${order.table_number}</p>
+          //   <p><strong>Payment Method:</strong> ${order.payment_method}</p>
+          //   <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
+          // </div>
           <div class="items">
             <h3>Items:</h3>
             <table>
@@ -205,6 +205,7 @@ const TableOrdersPage: React.FC = () => {
                     }</td></tr>`,
                 )
                 .join('')}
+                <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
             </table>
           </div>
           <div class="qr">
