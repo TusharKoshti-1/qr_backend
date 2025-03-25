@@ -154,7 +154,7 @@ const TableEditOrder: React.FC = () => {
           },
         },
       );
-      navigate('/table-orders');
+      navigate('/tableorder');
     } catch (error) {
       console.error('Error saving updated table order:', error);
     }
