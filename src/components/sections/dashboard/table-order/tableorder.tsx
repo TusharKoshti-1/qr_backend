@@ -190,8 +190,6 @@ const TableOrdersPage: React.FC = () => {
           </div>
           <div class="items">
             <h3>Items:</h3>
-            <p><strong>Table:</strong> ${order.table_number}</p>
-            <p><strong>Payment Method:</strong> ${order.payment_method}</p>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
               ${order.items
