@@ -15,6 +15,7 @@ export default {
   addorder: '/addorder',
   addtableorder: '/addtableorder',
   tableorder: '/tableorder',
+  edittableorder: '/edittableorder',
   landingpage: `/welcome`,
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,

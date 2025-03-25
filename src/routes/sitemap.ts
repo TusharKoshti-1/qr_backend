@@ -97,6 +97,13 @@ const sitemap: MenuItem[] = [
         pathName: 'addorder',
         active: true,
       },
+      {
+        id: 35,
+        name: 'EditTableOrder',
+        path: '/edittableorder',
+        pathName: 'edittableorder',
+        active: true,
+      },
     ],
   },
   {
