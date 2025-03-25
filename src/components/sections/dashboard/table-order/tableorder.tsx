@@ -171,13 +171,13 @@ const TableOrdersPage: React.FC = () => {
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
             .header { text-align: center; margin-bottom: 20px; }
-            .details { margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
             th, td { padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
             img { max-width: 150px; }
+            .total-amount { margin-top: 10px; font-weight: bold; }
             @media print {
               .qr img { display: block; }
             }
@@ -188,13 +188,10 @@ const TableOrdersPage: React.FC = () => {
             <h2>${settings.restaurantName}</h2>
             <p>Phone: ${settings.phone}</p>
           </div>
-          // <div class="details">
-          //   <p><strong>Table:</strong> ${order.table_number}</p>
-          //   <p><strong>Payment Method:</strong> ${order.payment_method}</p>
-          //   <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
-          // </div>
           <div class="items">
             <h3>Items:</h3>
+            <p><strong>Table:</strong> ${order.table_number}</p>
+            <p><strong>Payment Method:</strong> ${order.payment_method}</p>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
               ${order.items
@@ -205,8 +202,8 @@ const TableOrdersPage: React.FC = () => {
                     }</td></tr>`,
                 )
                 .join('')}
-                <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
             </table>
+            <p class="total-amount"><strong>Total Amount:</strong> ₹${order.total_amount}</p>
           </div>
           <div class="qr">
             <p>Scan to Pay ₹${order.total_amount}</p>
