@@ -83,6 +83,23 @@ const sitemap: MenuItem[] = [
     ],
   },
   {
+    id: 12,
+    name: 'Table Order',
+    path: '/tableorder',
+    pathName: 'order',
+    icon: 'ph:shopping-cart-light',
+    active: true,
+    items: [
+      {
+        id: 4,
+        name: 'AddTableOrder',
+        path: '/addtableorder',
+        pathName: 'addorder',
+        active: true,
+      },
+    ],
+  },
+  {
     id: 5,
     name: 'Sales Report',
     path: '/salesreport',

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
 import {
   Box,
   Typography,
@@ -12,7 +13,8 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Add, Remove, Delete } from '@mui/icons-material';
-import './MenuItem.css'; // Assuming this CSS file exists for styling
+import { useNavigate } from 'react-router-dom';
+import './MenuItem.css';
 
 interface MenuItemType {
   id: number;
@@ -27,98 +29,51 @@ interface OrderItem extends MenuItemType {
 }
 
 const AdminAddTableOrderPage: React.FC = () => {
-  const [groupedItems] = useState<Record<string, MenuItemType[]>>({
-    Chinese: [
-      {
-        id: 11,
-        name: 'Full Dry Manchurian',
-        category: 'Chinese',
-        price: 150,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1740375694026-p7p3ahjd1z.jpg',
-      },
-      {
-        id: 16,
-        name: 'Hakka Noodles',
-        category: 'Chinese',
-        price: 120,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709285578-29fxbsrayto.jpg',
-      },
-      {
-        id: 19,
-        name: 'Paneer Chilli',
-        category: 'Chinese',
-        price: 180,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709531957-0dxwvgmthhrk.jpg',
-      },
-    ],
-    Punjabi: [
-      {
-        id: 15,
-        name: 'Paneer Tikka Masala',
-        category: 'Punjabi',
-        price: 200,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709170075-6qnapdswcw8.jpg',
-      },
-      {
-        id: 20,
-        name: 'Paneer Angara',
-        category: 'Punjabi',
-        price: 220,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709596783-3gttb7d9hl4.jpg',
-      },
-      {
-        id: 21,
-        name: 'Shahi Paneer',
-        category: 'Punjabi',
-        price: 210,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709656546-kycq66xnv4.jpg',
-      },
-    ],
-    Soup: [
-      {
-        id: 17,
-        name: 'Hot and Sour Soup',
-        category: 'Soup',
-        price: 100,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709452722-ct19dz1pojf.jpg',
-      },
-      {
-        id: 18,
-        name: 'Tomato Soup',
-        category: 'Soup',
-        price: 90,
-        image:
-          'https://zyvlaqormkqnkhsomkil.supabase.co/storage/v1/object/public/menu_items/1741709488423-4ob4ss694qu.jpg',
-      },
-    ],
-    // Add more categories and items as needed
-  });
+  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [tableNumber, setTableNumber] = useState<string>(''); // Changed from customerName to tableNumber
+  const [tableNumber, setTableNumber] = useState<string>('');
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
   const selectRef = useRef<HTMLSelectElement>(null);
 
-  // Initialize openCategories based on groupedItems
-  React.useEffect(() => {
-    setOpenCategories(
-      Object.keys(groupedItems).reduce(
-        (acc, category) => {
-          acc[category] = false; // Closed by default
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const menuResponse = await axios.get<MenuItemType[]>(
+          `${import.meta.env.VITE_API_URL}/api/menu`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          },
+        );
+
+        const items = menuResponse.data;
+        const grouped = items.reduce((acc: Record<string, MenuItemType[]>, item: MenuItemType) => {
+          acc[item.category] = acc[item.category] || [];
+          acc[item.category].push(item);
           return acc;
-        },
-        {} as Record<string, boolean>,
-      ),
-    );
-  }, [groupedItems]);
+        }, {});
+        setGroupedItems(grouped);
+
+        setOpenCategories(
+          Object.keys(grouped).reduce(
+            (acc, category) => {
+              acc[category] = false; // Closed by default
+              return acc;
+            },
+            {} as Record<string, boolean>,
+          ),
+        );
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleAddToOrder = (item: MenuItemType) => {
     setOrderItems((prev) => {
@@ -150,23 +105,37 @@ const AdminAddTableOrderPage: React.FC = () => {
 
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     if (!tableNumber) {
       alert('Please enter a table number.');
       return;
     }
-    // Simulate order submission without API
-    const orderDetails = {
-      table_number: tableNumber,
-      items: orderItems,
-      total_amount: totalAmount,
-      payment_method: 'Cash',
-      timestamp: new Date().toLocaleString(),
-    };
-    console.log('Order Submitted:', orderDetails);
-    alert(`Order for Table ${tableNumber} created successfully!\nTotal: ₹${totalAmount}`);
-    setTableNumber('');
-    setOrderItems([]);
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/tableorders`,
+        {
+          customer_name: null, // Null for table orders
+          phone: null, // Null for table orders
+          table_number: tableNumber,
+          items: orderItems,
+          total_amount: totalAmount,
+          payment_method: 'Cash',
+        },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+      alert(`Order for Table ${tableNumber} created successfully!`);
+      setTableNumber('');
+      setOrderItems([]);
+      navigate('/tableorder'); // Navigate to orders page
+    } catch (error) {
+      console.error('Error creating table order:', error);
+      alert('Failed to create table order');
+    }
   };
 
   const handleBarClick = () => {

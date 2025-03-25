@@ -14,6 +14,7 @@ export default {
   editorder: '/editorder',
   addorder: '/addorder',
   addtableorder: '/addtableorder',
+  tableorder: '/tableorder',
   landingpage: `/welcome`,
   customerpage: `/customerpage`,
   cartpage: `/cartpage`,
