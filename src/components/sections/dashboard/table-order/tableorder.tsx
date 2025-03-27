@@ -112,6 +112,8 @@ const TableOrdersPage: React.FC = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('WebSocket message received:', data); // Debug log
+
         if (data.type === 'new_table') {
           setTables((prev) => [...prev, data.table]);
         } else if (data.type === 'update_table') {
@@ -129,13 +131,20 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'update_table_order') {
-          setOrders(
-            (prev) =>
-              prev
-                .map((order) =>
-                  order.id === parseInt(data.order.id) ? { ...order, ...data.order } : order,
-                )
-                .filter((order) => order.status !== 'Completed'), // Remove completed orders
+          setOrders((prev) =>
+            prev
+              .map((order) =>
+                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+              )
+              .filter((order) => order.status !== 'Completed'),
+          );
+          // Update table status when order is completed
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === data.order.table_number && data.order.status === 'Completed'
+                ? { ...t, status: 'empty' }
+                : t,
+            ),
           );
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => prev.filter((order) => order.id !== data.id));
@@ -256,7 +265,6 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
-      // Update order status to 'Completed'
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
         { status: 'Completed' },
@@ -268,7 +276,6 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      // Update table status to 'empty' in the database
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
         { status: 'empty' },
@@ -280,7 +287,6 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      // Update local state immediately
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setTables((prev) =>
         prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
