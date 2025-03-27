@@ -130,7 +130,11 @@ const TableOrdersPage: React.FC = () => {
           );
         } else if (data.type === 'update_table_order') {
           setOrders((prev) =>
-            prev.map((order) => (order.id === data.id ? { ...order, ...data.order } : order)),
+            prev.map((order) =>
+              order.id === parseInt(data.order.id)
+                ? { ...order, items: data.order.items, total_amount: data.order.total_amount }
+                : order,
+            ),
           );
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => prev.filter((order) => order.id !== data.id));
@@ -250,9 +254,14 @@ const TableOrdersPage: React.FC = () => {
     if (!order) return;
 
     try {
+      // Send full order data including items and total_amount along with status
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/update/${order.id}`,
-        { status: 'Completed' },
+        {
+          items: order.items, // Required by API
+          total_amount: order.total_amount, // Required by API
+          status: 'Completed',
+        },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -267,6 +276,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
+      alert('Failed to complete order.');
     }
   };
 
@@ -276,7 +286,6 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
-      // Delete the order
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -284,7 +293,6 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
-      // Delete the table itself
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tables/${table.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -297,6 +305,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table order and table:', error);
+      alert('Failed to delete order and table.');
     }
   };
 
