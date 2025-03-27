@@ -170,7 +170,7 @@ const TableOrdersPage: React.FC = () => {
   const handleEditOrder = () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     setDialogOpen(false);
-    if (order) navigate('/edit-table-order', { state: { order } });
+    if (order) navigate('/edittableorder', { state: { order } });
   };
 
   const handlePrintOrder = async () => {
