@@ -151,12 +151,10 @@ const Order: React.FC = () => {
       return;
     }
 
-    // Generate UPI payment link
     const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
       settings.restaurantName,
     )}&am=${order.total_amount}&cu=INR`;
 
-    // Generate QR code as a data URL
     let qrCodeUrl = '';
     try {
       qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 });
@@ -166,7 +164,6 @@ const Order: React.FC = () => {
       return;
     }
 
-    // Prepare print content with explicit image loading
     const printContent = `
       <html>
         <head>
@@ -216,7 +213,6 @@ const Order: React.FC = () => {
             <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" onerror="alert('Failed to load QR code')" />
           </div>
           <script>
-            // Ensure the image is loaded before printing
             const img = document.querySelector('img');
             if (img.complete) {
               window.print();
@@ -230,7 +226,6 @@ const Order: React.FC = () => {
     if (newWindow) {
       newWindow.document.write(printContent);
       newWindow.document.close();
-      // Delay print slightly to ensure image loads
       newWindow.onload = () => {
         newWindow.print();
       };
@@ -272,19 +267,36 @@ const Order: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: '20px' }}>
-      <Typography variant="h4" gutterBottom>
-        Pending Orders
-      </Typography>
-      <div
-        style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingBottom: '20px' }}
+    <Box sx={{ padding: { xs: '10px', sm: '20px' }, minHeight: '100vh' }}>
+      {/* Header */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          mb: 3,
+          gap: 2,
+        }}
       >
-        <Link to="/addorder">
-          <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+          Pending Orders
+        </Typography>
+        <Link to="/addorder" style={{ textDecoration: 'none' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{
+              fontSize: { xs: '0.8rem', sm: '1rem' },
+              padding: { xs: '6px 12px', sm: '8px 16px' },
+            }}
+          >
             Add Order
           </Button>
         </Link>
-      </div>
+      </Box>
+
+      {/* Confirmation Dialog */}
       <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -305,114 +317,231 @@ const Order: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Total Quantities Section */}
       <Box
         sx={{
-          marginBottom: '30px',
-          padding: '20px',
+          mb: 4,
+          p: { xs: 2, sm: 3 },
           border: '1px solid #ddd',
           borderRadius: '8px',
           backgroundColor: '#f9f9f9',
+          overflowX: 'auto',
         }}
       >
-        <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', marginBottom: '20px' }}>
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{ textAlign: 'center', fontSize: { xs: '1.25rem', sm: '1.5rem' }, mb: 2 }}
+        >
           Total Quantities
         </Typography>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f1f1f1', borderBottom: '2px solid #ddd' }}>
-              <th style={{ padding: '10px' }}>Item Name</th>
-              <th style={{ padding: '10px', textAlign: 'center' }}>Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {aggregatedItems.length > 0 ? (
-              aggregatedItems.map((item, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderBottom: '1px solid #ddd',
-                    backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9',
+        <Box sx={{ minWidth: '300px' }}>
+          <Box
+            component="table"
+            sx={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+            }}
+          >
+            <Box component="thead">
+              <Box
+                component="tr"
+                sx={{ backgroundColor: '#f1f1f1', borderBottom: '2px solid #ddd' }}
+              >
+                <Box
+                  component="th"
+                  sx={{
+                    p: { xs: '8px', sm: '10px' },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
                   }}
                 >
-                  <td style={{ padding: '10px' }}>{item.name}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>{item.quantity}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={2} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
-                  No items to display.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  Item Name
+                </Box>
+                <Box
+                  component="th"
+                  sx={{
+                    p: { xs: '8px', sm: '10px' },
+                    textAlign: 'center',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                  }}
+                >
+                  Quantity
+                </Box>
+              </Box>
+            </Box>
+            <Box component="tbody">
+              {aggregatedItems.length > 0 ? (
+                aggregatedItems.map((item, index) => (
+                  <Box
+                    component="tr"
+                    key={index}
+                    sx={{
+                      borderBottom: '1px solid #ddd',
+                      backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9',
+                    }}
+                  >
+                    <Box
+                      component="td"
+                      sx={{
+                        p: { xs: '8px', sm: '10px' },
+                        fontSize: { xs: '0.85rem', sm: '1rem' },
+                      }}
+                    >
+                      {item.name}
+                    </Box>
+                    <Box
+                      component="td"
+                      sx={{
+                        p: { xs: '8px', sm: '10px' },
+                        textAlign: 'center',
+                        fontSize: { xs: '0.85rem', sm: '1rem' },
+                      }}
+                    >
+                      {item.quantity}
+                    </Box>
+                  </Box>
+                ))
+              ) : (
+                <Box component="tr">
+                  <Box
+                    component="td"
+                    colSpan={2}
+                    sx={{
+                      textAlign: 'center',
+                      p: '20px',
+                      color: '#888',
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                    }}
+                  >
+                    No items to display.
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Box>
       </Box>
 
-      <Grid container spacing={3}>
-        {orders.map((order) => (
-          <Grid item xs={12} sm={6} md={4} key={order.id}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {order.customer_name}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Phone: {order.phone}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Payment Method: {order.payment_method}
-                </Typography>
-                <Typography variant="h6" sx={{ marginTop: '10px' }}>
-                  Total Amount: ₹{order.total_amount}
-                </Typography>
-                <Divider sx={{ marginY: '10px' }} />
-                <Typography variant="subtitle1">Items:</Typography>
-                <List dense>
-                  {order.items.map((item) => (
-                    <ListItem key={item.id} disableGutters>
-                      <ListItemText primary={`${item.name} - ₹${item.price} x ${item.quantity}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="primary"
-                  onClick={() => handleEditOrder(order)}
+      {/* Orders Grid */}
+      <Grid container spacing={2}>
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={order.id}>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+                  >
+                    {order.customer_name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    Phone: {order.phone}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                  >
+                    Payment Method: {order.payment_method}
+                  </Typography>
+                  <Typography variant="h6" sx={{ mt: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                    Total: ₹{order.total_amount}
+                  </Typography>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="subtitle1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                    Items:
+                  </Typography>
+                  <List dense>
+                    {order.items.map((item) => (
+                      <ListItem key={item.id} disableGutters>
+                        <ListItemText
+                          primary={`${item.name} - ₹${item.price} x ${item.quantity}`}
+                          primaryTypographyProps={{
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                          }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+                <CardActions
+                  sx={{
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    p: 2,
+                    justifyContent: 'center',
+                  }}
                 >
-                  Edit
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="secondary"
-                  onClick={() => handlePrintOrder(order)}
-                >
-                  Print
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  onClick={() => handleOrderComplete(order.id)}
-                >
-                  Complete
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={() => setConfirmDeleteId(order.id)}
-                >
-                  Delete
-                </Button>
-              </CardActions>
-            </Card>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="primary"
+                    onClick={() => handleEditOrder(order)}
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="secondary"
+                    onClick={() => handlePrintOrder(order)}
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                  >
+                    Print
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => handleOrderComplete(order.id)}
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                  >
+                    Complete
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="error"
+                    onClick={() => setConfirmDeleteId(order.id)}
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                  >
+                    Delete
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12}>
+            <Typography
+              variant="h6"
+              sx={{
+                textAlign: 'center',
+                color: '#888',
+                py: 4,
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+              }}
+            >
+              No pending orders available.
+            </Typography>
           </Grid>
-        ))}
+        )}
       </Grid>
     </Box>
   );
