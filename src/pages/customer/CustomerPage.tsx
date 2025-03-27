@@ -153,6 +153,47 @@ const CustomerPage: React.FC = () => {
     }
   };
 
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+
+    if (term.trim() === '') {
+      setSelectedCategory('All');
+      setOpenCategories((prev) =>
+        Object.keys(prev).reduce(
+          (acc, cat) => ({ ...acc, [cat]: cat === 'Best Selling' }), // Keep Best Selling open by default
+          {}
+        )
+      );
+      return;
+    }
+
+    // Keep selectedCategory as 'All' to show all categories
+    setSelectedCategory('All');
+
+    // Find all categories with matching items and open them
+    const lowerTerm = term.toLowerCase();
+    const matchingCategories = [
+      ...(topSellers.some((item) => item.name.toLowerCase().includes(lowerTerm))
+        ? ['Best Selling']
+        : []),
+      ...Object.entries(groupedItems)
+        .filter(([, items]) =>
+          items.some((item) => item.name.toLowerCase().includes(lowerTerm))
+        )
+        .map(([category]) => category),
+    ];
+
+    setOpenCategories((prev) =>
+      Object.keys(prev).reduce(
+        (acc, category) => {
+          acc[category] = matchingCategories.includes(category); // Open if it has matches
+          return acc;
+        },
+        {} as Record<string, boolean>
+      )
+    );
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px', pt: '70px' }}>
       {/* Sticky Header */}
@@ -231,7 +272,7 @@ const CustomerPage: React.FC = () => {
               variant="outlined"
               fullWidth
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)} // Updated to use handleSearch
             />
             <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
               <Box
