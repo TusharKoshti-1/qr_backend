@@ -21,9 +21,9 @@ import dayjs, { Dayjs } from 'dayjs';
 
 interface Sale {
   id: string;
-  customer_name: string | null; // Allow null for table orders
-  table_number: string | null; // Add table_number for table orders
-  phone: string | null; // Allow null for table orders
+  customer_name: string | null;
+  table_number: string | null;
+  phone: string | null;
   total_amount: string;
   payment_method: string;
   created_on: string;
@@ -52,7 +52,6 @@ const SalesReport: React.FC = () => {
         );
         setSales(sortedSales);
 
-        // Filter for today's sales by default
         const todayStart = dayjs().startOf('day');
         const todayEnd = dayjs().endOf('day');
         const todaySales = sortedSales.filter((sale: Sale) => {
@@ -147,17 +146,17 @@ const SalesReport: React.FC = () => {
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Container
         sx={{
-          mt: { xs: 2, sm: 3, md: 4 }, // Responsive margin-top
-          px: { xs: 1, sm: 2 }, // Responsive padding-x
-          maxWidth: 'lg', // Limit max width on large screens
+          mt: { xs: 2, sm: 3, md: 4 },
+          px: { xs: 1, sm: 2 },
+          maxWidth: 'lg',
         }}
       >
         <Typography
           variant="h4"
           gutterBottom
           sx={{
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, // Responsive font
-            textAlign: { xs: 'center', sm: 'left' }, // Center on mobile
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+            textAlign: { xs: 'center', sm: 'left' },
           }}
         >
           Sales Report
@@ -166,7 +165,7 @@ const SalesReport: React.FC = () => {
         <Paper
           elevation={3}
           sx={{
-            p: { xs: 2, sm: 3 }, // Responsive padding
+            p: { xs: 2, sm: 3 },
             mb: { xs: 2, sm: 3, md: 4 },
           }}
         >
@@ -177,11 +176,11 @@ const SalesReport: React.FC = () => {
             variant="contained"
             sx={{
               mb: 2,
-              flexWrap: 'wrap', // Allow wrapping on small screens
-              gap: 1, // Add spacing between buttons
+              flexWrap: 'wrap',
+              gap: 1,
               justifyContent: { xs: 'center', sm: 'flex-start' },
             }}
-            size="small" // Smaller buttons on mobile
+            size="small"
           >
             {[
               { label: 'Today', value: 'today' },
@@ -196,7 +195,7 @@ const SalesReport: React.FC = () => {
                 onClick={() => handleFilterClick(filter.value)}
                 color={activeFilter === filter.value ? 'primary' : 'inherit'}
                 sx={{
-                  minWidth: { xs: '80px', sm: '100px' }, // Responsive min-width
+                  minWidth: { xs: '80px', sm: '100px' },
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 }}
               >
@@ -211,7 +210,7 @@ const SalesReport: React.FC = () => {
           <Box
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+              flexDirection: { xs: 'column', sm: 'row' },
               alignItems: { xs: 'stretch', sm: 'center' },
               gap: { xs: 1, sm: 2 },
               mt: 2,
@@ -228,7 +227,7 @@ const SalesReport: React.FC = () => {
               slotProps={{
                 textField: {
                   fullWidth: true,
-                  size: 'small', // Smaller input on mobile
+                  size: 'small',
                   sx: { mb: { xs: 1, sm: 0 } },
                 },
               }}
@@ -252,11 +251,48 @@ const SalesReport: React.FC = () => {
           </Box>
         </Paper>
 
+        {/* Total Revenue Moved Here */}
+        <Paper
+          elevation={2}
+          sx={{
+            p: { xs: 2, sm: 3 },
+            mb: { xs: 2, sm: 3 },
+            backgroundColor: '#e8f5e9', // Light green background for emphasis
+            borderRadius: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              fontWeight: 'bold',
+              color: '#2e7d32', // Dark green text
+              mb: { xs: 1, sm: 0 },
+            }}
+          >
+            Total Revenue
+          </Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              fontWeight: 'bold',
+              color: '#2e7d32',
+            }}
+          >
+            ₹{calculateTotalRevenue().toFixed(2)}
+          </Typography>
+        </Paper>
+
         <TableContainer
           component={Paper}
           sx={{
-            overflowX: 'auto', // Enable horizontal scroll on small screens
-            maxHeight: { xs: '70vh', sm: 'none' }, // Limit height on mobile
+            overflowX: 'auto',
+            maxHeight: { xs: '70vh', sm: 'none' },
           }}
         >
           <Table stickyHeader>
@@ -267,9 +303,9 @@ const SalesReport: React.FC = () => {
                     <TableCell
                       key={header}
                       sx={{
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Responsive font
-                        whiteSpace: 'nowrap', // Prevent header wrapping
-                        py: 1, // Reduced padding
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        whiteSpace: 'nowrap',
+                        py: 1,
                       }}
                     >
                       <b>{header}</b>
@@ -304,14 +340,12 @@ const SalesReport: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'center',
             mt: { xs: 2, sm: 3 },
-            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
-            alignItems: 'center',
-            gap: 2,
           }}
         >
           <Pagination
@@ -319,18 +353,9 @@ const SalesReport: React.FC = () => {
             page={currentPage}
             onChange={handlePageChange}
             color="primary"
-            size="small" // Smaller pagination on mobile
+            size="small"
             sx={{ mb: { xs: 1, sm: 0 } }}
           />
-          <Typography
-            variant="h6"
-            sx={{
-              fontSize: { xs: '0.9rem', sm: '1.25rem' },
-              textAlign: { xs: 'center', sm: 'left' },
-            }}
-          >
-            Total Revenue: ₹{calculateTotalRevenue().toFixed(2)}
-          </Typography>
         </Box>
       </Container>
     </LocalizationProvider>
