@@ -15,7 +15,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Add, Remove, Delete } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './MenuItem.css';
 
 interface MenuItemType {
@@ -45,6 +45,7 @@ const AdminAddTableOrderPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
+  const location = useLocation();
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -88,12 +89,18 @@ const AdminAddTableOrderPage: React.FC = () => {
           },
         );
         setTables(tablesResponse.data);
+
+        // Pre-fill table number from location state if provided
+        const prefilledTable = location.state?.table_number;
+        if (prefilledTable && tablesResponse.data.some((t) => t.table_number === prefilledTable)) {
+          setTableNumber(prefilledTable);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
     fetchData();
-  }, []);
+  }, [location.state]);
 
   const handleAddToOrder = (item: MenuItemType) => {
     setOrderItems((prev) => {
@@ -138,7 +145,6 @@ const AdminAddTableOrderPage: React.FC = () => {
     }
 
     try {
-      // Create the table order (no assignment to orderResponse)
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
@@ -158,7 +164,6 @@ const AdminAddTableOrderPage: React.FC = () => {
         },
       );
 
-      // Update table status to 'occupied'
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${selectedTable.id}`,
         { status: 'occupied' },
@@ -189,16 +194,12 @@ const AdminAddTableOrderPage: React.FC = () => {
 
   return (
     <div className="menu__container">
-      {/* Header */}
       <Box sx={{ padding: '1rem', textAlign: 'center', marginBottom: '2rem' }}>
         <Typography variant="h4">Add Table Order</Typography>
       </Box>
 
-      {/* Main Content */}
       <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
-        {/* Left Side: Menu Items */}
         <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
-          {/* Table Number, Search Bar, and Category Filter */}
           <Box sx={{ marginBottom: '2rem' }}>
             <FormControl fullWidth sx={{ marginBottom: '1rem' }}>
               <InputLabel>Table Number *</InputLabel>
@@ -221,7 +222,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                   <em>Select a table</em>
                 </MenuItem>
                 {tables
-                  .filter((table) => table.status === 'empty') // Only show empty tables
+                  .filter((table) => table.status === 'empty')
                   .map((table) => (
                     <MenuItem key={table.id} value={table.table_number}>
                       Table {table.table_number}
@@ -283,7 +284,6 @@ const AdminAddTableOrderPage: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Categories Sections */}
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
             .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
@@ -364,7 +364,6 @@ const AdminAddTableOrderPage: React.FC = () => {
             })}
         </Box>
 
-        {/* Right Side: Order Summary */}
         <Box
           sx={{
             flex: { xs: 'none', md: 1 },

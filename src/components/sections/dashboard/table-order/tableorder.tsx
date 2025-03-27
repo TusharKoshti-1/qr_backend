@@ -18,6 +18,7 @@ import QRCode from 'qrcode';
 interface TableType {
   id: number;
   table_number: string;
+  status: 'empty' | 'occupied' | 'reserved';
 }
 
 interface OrderType {
@@ -50,7 +51,6 @@ const TableOrdersPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch pre-configured tables, orders, and settings
   useEffect(() => {
     const fetchTables = async () => {
       try {
@@ -112,14 +112,33 @@ const TableOrdersPage: React.FC = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'new_table_order') {
+        if (data.type === 'new_table') {
+          setTables((prev) => [...prev, data.table]);
+        } else if (data.type === 'update_table') {
+          setTables((prev) =>
+            prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
+          );
+        } else if (data.type === 'delete_table') {
+          setTables((prev) => prev.filter((t) => t.id !== data.id));
+          setOrders((prev) => prev.filter((o) => o.table_number !== data.table_number));
+        } else if (data.type === 'new_table_order') {
           setOrders((prev) => [data.order, ...prev]);
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === data.order.table_number ? { ...t, status: 'occupied' } : t,
+            ),
+          );
         } else if (data.type === 'update_table_order') {
           setOrders((prev) =>
             prev.map((order) => (order.id === data.id ? { ...order, ...data.order } : order)),
           );
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => prev.filter((order) => order.id !== data.id));
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === data.order.table_number ? { ...t, status: 'empty' } : t,
+            ),
+          );
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -129,11 +148,13 @@ const TableOrdersPage: React.FC = () => {
     return () => ws.close();
   }, []);
 
-  const getTableStatus = (tableNumber: string) => {
-    const order = orders.find((o) => o.table_number === tableNumber);
-    if (!order) return 'empty'; // Green
-    if (order.status === 'Completed') return 'completed'; // Red
-    return 'pending'; // Yellow
+  const getTableStatusColor = (table: TableType) => {
+    const order = orders.find((o) => o.table_number === table.table_number);
+    return !order
+      ? '#d4edda' // Green (empty)
+      : order.status === 'Pending'
+        ? '#fff3cd' // Yellow (occupied)
+        : '#f8d7da'; // Red (completed)
   };
 
   const handleTableClick = (tableNumber: string) => {
@@ -147,15 +168,15 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleEditOrder = () => {
-    const order = orders.find((o) => o.table_number === selectedTable);
+    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     setDialogOpen(false);
     if (order) navigate('/edit-table-order', { state: { order } });
   };
 
   const handlePrintOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable);
+    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     if (!order || !settings || !settings.upiId) {
-      alert('No order found or UPI ID not configured.');
+      alert('No pending order found or UPI ID not configured.');
       return;
     }
 
@@ -225,7 +246,7 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleCompleteOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable);
+    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     if (!order) return;
 
     try {
@@ -240,6 +261,9 @@ const TableOrdersPage: React.FC = () => {
         },
       );
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'Completed' } : o)));
+      setTables((prev) =>
+        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
+      );
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
@@ -247,20 +271,32 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleDeleteOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable);
-    if (!order) return;
+    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
+    const table = tables.find((t) => t.table_number === selectedTable);
+    if (!order || !table) return;
 
     try {
+      // Delete the order
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
+
+      // Delete the table itself
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/tables/${table.id}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
+      });
+
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setTables((prev) => prev.filter((t) => t.id !== table.id));
       setDialogOpen(false);
     } catch (error) {
-      console.error('Error deleting table order:', error);
+      console.error('Error deleting table order and table:', error);
     }
   };
 
@@ -271,52 +307,50 @@ const TableOrdersPage: React.FC = () => {
       </Typography>
 
       <Grid container spacing={2}>
-        {tables.map((table) => {
-          const status = getTableStatus(table.table_number);
-          const backgroundColor =
-            status === 'empty' ? '#d4edda' : status === 'pending' ? '#fff3cd' : '#f8d7da'; // Green, Yellow, Red
-
-          return (
-            <Grid item xs={6} sm={4} md={3} key={table.id}>
-              <Card
-                sx={{
-                  backgroundColor,
-                  cursor: 'pointer',
-                  '&:hover': { boxShadow: 6 },
-                }}
-                onClick={() => handleTableClick(table.table_number)}
-              >
-                <CardContent sx={{ textAlign: 'center' }}>
-                  <Typography variant="h6">Table {table.table_number}</Typography>
-                  <Typography variant="body2">
-                    {status === 'empty'
-                      ? 'Empty'
-                      : status === 'pending'
-                        ? 'Order Pending'
-                        : 'Completed'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
+        {tables.map((table) => (
+          <Grid item xs={6} sm={4} md={3} key={table.id}>
+            <Card
+              sx={{
+                backgroundColor: getTableStatusColor(table),
+                cursor: 'pointer',
+                '&:hover': { boxShadow: 6 },
+              }}
+              onClick={() => handleTableClick(table.table_number)}
+            >
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h6">Table {table.table_number}</Typography>
+                <Typography variant="body2">
+                  {table.status === 'empty'
+                    ? 'Empty'
+                    : table.status === 'occupied'
+                      ? 'Occupied'
+                      : 'Reserved'}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>Manage Table {selectedTable}</DialogTitle>
         <DialogContent>
-          {orders.find((o) => o.table_number === selectedTable) ? (
+          {orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <Box>
               <Typography>Order Details:</Typography>
               {orders
-                .find((o) => o.table_number === selectedTable)
+                .find((o) => o.table_number === selectedTable && o.status === 'Pending')
                 ?.items.map((item) => (
                   <Typography key={item.id}>
                     {item.name} - ₹{item.price} x {item.quantity}
                   </Typography>
                 ))}
               <Typography sx={{ mt: 1 }}>
-                Total: ₹{orders.find((o) => o.table_number === selectedTable)?.total_amount}
+                Total: ₹
+                {
+                  orders.find((o) => o.table_number === selectedTable && o.status === 'Pending')
+                    ?.total_amount
+                }
               </Typography>
             </Box>
           ) : (
@@ -324,7 +358,7 @@ const TableOrdersPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          {!orders.find((o) => o.table_number === selectedTable) ? (
+          {!orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <Button onClick={handleAddOrder} color="primary">
               Add Order
             </Button>
