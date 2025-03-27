@@ -99,22 +99,24 @@ const AddMenuItems: React.FC = () => {
       return;
     }
 
-    // Find the category containing the searched item
-    const lowerTerm = term.toLowerCase();
-    const matchingCategory = Object.entries(groupedItems).find(
-      (
-        [, items], // Fixed unused '_'
-      ) => items.some((item) => item.name.toLowerCase().includes(lowerTerm)),
-    );
+    // Keep selectedCategory as 'All' to show all categories
+    setSelectedCategory('All');
 
-    if (matchingCategory) {
-      const [category] = matchingCategory;
-      setSelectedCategory(category);
-      setOpenCategories((prev) => ({
-        ...prev,
-        [category]: true, // Open the matching category
-      }));
-    }
+    // Find all categories with matching items and open them
+    const lowerTerm = term.toLowerCase();
+    const matchingCategories = Object.entries(groupedItems)
+      .filter(([, items]) => items.some((item) => item.name.toLowerCase().includes(lowerTerm)))
+      .map(([category]) => category);
+
+    setOpenCategories((prev) =>
+      Object.keys(prev).reduce(
+        (acc, category) => {
+          acc[category] = matchingCategories.includes(category); // Open if it has matches
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
   };
 
   const addItemToMenu = async (item: MenuItemType) => {
