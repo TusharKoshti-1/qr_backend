@@ -36,6 +36,7 @@ interface Order {
   table_number: string | null;
   items: OrderItem[];
   total_amount: number;
+  status: 'Pending' | 'Completed';
 }
 
 const TableEditOrder: React.FC = () => {
@@ -84,7 +85,13 @@ const TableEditOrder: React.FC = () => {
     };
 
     fetchMenu();
-  }, []);
+
+    // Validate order status
+    if (order.status !== 'Pending') {
+      alert('Only Pending orders can be edited.');
+      navigate('/tableorder');
+    }
+  }, [order, navigate]);
 
   useEffect(() => {
     const calculateTotal = () => {
@@ -138,9 +145,15 @@ const TableEditOrder: React.FC = () => {
   };
 
   const handleSaveOrder = async () => {
+    if (editedItems.length === 0) {
+      alert('Order must have at least one item.');
+      return;
+    }
+
     const updatedOrder = {
       items: editedItems,
       total_amount: total,
+      status: 'Pending', // Ensure status remains 'Pending'
     };
 
     try {
@@ -154,9 +167,11 @@ const TableEditOrder: React.FC = () => {
           },
         },
       );
+      alert(`Order for Table ${order.table_number} updated successfully!`);
       navigate('/tableorder');
     } catch (error) {
       console.error('Error saving updated table order:', error);
+      alert('Failed to update order.');
     }
   };
 
@@ -169,7 +184,6 @@ const TableEditOrder: React.FC = () => {
 
   return (
     <div className="menu__container">
-      {/* Header */}
       <Box
         sx={{
           padding: '1rem',
@@ -185,11 +199,8 @@ const TableEditOrder: React.FC = () => {
         <Typography variant="h4">Edit Order for Table {order.table_number}</Typography>
       </Box>
 
-      {/* Main Content */}
       <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
-        {/* Left Side: Menu Items */}
         <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
-          {/* Search Bar and Category Filter */}
           <Box
             sx={{
               marginBottom: '2rem',
@@ -250,7 +261,6 @@ const TableEditOrder: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Categories Sections */}
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
             .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
@@ -331,7 +341,6 @@ const TableEditOrder: React.FC = () => {
             })}
         </Box>
 
-        {/* Right Side: Order Items */}
         <Box
           sx={{
             flex: { xs: 'none', md: 1 },
@@ -350,54 +359,60 @@ const TableEditOrder: React.FC = () => {
           <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
             Order Items
           </Typography>
-          <Grid container spacing={2}>
-            {editedItems.map((item) => (
-              <Grid item xs={12} key={item.id}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    padding: '1rem',
-                    minHeight: '70px',
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1">{item.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      ₹{item.price} x {item.quantity}
-                    </Typography>
+          {editedItems.length === 0 ? (
+            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+              No items in the order yet
+            </Typography>
+          ) : (
+            <Grid container spacing={2}>
+              {editedItems.map((item) => (
+                <Grid item xs={12} key={item.id}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      padding: '1rem',
+                      minHeight: '70px',
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1">{item.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ₹{item.price} x {item.quantity}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <IconButton
+                        onClick={() => handleIncreaseQuantity(item)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Add fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleDecreaseQuantity(item)}
+                        size="small"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Remove fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => handleRemoveItem(item)}
+                        size="small"
+                        color="error"
+                        sx={{ padding: '4px' }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <IconButton
-                      onClick={() => handleIncreaseQuantity(item)}
-                      size="small"
-                      sx={{ padding: '4px' }}
-                    >
-                      <Add fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDecreaseQuantity(item)}
-                      size="small"
-                      sx={{ padding: '4px' }}
-                    >
-                      <Remove fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleRemoveItem(item)}
-                      size="small"
-                      color="error"
-                      sx={{ padding: '4px' }}
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+                </Grid>
+              ))}
+            </Grid>
+          )}
           <Typography variant="h6" sx={{ marginTop: '2rem' }}>
             Total: ₹{total}
           </Typography>
@@ -405,6 +420,7 @@ const TableEditOrder: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleSaveOrder}
+            disabled={editedItems.length === 0}
             sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
           >
             Save Order
