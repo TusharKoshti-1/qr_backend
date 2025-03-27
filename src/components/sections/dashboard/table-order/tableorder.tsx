@@ -279,8 +279,11 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      // Update local state: remove order and rely on WebSocket for table update
+      // Update local state immediately
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setTables((prev) =>
+        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
+      );
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
