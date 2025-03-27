@@ -154,11 +154,11 @@ const TableOrdersPage: React.FC = () => {
 
   const getTableStatusColor = (table: TableType) => {
     const order = orders.find((o) => o.table_number === table.table_number);
-    return !order
-      ? '#d4edda' // Green (empty)
+    return !order || order.status === 'Completed'
+      ? '#d4edda' // Green (empty or completed)
       : order.status === 'Pending'
         ? '#fff3cd' // Yellow (occupied)
-        : '#f8d7da'; // Red (completed)
+        : '#f8d7da'; // Red (shouldn't occur with current logic)
   };
 
   const handleTableClick = (tableNumber: string) => {
@@ -264,7 +264,8 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
-      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'Completed' } : o)));
+      // Remove the completed order from the orders array and set table status to empty
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setTables((prev) =>
         prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
       );
