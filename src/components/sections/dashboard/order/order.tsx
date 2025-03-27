@@ -19,7 +19,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import QRCode from 'qrcode'; // Ensure qrcode is installed
+import QRCode from 'qrcode';
 
 interface OrderType {
   id: number;
@@ -116,37 +116,27 @@ const Order: React.FC = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data); // Debug log
-        if (data.type === 'delete_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = prevOrders.filter((order) => order.id !== data.id);
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'new_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = [data.order, ...prevOrders];
+        console.log('WebSocket message received:', data);
+
+        if (data.type === 'new_order') {
+          setOrders((prev) => {
+            const updatedOrders = [data.order, ...prev];
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'update_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = prevOrders
-              .map((order) => {
-                // Handle both status updates (PUT /api/orders/:id) and item/total updates (PUT /api/updateorders/:id)
-                if (order.id === data.id) {
-                  const updatedOrder = {
-                    ...order,
-                    status: data.status || order.status, // From PUT /api/orders/:id
-                    items: data.items || data.order?.items || order.items, // From PUT /api/updateorders/:id
-                    total_amount:
-                      data.total_amount || data.order?.total_amount || order.total_amount,
-                  };
-                  return updatedOrder;
-                }
-                return order;
-              })
-              .filter((order) => order.status !== 'Completed'); // Remove completed orders
+          setOrders((prev) => {
+            const updatedOrders = prev
+              .map((order) =>
+                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+              )
+              .filter((order) => order.status !== 'Completed');
+            aggregateItems(updatedOrders);
+            return updatedOrders;
+          });
+        } else if (data.type === 'delete_order') {
+          setOrders((prev) => {
+            const updatedOrders = prev.filter((order) => order.id !== data.id);
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -265,9 +255,8 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Optimistic update for the local device
-      setOrders((prevOrders) => {
-        const updatedOrders = prevOrders.filter((order) => order.id !== id);
+      setOrders((prev) => {
+        const updatedOrders = prev.filter((order) => order.id !== id);
         aggregateItems(updatedOrders);
         return updatedOrders;
       });
@@ -285,9 +274,8 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Optimistic update for the local device
-      setOrders((prevOrders) => {
-        const updatedOrders = prevOrders.filter((order) => order.id !== id);
+      setOrders((prev) => {
+        const updatedOrders = prev.filter((order) => order.id !== id);
         aggregateItems(updatedOrders);
         return updatedOrders;
       });
@@ -298,7 +286,6 @@ const Order: React.FC = () => {
 
   return (
     <Box sx={{ padding: { xs: '10px', sm: '20px' }, minHeight: '100vh' }}>
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -326,7 +313,6 @@ const Order: React.FC = () => {
         </Link>
       </Box>
 
-      {/* Confirmation Dialog */}
       <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
@@ -347,7 +333,6 @@ const Order: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Total Quantities Section */}
       <Box
         sx={{
           mb: 4,
@@ -453,7 +438,6 @@ const Order: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Orders Grid */}
       <Grid container spacing={2}>
         {orders.length > 0 ? (
           orders.map((order) => (
