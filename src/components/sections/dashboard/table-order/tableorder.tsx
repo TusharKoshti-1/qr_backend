@@ -129,12 +129,13 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'update_table_order') {
-          setOrders((prev) =>
-            prev.map((order) =>
-              order.id === parseInt(data.order.id)
-                ? { ...order, items: data.order.items, total_amount: data.order.total_amount }
-                : order,
-            ),
+          setOrders(
+            (prev) =>
+              prev
+                .map((order) =>
+                  order.id === parseInt(data.order.id) ? { ...order, ...data.order } : order,
+                )
+                .filter((order) => order.status !== 'Completed'), // Remove completed orders
           );
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => prev.filter((order) => order.id !== data.id));
