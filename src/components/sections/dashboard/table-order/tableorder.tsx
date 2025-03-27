@@ -328,25 +328,72 @@ const TableOrdersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: '20px' }}>
-      <Typography variant="h4" gutterBottom>
+    <Box
+      sx={{
+        padding: { xs: 2, sm: 3, md: 4 }, // Responsive padding
+        maxWidth: '100%',
+        margin: '0 auto',
+      }}
+    >
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, // Responsive font size
+          textAlign: { xs: 'center', sm: 'left' },
+        }}
+      >
         Table Management
       </Typography>
 
-      <Grid container spacing={2}>
+      <Grid
+        container
+        spacing={{ xs: 1, sm: 2, md: 3 }} // Responsive spacing
+        justifyContent="center"
+      >
         {tables.map((table) => (
-          <Grid item xs={6} sm={4} md={3} key={table.id}>
+          <Grid
+            item
+            xs={6}
+            sm={4}
+            md={3}
+            lg={2} // Added lg breakpoint
+            key={table.id}
+          >
             <Card
               sx={{
                 backgroundColor: getTableStatusColor(table),
                 cursor: 'pointer',
                 '&:hover': { boxShadow: 6 },
+                height: '100%', // Ensure cards stretch to equal height
+                display: 'flex', // For centering content
+                flexDirection: 'column',
+                justifyContent: 'center',
+                transition: 'all 0.3s ease-in-out', // Smooth hover transition
               }}
               onClick={() => handleTableClick(table.table_number)}
             >
-              <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h6">Table {table.table_number}</Typography>
-                <Typography variant="body2">
+              <CardContent
+                sx={{
+                  textAlign: 'center',
+                  p: { xs: 1, sm: 2 }, // Responsive padding
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontSize: { xs: '1rem', sm: '1.25rem' }, // Responsive font
+                    wordBreak: 'break-word', // Prevent text overflow
+                  }}
+                >
+                  Table {table.table_number}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Responsive font
+                  }}
+                >
                   {table.status === 'empty'
                     ? 'Empty'
                     : table.status === 'occupied'
@@ -359,20 +406,52 @@ const TableOrdersPage: React.FC = () => {
         ))}
       </Grid>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>Manage Table {selectedTable}</DialogTitle>
-        <DialogContent>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        fullWidth
+        maxWidth="sm" // Limit dialog width on larger screens
+        PaperProps={{
+          sx: {
+            m: { xs: 1, sm: 2 }, // Responsive margin
+            width: { xs: '100%', sm: 'auto' },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }, // Responsive title
+            p: { xs: 1, sm: 2 },
+          }}
+        >
+          Manage Table {selectedTable}
+        </DialogTitle>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           {orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <Box>
-              <Typography>Order Details:</Typography>
+              <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                Order Details:
+              </Typography>
               {orders
                 .find((o) => o.table_number === selectedTable && o.status === 'Pending')
                 ?.items.map((item) => (
-                  <Typography key={item.id}>
+                  <Typography
+                    key={item.id}
+                    sx={{
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      py: 0.5,
+                    }}
+                  >
                     {item.name} - ₹{item.price} x {item.quantity}
                   </Typography>
                 ))}
-              <Typography sx={{ mt: 1 }}>
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
+                  fontWeight: 'bold',
+                }}
+              >
                 Total: ₹
                 {
                   orders.find((o) => o.table_number === selectedTable && o.status === 'Pending')
@@ -381,31 +460,75 @@ const TableOrdersPage: React.FC = () => {
               </Typography>
             </Box>
           ) : (
-            <Typography>No active order for this table.</Typography>
+            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+              No active order for this table.
+            </Typography>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions
+          sx={{
+            flexWrap: 'wrap', // Allow buttons to wrap on small screens
+            gap: 1, // Consistent spacing between buttons
+            p: { xs: 1, sm: 2 },
+          }}
+        >
           {!orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
-            <Button onClick={handleAddOrder} color="primary">
+            <Button
+              onClick={handleAddOrder}
+              color="primary"
+              variant="contained"
+              size="small"
+              sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+            >
               Add Order
             </Button>
           ) : (
             <>
-              <Button onClick={handleEditOrder} color="primary">
+              <Button
+                onClick={handleEditOrder}
+                color="primary"
+                variant="contained"
+                size="small"
+                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+              >
                 Edit Order
               </Button>
-              <Button onClick={handlePrintOrder} color="secondary">
+              <Button
+                onClick={handlePrintOrder}
+                color="secondary"
+                variant="contained"
+                size="small"
+                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+              >
                 Print
               </Button>
-              <Button onClick={handleCompleteOrder} color="success">
+              <Button
+                onClick={handleCompleteOrder}
+                color="success"
+                variant="contained"
+                size="small"
+                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+              >
                 Complete
               </Button>
-              <Button onClick={handleDeleteOrder} color="error">
+              <Button
+                onClick={handleDeleteOrder}
+                color="error"
+                variant="contained"
+                size="small"
+                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+              >
                 Delete
               </Button>
             </>
           )}
-          <Button onClick={() => setDialogOpen(false)} color="inherit">
+          <Button
+            onClick={() => setDialogOpen(false)}
+            color="inherit"
+            variant="outlined"
+            size="small"
+            sx={{ minWidth: { xs: '80px', sm: '100px' } }}
+          >
             Close
           </Button>
         </DialogActions>
