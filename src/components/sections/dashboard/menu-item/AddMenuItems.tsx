@@ -23,7 +23,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { Link } from 'react-router-dom';
 import './MenuItem.css';
 
-type MenuItem = {
+type MenuItemType = {
   id: number;
   name: string;
   image: string;
@@ -32,10 +32,10 @@ type MenuItem = {
 
 const AddMenuItems: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
+  const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>(''); // Used in addItemToMenu
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -46,7 +46,7 @@ const AddMenuItems: React.FC = () => {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await axios.get<MenuItem[]>(
+      const response = await axios.get<MenuItemType[]>(
         `${import.meta.env.VITE_API_URL}/api/menuitems`,
         {
           headers: {
@@ -63,7 +63,7 @@ const AddMenuItems: React.FC = () => {
           acc[item.category].push(item);
           return acc;
         },
-        {} as Record<string, MenuItem[]>,
+        {} as Record<string, MenuItemType[]>,
       );
       setGroupedItems(grouped);
 
@@ -88,9 +88,39 @@ const AddMenuItems: React.FC = () => {
     }
   };
 
-  const addItemToMenu = async (item: MenuItem) => {
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+
+    if (term.trim() === '') {
+      setSelectedCategory('All');
+      setOpenCategories((prev) =>
+        Object.keys(prev).reduce((acc, cat) => ({ ...acc, [cat]: false }), {}),
+      );
+      return;
+    }
+
+    // Find the category containing the searched item
+    const lowerTerm = term.toLowerCase();
+    const matchingCategory = Object.entries(groupedItems).find(
+      (
+        [, items], // Fixed unused '_'
+      ) => items.some((item) => item.name.toLowerCase().includes(lowerTerm)),
+    );
+
+    if (matchingCategory) {
+      const [category] = matchingCategory;
+      setSelectedCategory(category);
+      setOpenCategories((prev) => ({
+        ...prev,
+        [category]: true, // Open the matching category
+      }));
+    }
+  };
+
+  const addItemToMenu = async (item: MenuItemType) => {
+    // 'item' is used here
     try {
-      const existingMenuResponse = await axios.get<MenuItem[]>(
+      const existingMenuResponse = await axios.get<MenuItemType[]>(
         `${import.meta.env.VITE_API_URL}/api/menu`,
         {
           headers: {
@@ -135,6 +165,7 @@ const AddMenuItems: React.FC = () => {
   };
 
   const handleRemoveItem = async (id: number) => {
+    // 'id' is used here
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/remove-itemofmenu/${id}`, {
         headers: {
@@ -191,7 +222,7 @@ const AddMenuItems: React.FC = () => {
           variant="outlined"
           fullWidth
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
         />
         <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
           <div
