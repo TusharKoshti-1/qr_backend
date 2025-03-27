@@ -28,7 +28,7 @@ interface OrderType {
   payment_method: string;
   total_amount: number;
   items: ItemType[];
-  status?: string; // Optional, as it may not always be present in WebSocket updates
+  status?: string;
 }
 
 interface ItemType {
@@ -133,13 +133,16 @@ const Order: React.FC = () => {
           setOrders((prevOrders) => {
             const updatedOrders = prevOrders
               .map((order) => {
+                // Handle both status updates (PUT /api/orders/:id) and item/total updates (PUT /api/updateorders/:id)
                 if (order.id === data.id) {
-                  return {
+                  const updatedOrder = {
                     ...order,
-                    status: data.status, // From PUT /api/orders/:id
-                    ...(data.items && { items: data.items }), // From PUT /api/updateorders/:id
-                    ...(data.total_amount && { total_amount: data.total_amount }),
+                    status: data.status || order.status, // From PUT /api/orders/:id
+                    items: data.items || data.order?.items || order.items, // From PUT /api/updateorders/:id
+                    total_amount:
+                      data.total_amount || data.order?.total_amount || order.total_amount,
                   };
+                  return updatedOrder;
                 }
                 return order;
               })
@@ -262,7 +265,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Optimistic update in case WebSocket fails
+      // Optimistic update for the local device
       setOrders((prevOrders) => {
         const updatedOrders = prevOrders.filter((order) => order.id !== id);
         aggregateItems(updatedOrders);
@@ -282,7 +285,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Optimistic update in case WebSocket fails
+      // Optimistic update for the local device
       setOrders((prevOrders) => {
         const updatedOrders = prevOrders.filter((order) => order.id !== id);
         aggregateItems(updatedOrders);
