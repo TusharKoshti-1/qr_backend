@@ -437,7 +437,7 @@ const Order: React.FC = () => {
                   justifyContent: 'space-between',
                 }}
               >
-                <CardContent>
+                <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
                   <Typography
                     variant="h6"
                     gutterBottom
@@ -482,9 +482,10 @@ const Order: React.FC = () => {
                 <CardActions
                   sx={{
                     flexWrap: 'wrap',
-                    gap: 1,
-                    p: 2,
-                    justifyContent: 'center',
+                    gap: 0.5, // Reduced gap between buttons
+                    p: { xs: '4px', sm: '8px' }, // Reduced padding to bring buttons closer to edges
+                    justifyContent: 'space-between', // Spread buttons to edges
+                    borderTop: '1px solid #ddd', // Optional: subtle divider above buttons
                   }}
                 >
                   <Button
@@ -492,7 +493,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="primary"
                     onClick={() => handleEditOrder(order)}
-                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                    sx={{
+                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      minWidth: '60px', // Ensures buttons remain readable
+                    }}
                   >
                     Edit
                   </Button>
@@ -501,7 +506,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="secondary"
                     onClick={() => handlePrintOrder(order)}
-                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                    sx={{
+                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      minWidth: '60px',
+                    }}
                   >
                     Print
                   </Button>
@@ -510,7 +519,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="success"
                     onClick={() => handleOrderComplete(order.id)}
-                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                    sx={{
+                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      minWidth: '60px',
+                    }}
                   >
                     Complete
                   </Button>
@@ -519,7 +532,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="error"
                     onClick={() => setConfirmDeleteId(order.id)}
-                    sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, px: { xs: 1, sm: 2 } }}
+                    sx={{
+                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      minWidth: '60px',
+                    }}
                   >
                     Delete
                   </Button>
