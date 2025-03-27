@@ -24,10 +24,11 @@ import QRCode from 'qrcode'; // Ensure qrcode is installed
 interface OrderType {
   id: number;
   customer_name: string;
-  phone: string;
+  phone: string | null;
   payment_method: string;
   total_amount: number;
   items: ItemType[];
+  status?: string; // Optional, as it may not always be present in WebSocket updates
 }
 
 interface ItemType {
@@ -126,9 +127,22 @@ const Order: React.FC = () => {
           });
         } else if (data.type === 'update_order') {
           setOrders((prevOrders) => {
-            const updatedOrders = prevOrders.map((order) =>
-              order.id === data.id ? { ...order, status: data.status } : order,
-            );
+            const updatedOrders = prevOrders
+              .map((order) => {
+                if (order.id === (data.id || data.order?.id)) {
+                  // Handle both status updates and item/total updates
+                  return {
+                    ...order,
+                    ...(data.status && { status: data.status }), // From PUT /api/orders/:id
+                    ...(data.order && {
+                      items: data.order.items || order.items,
+                      total_amount: data.order.total_amount || order.total_amount,
+                    }), // From PUT /api/updateorders/:id
+                  };
+                }
+                return order;
+              })
+              .filter((order) => order.status !== 'Completed'); // Remove completed orders
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -190,7 +204,7 @@ const Order: React.FC = () => {
           </div>
           <div class="details">
             <p><strong>Customer:</strong> ${order.customer_name}</p>
-            <p><strong>Phone:</strong> ${order.phone}</p>
+            <p><strong>Phone:</strong> ${order.phone || 'N/A'}</p>
             <p><strong>Payment Method:</strong> ${order.payment_method}</p>
             <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
           </div>
@@ -241,9 +255,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      const updatedOrders = orders.filter((order) => order.id !== id);
-      setOrders(updatedOrders);
-      aggregateItems(updatedOrders);
+      // No local state update here; WebSocket will handle it
     } catch (error) {
       console.error('Error marking order as completed:', error);
     }
@@ -258,9 +270,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      const updatedOrders = orders.filter((order) => order.id !== id);
-      setOrders(updatedOrders);
-      aggregateItems(updatedOrders);
+      // No local state update here; WebSocket will handle it
     } catch (error) {
       console.error('Error deleting order:', error);
     }
@@ -450,7 +460,7 @@ const Order: React.FC = () => {
                     color="textSecondary"
                     sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
                   >
-                    Phone: {order.phone}
+                    Phone: {order.phone || 'N/A'}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -482,10 +492,10 @@ const Order: React.FC = () => {
                 <CardActions
                   sx={{
                     flexWrap: 'wrap',
-                    gap: 0.5, // Reduced gap between buttons
-                    p: { xs: '4px', sm: '8px' }, // Reduced padding to bring buttons closer to edges
-                    justifyContent: 'space-between', // Spread buttons to edges
-                    borderTop: '1px solid #ddd', // Optional: subtle divider above buttons
+                    gap: 0.5,
+                    p: { xs: '4px', sm: '8px' },
+                    justifyContent: 'space-between',
+                    borderTop: '1px solid #ddd',
                   }}
                 >
                   <Button
@@ -496,7 +506,7 @@ const Order: React.FC = () => {
                     sx={{
                       fontSize: { xs: '0.7rem', sm: '0.875rem' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px', // Ensures buttons remain readable
+                      minWidth: '60px',
                     }}
                   >
                     Edit
