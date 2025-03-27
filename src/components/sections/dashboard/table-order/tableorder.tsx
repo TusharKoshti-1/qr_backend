@@ -1,32 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Box,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Button,
   Card,
   CardContent,
-  CardActions,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
   Typography,
-  Divider,
 } from '@mui/material';
-import QRCode from 'qrcode'; // Ensure qrcode is installed (npm install qrcode)
+import QRCode from 'qrcode';
+
+interface TableType {
+  id: number;
+  table_number: string;
+}
 
 interface OrderType {
   id: number;
-  table_number: string | null;
+  table_number: string;
   payment_method: string;
   total_amount: number;
   items: ItemType[];
+  status: string; // 'Pending', 'Completed'
 }
 
 interface ItemType {
@@ -36,11 +36,6 @@ interface ItemType {
   price: number;
 }
 
-interface AggregatedItemType {
-  name: string;
-  quantity: number;
-}
-
 interface SettingsType {
   restaurantName: string;
   phone: string;
@@ -48,27 +43,32 @@ interface SettingsType {
 }
 
 const TableOrdersPage: React.FC = () => {
+  const [tables, setTables] = useState<TableType[]>([]);
   const [orders, setOrders] = useState<OrderType[]>([]);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-  const [aggregatedItems, setAggregatedItems] = useState<AggregatedItemType[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  const aggregateItems = (orders: OrderType[]) => {
-    const itemMap: Record<string, AggregatedItemType> = {};
-    orders.forEach((order) => {
-      order.items.forEach((item) => {
-        if (itemMap[item.name]) {
-          itemMap[item.name].quantity += item.quantity;
-        } else {
-          itemMap[item.name] = { name: item.name, quantity: item.quantity };
-        }
-      });
-    });
-    setAggregatedItems(Object.values(itemMap));
-  };
-
+  // Fetch pre-configured tables, orders, and settings
   useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const response = await axios.get<TableType[]>(
+          `${import.meta.env.VITE_API_URL}/api/tables`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          },
+        );
+        setTables(response.data);
+      } catch (error) {
+        console.error('Error fetching tables:', error);
+      }
+    };
+
     const fetchOrders = async () => {
       try {
         const response = await axios.get<OrderType[]>(
@@ -82,7 +82,6 @@ const TableOrdersPage: React.FC = () => {
         );
         const tableOrders = response.data.filter((order) => order.table_number !== null);
         setOrders(tableOrders);
-        aggregateItems(tableOrders);
       } catch (error) {
         console.error('Error fetching table orders:', error);
       }
@@ -105,6 +104,7 @@ const TableOrdersPage: React.FC = () => {
       }
     };
 
+    fetchTables();
     fetchOrders();
     fetchSettings();
 
@@ -112,26 +112,14 @@ const TableOrdersPage: React.FC = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'delete_table_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = prevOrders.filter((order) => order.id !== data.id);
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'new_table_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = [data.order, ...prevOrders];
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
+        if (data.type === 'new_table_order') {
+          setOrders((prev) => [data.order, ...prev]);
         } else if (data.type === 'update_table_order') {
-          setOrders((prevOrders) => {
-            const updatedOrders = prevOrders.map((order) =>
-              order.id === data.id ? { ...order, ...data.order } : order,
-            );
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
+          setOrders((prev) =>
+            prev.map((order) => (order.id === data.id ? { ...order, ...data.order } : order)),
+          );
+        } else if (data.type === 'delete_table_order') {
+          setOrders((prev) => prev.filter((order) => order.id !== data.id));
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
@@ -141,13 +129,33 @@ const TableOrdersPage: React.FC = () => {
     return () => ws.close();
   }, []);
 
-  const handleEditOrder = (order: OrderType) => {
-    navigate('/edittableorder', { state: { order } });
+  const getTableStatus = (tableNumber: string) => {
+    const order = orders.find((o) => o.table_number === tableNumber);
+    if (!order) return 'empty'; // Green
+    if (order.status === 'Completed') return 'completed'; // Red
+    return 'pending'; // Yellow
   };
 
-  const handlePrintOrder = async (order: OrderType) => {
-    if (!settings || !settings.upiId) {
-      alert('UPI ID not configured in settings. Cannot generate QR code.');
+  const handleTableClick = (tableNumber: string) => {
+    setSelectedTable(tableNumber);
+    setDialogOpen(true);
+  };
+
+  const handleAddOrder = () => {
+    setDialogOpen(false);
+    navigate('/add-table-order', { state: { table_number: selectedTable } });
+  };
+
+  const handleEditOrder = () => {
+    const order = orders.find((o) => o.table_number === selectedTable);
+    setDialogOpen(false);
+    if (order) navigate('/edit-table-order', { state: { order } });
+  };
+
+  const handlePrintOrder = async () => {
+    const order = orders.find((o) => o.table_number === selectedTable);
+    if (!order || !settings || !settings.upiId) {
+      alert('No order found or UPI ID not configured.');
       return;
     }
 
@@ -155,14 +163,13 @@ const TableOrdersPage: React.FC = () => {
       settings.restaurantName,
     )}&am=${order.total_amount}&cu=INR`;
 
-    let qrCodeUrl = '';
-    try {
-      qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 });
-    } catch (error) {
+    const qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 }).catch((error) => {
       console.error('Error generating QR code:', error);
       alert('Failed to generate QR code.');
-      return;
-    }
+      return '';
+    });
+
+    if (!qrCodeUrl) return;
 
     const printContent = `
       <html>
@@ -178,9 +185,6 @@ const TableOrdersPage: React.FC = () => {
             th { background-color: #f2f2f2; }
             img { max-width: 150px; }
             .total-amount { margin-top: 10px; font-weight: bold; }
-            @media print {
-              .qr img { display: block; }
-            }
           </style>
         </head>
         <body>
@@ -189,7 +193,7 @@ const TableOrdersPage: React.FC = () => {
             <p>Phone: ${settings.phone}</p>
           </div>
           <div class="items">
-            <h3>Items:</h3>
+            <h3>Table ${order.table_number} Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
               ${order.items
@@ -205,14 +209,8 @@ const TableOrdersPage: React.FC = () => {
           </div>
           <div class="qr">
             <p>Scan to Pay ₹${order.total_amount}</p>
-            <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" onerror="alert('Failed to load QR code')" />
+            <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" />
           </div>
-          <script>
-            const img = document.querySelector('img');
-            if (img.complete) {
-              window.print();
-            }
-          </script>
         </body>
       </html>
     `;
@@ -221,41 +219,46 @@ const TableOrdersPage: React.FC = () => {
     if (newWindow) {
       newWindow.document.write(printContent);
       newWindow.document.close();
-      newWindow.onload = () => {
-        newWindow.print();
-      };
+      newWindow.onload = () => newWindow.print();
     }
+    setDialogOpen(false);
   };
 
-  const handleOrderComplete = async (id: number) => {
-    const data = { status: 'Completed' };
+  const handleCompleteOrder = async () => {
+    const order = orders.find((o) => o.table_number === selectedTable);
+    if (!order) return;
+
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/api/tableorder/${id}`, data, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tableorder/update/${order.id}`,
+        { status: 'Completed' },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
-      });
-      const updatedOrders = orders.filter((order) => order.id !== id);
-      setOrders(updatedOrders);
-      aggregateItems(updatedOrders);
+      );
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'Completed' } : o)));
+      setDialogOpen(false);
     } catch (error) {
-      console.error('Error marking table order as completed:', error);
+      console.error('Error completing table order:', error);
     }
   };
 
-  const handleDeleteOrder = async (id: number) => {
-    setConfirmDeleteId(null);
+  const handleDeleteOrder = async () => {
+    const order = orders.find((o) => o.table_number === selectedTable);
+    if (!order) return;
+
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${id}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      const updatedOrders = orders.filter((order) => order.id !== id);
-      setOrders(updatedOrders);
-      aggregateItems(updatedOrders);
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table order:', error);
     }
@@ -264,143 +267,88 @@ const TableOrdersPage: React.FC = () => {
   return (
     <Box sx={{ padding: '20px' }}>
       <Typography variant="h4" gutterBottom>
-        Pending Table Orders
+        Table Management
       </Typography>
-      <div
-        style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingBottom: '20px' }}
-      >
-        <Link to="/addtableorder">
-          <Button variant="contained" color="primary" sx={{ marginBottom: { xs: 2, sm: 0 } }}>
-            Add Table Order
-          </Button>
-        </Link>
-      </div>
-      <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+
+      <Grid container spacing={2}>
+        {tables.map((table) => {
+          const status = getTableStatus(table.table_number);
+          const backgroundColor =
+            status === 'empty' ? '#d4edda' : status === 'pending' ? '#fff3cd' : '#f8d7da'; // Green, Yellow, Red
+
+          return (
+            <Grid item xs={6} sm={4} md={3} key={table.id}>
+              <Card
+                sx={{
+                  backgroundColor,
+                  cursor: 'pointer',
+                  '&:hover': { boxShadow: 6 },
+                }}
+                onClick={() => handleTableClick(table.table_number)}
+              >
+                <CardContent sx={{ textAlign: 'center' }}>
+                  <Typography variant="h6">Table {table.table_number}</Typography>
+                  <Typography variant="body2">
+                    {status === 'empty'
+                      ? 'Empty'
+                      : status === 'pending'
+                        ? 'Order Pending'
+                        : 'Completed'}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Manage Table {selectedTable}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this table order? This action cannot be undone.
-          </DialogContentText>
+          {orders.find((o) => o.table_number === selectedTable) ? (
+            <Box>
+              <Typography>Order Details:</Typography>
+              {orders
+                .find((o) => o.table_number === selectedTable)
+                ?.items.map((item) => (
+                  <Typography key={item.id}>
+                    {item.name} - ₹{item.price} x {item.quantity}
+                  </Typography>
+                ))}
+              <Typography sx={{ mt: 1 }}>
+                Total: ₹{orders.find((o) => o.table_number === selectedTable)?.total_amount}
+              </Typography>
+            </Box>
+          ) : (
+            <Typography>No active order for this table.</Typography>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteId(null)} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => confirmDeleteId && handleDeleteOrder(confirmDeleteId)}
-            color="error"
-          >
-            Delete
+          {!orders.find((o) => o.table_number === selectedTable) ? (
+            <Button onClick={handleAddOrder} color="primary">
+              Add Order
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handleEditOrder} color="primary">
+                Edit Order
+              </Button>
+              <Button onClick={handlePrintOrder} color="secondary">
+                Print
+              </Button>
+              <Button onClick={handleCompleteOrder} color="success">
+                Complete
+              </Button>
+              <Button onClick={handleDeleteOrder} color="error">
+                Delete
+              </Button>
+            </>
+          )}
+          <Button onClick={() => setDialogOpen(false)} color="inherit">
+            Close
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Box
-        sx={{
-          marginBottom: '30px',
-          padding: '20px',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#f9f9f9',
-        }}
-      >
-        <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', marginBottom: '20px' }}>
-          Total Quantities
-        </Typography>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f1f1f1', borderBottom: '2px solid #ddd' }}>
-              <th style={{ padding: '10px' }}>Item Name</th>
-              <th style={{ padding: '10px', textAlign: 'center' }}>Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {aggregatedItems.length > 0 ? (
-              aggregatedItems.map((item, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderBottom: '1px solid #ddd',
-                    backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9',
-                  }}
-                >
-                  <td style={{ padding: '10px' }}>{item.name}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>{item.quantity}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={2} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
-                  No items to display.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </Box>
-
-      <Grid container spacing={3}>
-        {orders.map((order) => (
-          <Grid item xs={12} sm={6} md={4} key={order.id}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Table {order.table_number}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Payment Method: {order.payment_method}
-                </Typography>
-                <Typography variant="h6" sx={{ marginTop: '10px' }}>
-                  Total Amount: ₹{order.total_amount}
-                </Typography>
-                <Divider sx={{ marginY: '10px' }} />
-                <Typography variant="subtitle1">Items:</Typography>
-                <List dense>
-                  {order.items.map((item) => (
-                    <ListItem key={item.id} disableGutters>
-                      <ListItemText primary={`${item.name} - ₹${item.price} x ${item.quantity}`} />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="primary"
-                  onClick={() => handleEditOrder(order)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="secondary"
-                  onClick={() => handlePrintOrder(order)}
-                >
-                  Print
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="success"
-                  onClick={() => handleOrderComplete(order.id)}
-                >
-                  Complete
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  color="error"
-                  onClick={() => setConfirmDeleteId(order.id)}
-                >
-                  Delete
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
     </Box>
   );
 };
