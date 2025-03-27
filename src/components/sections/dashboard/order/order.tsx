@@ -110,9 +110,13 @@ const Order: React.FC = () => {
     fetchSettings();
 
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('WebSocket message received:', data); // Debug log
         if (data.type === 'delete_order') {
           setOrders((prevOrders) => {
             const updatedOrders = prevOrders.filter((order) => order.id !== data.id);
@@ -129,15 +133,12 @@ const Order: React.FC = () => {
           setOrders((prevOrders) => {
             const updatedOrders = prevOrders
               .map((order) => {
-                if (order.id === (data.id || data.order?.id)) {
-                  // Handle both status updates and item/total updates
+                if (order.id === data.id) {
                   return {
                     ...order,
-                    ...(data.status && { status: data.status }), // From PUT /api/orders/:id
-                    ...(data.order && {
-                      items: data.order.items || order.items,
-                      total_amount: data.order.total_amount || order.total_amount,
-                    }), // From PUT /api/updateorders/:id
+                    status: data.status, // From PUT /api/orders/:id
+                    ...(data.items && { items: data.items }), // From PUT /api/updateorders/:id
+                    ...(data.total_amount && { total_amount: data.total_amount }),
                   };
                 }
                 return order;
@@ -150,6 +151,12 @@ const Order: React.FC = () => {
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
       }
+    };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
     };
 
     return () => ws.close();
@@ -255,7 +262,12 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // No local state update here; WebSocket will handle it
+      // Optimistic update in case WebSocket fails
+      setOrders((prevOrders) => {
+        const updatedOrders = prevOrders.filter((order) => order.id !== id);
+        aggregateItems(updatedOrders);
+        return updatedOrders;
+      });
     } catch (error) {
       console.error('Error marking order as completed:', error);
     }
@@ -270,7 +282,12 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // No local state update here; WebSocket will handle it
+      // Optimistic update in case WebSocket fails
+      setOrders((prevOrders) => {
+        const updatedOrders = prevOrders.filter((order) => order.id !== id);
+        aggregateItems(updatedOrders);
+        return updatedOrders;
+      });
     } catch (error) {
       console.error('Error deleting order:', error);
     }
