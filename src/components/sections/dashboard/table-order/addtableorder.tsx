@@ -9,6 +9,8 @@ import {
   MenuItem,
   Grid,
   IconButton,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -24,12 +26,19 @@ interface MenuItemType {
   image: string;
 }
 
+interface TableType {
+  id: number;
+  table_number: string;
+  status: 'empty' | 'occupied' | 'reserved';
+}
+
 interface OrderItem extends MenuItemType {
   quantity: number;
 }
 
 const AdminAddTableOrderPage: React.FC = () => {
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItemType[]>>({});
+  const [tables, setTables] = useState<TableType[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [tableNumber, setTableNumber] = useState<string>('');
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
@@ -41,6 +50,7 @@ const AdminAddTableOrderPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch menu items
         const menuResponse = await axios.get<MenuItemType[]>(
           `${import.meta.env.VITE_API_URL}/api/menu`,
           {
@@ -50,7 +60,6 @@ const AdminAddTableOrderPage: React.FC = () => {
             },
           },
         );
-
         const items = menuResponse.data;
         const grouped = items.reduce((acc: Record<string, MenuItemType[]>, item: MenuItemType) => {
           acc[item.category] = acc[item.category] || [];
@@ -58,7 +67,6 @@ const AdminAddTableOrderPage: React.FC = () => {
           return acc;
         }, {});
         setGroupedItems(grouped);
-
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
@@ -68,8 +76,20 @@ const AdminAddTableOrderPage: React.FC = () => {
             {} as Record<string, boolean>,
           ),
         );
+
+        // Fetch tables
+        const tablesResponse = await axios.get<TableType[]>(
+          `${import.meta.env.VITE_API_URL}/api/tables`,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          },
+        );
+        setTables(tablesResponse.data);
       } catch (error) {
-        console.error('Error fetching menu items:', error);
+        console.error('Error fetching data:', error);
       }
     };
     fetchData();
@@ -107,19 +127,28 @@ const AdminAddTableOrderPage: React.FC = () => {
 
   const handleSubmitOrder = async () => {
     if (!tableNumber) {
-      alert('Please enter a table number.');
+      alert('Please select a table number.');
       return;
     }
+
+    const selectedTable = tables.find((t) => t.table_number === tableNumber);
+    if (!selectedTable) {
+      alert('Invalid table number.');
+      return;
+    }
+
     try {
+      // Create the table order (no assignment to orderResponse)
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
-          customer_name: null, // Null for table orders
-          phone: null, // Null for table orders
+          customer_name: null,
+          phone: null,
           table_number: tableNumber,
           items: orderItems,
           total_amount: totalAmount,
           payment_method: 'Cash',
+          status: 'Pending',
         },
         {
           headers: {
@@ -128,10 +157,23 @@ const AdminAddTableOrderPage: React.FC = () => {
           },
         },
       );
+
+      // Update table status to 'occupied'
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tables/${selectedTable.id}`,
+        { status: 'occupied' },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+
       alert(`Order for Table ${tableNumber} created successfully!`);
       setTableNumber('');
       setOrderItems([]);
-      navigate('/tableorder'); // Navigate to orders page
+      navigate('/tableorder');
     } catch (error) {
       console.error('Error creating table order:', error);
       alert('Failed to create table order');
@@ -158,26 +200,35 @@ const AdminAddTableOrderPage: React.FC = () => {
         <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
           {/* Table Number, Search Bar, and Category Filter */}
           <Box sx={{ marginBottom: '2rem' }}>
-            <TextField
-              label="Table Number *"
-              variant="outlined"
-              fullWidth
-              value={tableNumber}
-              onChange={(e) => setTableNumber(e.target.value)}
-              required
-              helperText={!tableNumber ? 'This field is required' : ''}
-              FormHelperTextProps={{ style: { color: 'red' } }}
-              sx={{
-                marginBottom: '1rem',
-                '& .MuiInputLabel-root': { fontWeight: 'bold' },
-                '& .MuiOutlinedInput-root': {
+            <FormControl fullWidth sx={{ marginBottom: '1rem' }}>
+              <InputLabel>Table Number *</InputLabel>
+              <Select
+                value={tableNumber}
+                onChange={(e) => setTableNumber(e.target.value as string)}
+                label="Table Number *"
+                required
+                sx={{
                   backgroundColor: '#fff9c4',
-                  '& fieldset': { borderColor: '#f57c00', borderWidth: '2px' },
-                  '&:hover fieldset': { borderColor: '#ef6c00' },
-                  '&.Mui-focused fieldset': { borderColor: '#e65100' },
-                },
-              }}
-            />
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#f57c00',
+                    borderWidth: '2px',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ef6c00' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e65100' },
+                }}
+              >
+                <MenuItem value="">
+                  <em>Select a table</em>
+                </MenuItem>
+                {tables
+                  .filter((table) => table.status === 'empty') // Only show empty tables
+                  .map((table) => (
+                    <MenuItem key={table.id} value={table.table_number}>
+                      Table {table.table_number}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
             <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '1rem' }}>
               <TextField
                 label="Search Menu Items"
@@ -393,7 +444,7 @@ const AdminAddTableOrderPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleSubmitOrder}
-            disabled={!tableNumber}
+            disabled={!tableNumber || orderItems.length === 0}
             sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
           >
             Submit Order

@@ -143,7 +143,7 @@ const TableOrdersPage: React.FC = () => {
 
   const handleAddOrder = () => {
     setDialogOpen(false);
-    navigate('/add-table-order', { state: { table_number: selectedTable } });
+    navigate('/addtableorder', { state: { table_number: selectedTable } });
   };
 
   const handleEditOrder = () => {
