@@ -251,9 +251,11 @@ const TableOrdersPage: React.FC = () => {
 
   const handleCompleteOrder = async () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
-    if (!order) return;
+    const table = tables.find((t) => t.table_number === selectedTable);
+    if (!order || !table) return;
 
     try {
+      // Update order status to 'Completed'
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
         { status: 'Completed' },
@@ -264,11 +266,21 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
-      // Remove the completed order from the orders array and set table status to empty
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) =>
-        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
+
+      // Update table status to 'empty' in the database
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
+        { status: 'empty' },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
       );
+
+      // Update local state: remove order and rely on WebSocket for table update
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
