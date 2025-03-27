@@ -145,58 +145,78 @@ const SalesReport: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
+      <Container
+        sx={{
+          mt: { xs: 2, sm: 3, md: 4 }, // Responsive margin-top
+          px: { xs: 1, sm: 2 }, // Responsive padding-x
+          maxWidth: 'lg', // Limit max width on large screens
+        }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, // Responsive font
+            textAlign: { xs: 'center', sm: 'left' }, // Center on mobile
+          }}
+        >
           Sales Report
         </Typography>
 
-        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 2, sm: 3 }, // Responsive padding
+            mb: { xs: 2, sm: 3, md: 4 },
+          }}
+        >
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Quick Filters
           </Typography>
-          <ButtonGroup variant="contained" sx={{ mb: 2 }}>
-            <Button
-              onClick={() => handleFilterClick('today')}
-              color={activeFilter === 'today' ? 'primary' : 'inherit'}
-            >
-              Today
-            </Button>
-            <Button
-              onClick={() => handleFilterClick('yesterday')}
-              color={activeFilter === 'yesterday' ? 'primary' : 'inherit'}
-            >
-              Yesterday
-            </Button>
-            <Button
-              onClick={() => handleFilterClick('thisWeek')}
-              color={activeFilter === 'thisWeek' ? 'primary' : 'inherit'}
-            >
-              This Week
-            </Button>
-            <Button
-              onClick={() => handleFilterClick('lastWeek')}
-              color={activeFilter === 'lastWeek' ? 'primary' : 'inherit'}
-            >
-              Last Week
-            </Button>
-            <Button
-              onClick={() => handleFilterClick('thisMonth')}
-              color={activeFilter === 'thisMonth' ? 'primary' : 'inherit'}
-            >
-              This Month
-            </Button>
-            <Button
-              onClick={() => handleFilterClick('lastMonth')}
-              color={activeFilter === 'lastMonth' ? 'primary' : 'inherit'}
-            >
-              Last Month
-            </Button>
+          <ButtonGroup
+            variant="contained"
+            sx={{
+              mb: 2,
+              flexWrap: 'wrap', // Allow wrapping on small screens
+              gap: 1, // Add spacing between buttons
+              justifyContent: { xs: 'center', sm: 'flex-start' },
+            }}
+            size="small" // Smaller buttons on mobile
+          >
+            {[
+              { label: 'Today', value: 'today' },
+              { label: 'Yesterday', value: 'yesterday' },
+              { label: 'This Week', value: 'thisWeek' },
+              { label: 'Last Week', value: 'lastWeek' },
+              { label: 'This Month', value: 'thisMonth' },
+              { label: 'Last Month', value: 'lastMonth' },
+            ].map((filter) => (
+              <Button
+                key={filter.value}
+                onClick={() => handleFilterClick(filter.value)}
+                color={activeFilter === filter.value ? 'primary' : 'inherit'}
+                sx={{
+                  minWidth: { xs: '80px', sm: '100px' }, // Responsive min-width
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                }}
+              >
+                {filter.label}
+              </Button>
+            ))}
           </ButtonGroup>
 
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Custom Date Range
           </Typography>
-          <Box display="flex" alignItems="center" gap={2} mt={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 1, sm: 2 },
+              mt: 2,
+            }}
+          >
             <DatePicker
               label="Start Date"
               value={startDate}
@@ -205,7 +225,13 @@ const SalesReport: React.FC = () => {
                 setActiveFilter(null);
               }}
               format="DD/MM/YYYY"
-              slotProps={{ textField: { fullWidth: true } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: 'small', // Smaller input on mobile
+                  sx: { mb: { xs: 1, sm: 0 } },
+                },
+              }}
             />
             <DatePicker
               label="End Date"
@@ -215,59 +241,96 @@ const SalesReport: React.FC = () => {
                 setActiveFilter(null);
               }}
               format="DD/MM/YYYY"
-              slotProps={{ textField: { fullWidth: true } }}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: 'small',
+                  sx: { mb: { xs: 1, sm: 0 } },
+                },
+              }}
             />
           </Box>
         </Paper>
 
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer
+          component={Paper}
+          sx={{
+            overflowX: 'auto', // Enable horizontal scroll on small screens
+            maxHeight: { xs: '70vh', sm: 'none' }, // Limit height on mobile
+          }}
+        >
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>
-                  <b>ID</b>
-                </TableCell>
-                <TableCell>
-                  <b>Customer Name</b>
-                </TableCell>
-                <TableCell>
-                  <b>Phone</b>
-                </TableCell>
-                <TableCell>
-                  <b>Total Amount (₹)</b>
-                </TableCell>
-                <TableCell>
-                  <b>Payment Method</b>
-                </TableCell>
-                <TableCell>
-                  <b>Date</b>
-                </TableCell>
+                {['ID', 'Customer Name', 'Phone', 'Total Amount (₹)', 'Payment Method', 'Date'].map(
+                  (header) => (
+                    <TableCell
+                      key={header}
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Responsive font
+                        whiteSpace: 'nowrap', // Prevent header wrapping
+                        py: 1, // Reduced padding
+                      }}
+                    >
+                      <b>{header}</b>
+                    </TableCell>
+                  ),
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
               {paginatedSales.map((sale, index) => (
                 <TableRow key={sale.id}>
-                  <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
-                  <TableCell>{sale.customer_name ?? 'Table ' + sale.table_number ?? '-'}</TableCell>
-                  <TableCell>{sale.phone ?? '-'}</TableCell>
-                  <TableCell>₹{sale.total_amount}</TableCell>
-                  <TableCell>{sale.payment_method}</TableCell>
-                  <TableCell>{dayjs(sale.created_on).format('DD/MM/YYYY')}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    {(currentPage - 1) * rowsPerPage + index + 1}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    {sale.customer_name ?? `Table ${sale.table_number}` ?? '-'}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    {sale.phone ?? '-'}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    ₹{sale.total_amount}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    {sale.payment_method}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' }, py: 1 }}>
+                    {dayjs(sale.created_on).format('DD/MM/YYYY')}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            mt: { xs: 2, sm: 3 },
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
           <Pagination
             count={Math.ceil(filteredSales.length / rowsPerPage)}
             page={currentPage}
             onChange={handlePageChange}
             color="primary"
+            size="small" // Smaller pagination on mobile
+            sx={{ mb: { xs: 1, sm: 0 } }}
           />
-        </Box>
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6">Total Revenue: ₹{calculateTotalRevenue().toFixed(2)}</Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: { xs: '0.9rem', sm: '1.25rem' },
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
+          >
+            Total Revenue: ₹{calculateTotalRevenue().toFixed(2)}
+          </Typography>
         </Box>
       </Container>
     </LocalizationProvider>
