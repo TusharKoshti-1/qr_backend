@@ -254,14 +254,9 @@ const TableOrdersPage: React.FC = () => {
     if (!order) return;
 
     try {
-      // Send full order data including items and total_amount along with status
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/tableorder/update/${order.id}`,
-        {
-          items: order.items, // Required by API
-          total_amount: order.total_amount, // Required by API
-          status: 'Completed',
-        },
+        `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
+        { status: 'Completed' },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
