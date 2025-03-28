@@ -125,7 +125,9 @@ const TableOrdersPage: React.FC = () => {
           );
         } else if (data.type === 'delete_table') {
           setTables((prev) => prev.filter((t) => t.id !== data.id));
-          setOrders((prev) => prev.filter((o) => o.table_number !== data.table_number));
+          if (data.table_number) {
+            setOrders((prev) => prev.filter((o) => o.table_number !== data.table_number));
+          }
         } else if (data.type === 'new_table_order') {
           setOrders((prev) => [data.order, ...prev]);
           setTables((prev) =>
