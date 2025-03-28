@@ -111,7 +111,11 @@ const TableOrdersPage: React.FC = () => {
     fetchOrders();
     fetchSettings();
 
+    // Adjust WebSocket URL to match your backend if necessary
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -124,10 +128,15 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
-          setTables((prev) => prev.filter((t) => t.id !== data.id));
-          if (data.table_number) {
-            setOrders((prev) => prev.filter((o) => o.table_number !== data.table_number));
-          }
+          setTables((prevTables) => {
+            const deletedTable = prevTables.find((t) => t.id === data.id);
+            if (deletedTable) {
+              setOrders((prevOrders) =>
+                prevOrders.filter((o) => o.table_number !== deletedTable.table_number),
+              );
+            }
+            return prevTables.filter((t) => t.id !== data.id);
+          });
         } else if (data.type === 'new_table_order') {
           setOrders((prev) => [data.order, ...prev]);
           setTables((prev) =>
@@ -161,6 +170,12 @@ const TableOrdersPage: React.FC = () => {
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
       }
+    };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
     };
 
     return () => ws.close();
@@ -198,7 +213,6 @@ const TableOrdersPage: React.FC = () => {
       );
       setAddTableDialogOpen(false);
       setNewTableNumber('');
-      // Table will be added via WebSocket, no need to update state here
     } catch (error) {
       console.error('Error adding table:', error);
       alert('Failed to add table');
@@ -217,7 +231,6 @@ const TableOrdersPage: React.FC = () => {
         },
       });
       setDialogOpen(false);
-      // Table will be removed via WebSocket, no need to update state here
     } catch (error) {
       console.error('Error deleting table:', error);
       alert('Failed to delete table');
@@ -349,7 +362,7 @@ const TableOrdersPage: React.FC = () => {
   const handleDeleteOrder = async () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     const table = tables.find((t) => t.table_number === selectedTable);
-    if (!order || !table) return;
+    if (!table || !order) return;
 
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
@@ -366,7 +379,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table order:', error);
-      alert('Failed to delete order.');
+      alert('Failed to delete order');
     }
   };
 
@@ -498,7 +511,7 @@ const TableOrdersPage: React.FC = () => {
             </Box>
           ) : (
             <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              No active order for this table.
+              Ascertainable errors
             </Typography>
           )}
         </DialogContent>
