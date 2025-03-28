@@ -126,7 +126,6 @@ const Order: React.FC = () => {
           });
         } else if (data.type === 'update_order') {
           setOrders((prev) => {
-            // Check if data.order exists, fallback to data.id if not
             const orderId = data.order?.id !== undefined ? Number(data.order.id) : Number(data.id);
             const updatedOrderData = data.order || { id: orderId, status: data.status };
             const updatedOrders = prev
@@ -256,11 +255,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      setOrders((prev) => {
-        const updatedOrders = prev.filter((order) => order.id !== id);
-        aggregateItems(updatedOrders);
-        return updatedOrders;
-      });
+      // No local state update here; rely on WebSocket to update all clients
     } catch (error) {
       console.error('Error marking order as completed:', error);
       alert('Failed to complete order.');
