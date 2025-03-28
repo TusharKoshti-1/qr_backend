@@ -121,6 +121,7 @@ const Order: React.FC = () => {
         if (data.type === 'new_order') {
           setOrders((prev) => {
             const updatedOrders = [data.order, ...prev];
+            console.log('New order added:', updatedOrders);
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -131,12 +132,14 @@ const Order: React.FC = () => {
             const updatedOrders = prev
               .map((order) => (order.id === orderId ? { ...order, ...updatedOrderData } : order))
               .filter((order) => order.status !== 'Completed');
+            console.log('Orders after update_order:', updatedOrders);
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'delete_order') {
           setOrders((prev) => {
             const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
+            console.log('Orders after delete_order:', updatedOrders);
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -255,7 +258,7 @@ const Order: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // No local state update here; rely on WebSocket to update all clients
+      console.log(`Sent complete request for order ID: ${id}`);
     } catch (error) {
       console.error('Error marking order as completed:', error);
       alert('Failed to complete order.');
