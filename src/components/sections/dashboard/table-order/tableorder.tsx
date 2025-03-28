@@ -138,7 +138,6 @@ const TableOrdersPage: React.FC = () => {
               )
               .filter((order) => order.status !== 'Completed'),
           );
-          // Update table status when order is completed
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order.table_number && data.order.status === 'Completed'
@@ -147,10 +146,10 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'delete_table_order') {
-          setOrders((prev) => prev.filter((order) => order.id !== data.id));
+          setOrders((prev) => prev.filter((order) => order.id === Number(data.id)));
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number ? { ...t, status: 'empty' } : t,
+              t.table_number === data.order?.table_number ? { ...t, status: 'empty' } : t,
             ),
           );
         }
@@ -304,6 +303,7 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
+      // Use the correct API to delete only the order
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -311,19 +311,15 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/tables/${table.id}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-        },
-      });
-
+      // Update local state: Remove order and set table status to 'empty'
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) => prev.filter((t) => t.id !== table.id));
+      setTables((prev) =>
+        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
+      );
       setDialogOpen(false);
     } catch (error) {
-      console.error('Error deleting table order and table:', error);
-      alert('Failed to delete order and table.');
+      console.error('Error deleting table order:', error);
+      alert('Failed to delete order.');
     }
   };
 
