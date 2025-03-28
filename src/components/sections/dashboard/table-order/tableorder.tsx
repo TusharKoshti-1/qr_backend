@@ -169,8 +169,8 @@ const TableOrdersPage: React.FC = () => {
     return !order || order.status === 'Completed'
       ? '#d4edda' // Green (empty or completed)
       : order.status === 'Pending'
-      ? '#fff3cd' // Yellow (occupied)
-      : '#f8d7da'; // Red (shouldn't occur with current logic)
+        ? '#fff3cd' // Yellow (occupied)
+        : '#f8d7da'; // Red (shouldn't occur with current logic)
   };
 
   const handleTableClick = (tableNumber: string) => {
@@ -431,8 +431,8 @@ const TableOrdersPage: React.FC = () => {
                   {table.status === 'empty'
                     ? 'Empty'
                     : table.status === 'occupied'
-                    ? 'Occupied'
-                    : 'Reserved'}
+                      ? 'Occupied'
+                      : 'Reserved'}
                 </Typography>
               </CardContent>
             </Card>
