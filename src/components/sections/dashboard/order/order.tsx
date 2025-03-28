@@ -126,17 +126,18 @@ const Order: React.FC = () => {
           });
         } else if (data.type === 'update_order') {
           setOrders((prev) => {
+            // Check if data.order exists, fallback to data.id if not
+            const orderId = data.order?.id !== undefined ? Number(data.order.id) : Number(data.id);
+            const updatedOrderData = data.order || { id: orderId, status: data.status };
             const updatedOrders = prev
-              .map((order) =>
-                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
-              )
+              .map((order) => (order.id === orderId ? { ...order, ...updatedOrderData } : order))
               .filter((order) => order.status !== 'Completed');
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'delete_order') {
           setOrders((prev) => {
-            const updatedOrders = prev.filter((order) => order.id !== data.id);
+            const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -262,6 +263,7 @@ const Order: React.FC = () => {
       });
     } catch (error) {
       console.error('Error marking order as completed:', error);
+      alert('Failed to complete order.');
     }
   };
 
@@ -281,6 +283,7 @@ const Order: React.FC = () => {
       });
     } catch (error) {
       console.error('Error deleting order:', error);
+      alert('Failed to delete order.');
     }
   };
 
