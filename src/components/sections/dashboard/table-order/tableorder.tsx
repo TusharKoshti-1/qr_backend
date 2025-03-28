@@ -111,7 +111,6 @@ const TableOrdersPage: React.FC = () => {
     fetchOrders();
     fetchSettings();
 
-    // Adjust WebSocket URL to match your backend if necessary
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
     ws.onopen = () => {
       console.log('WebSocket connection established');
@@ -230,6 +229,9 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
+      // Update state locally after successful deletion
+      setTables((prev) => prev.filter((t) => t.id !== table.id));
+      setOrders((prev) => prev.filter((o) => o.table_number !== table.table_number));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table:', error);
@@ -362,7 +364,7 @@ const TableOrdersPage: React.FC = () => {
   const handleDeleteOrder = async () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
     const table = tables.find((t) => t.table_number === selectedTable);
-    if (!table || !order) return;
+    if (!order || !table) return;
 
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
@@ -511,7 +513,7 @@ const TableOrdersPage: React.FC = () => {
             </Box>
           ) : (
             <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              Ascertainable errors
+              No active order for this table.
             </Typography>
           )}
         </DialogContent>
