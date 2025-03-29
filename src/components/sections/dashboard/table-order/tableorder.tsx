@@ -372,6 +372,7 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
+      // Update order status to Completed
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
         { status: 'Completed' },
@@ -383,9 +384,10 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
+      // Update table status to empty, including section_id
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
-        { status: 'empty' },
+        { status: 'empty', section_id: table.section_id },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -401,7 +403,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
-      alert('Failed to complete order.');
+      alert(error.response?.data?.message || 'Failed to complete order.');
     }
   };
 
@@ -418,6 +420,18 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
+      // Update table status to empty after deleting order
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
+        { status: 'empty', section_id: table.section_id },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setTables((prev) =>
         prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
@@ -425,7 +439,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table order:', error);
-      alert('Failed to delete order');
+      alert(error.response?.data?.message || 'Failed to delete order');
     }
   };
 
