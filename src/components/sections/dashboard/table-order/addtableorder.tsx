@@ -30,6 +30,8 @@ interface TableType {
   id: number;
   table_number: string;
   status: 'empty' | 'occupied' | 'reserved';
+  section: string;
+  section_id: number;
 }
 
 interface OrderItem extends MenuItemType {
@@ -78,7 +80,7 @@ const AdminAddTableOrderPage: React.FC = () => {
           ),
         );
 
-        // Fetch tables
+        // Fetch tables with section information
         const tablesResponse = await axios.get<TableType[]>(
           `${import.meta.env.VITE_API_URL}/api/tables`,
           {
@@ -145,6 +147,7 @@ const AdminAddTableOrderPage: React.FC = () => {
     }
 
     try {
+      // Create the table order
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
@@ -164,9 +167,10 @@ const AdminAddTableOrderPage: React.FC = () => {
         },
       );
 
+      // Update table status to occupied
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${selectedTable.id}`,
-        { status: 'occupied' },
+        { status: 'occupied', section_id: selectedTable.section_id }, // Include section_id
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -175,7 +179,7 @@ const AdminAddTableOrderPage: React.FC = () => {
         },
       );
 
-      alert(`Order for Table ${tableNumber} created successfully!`);
+      alert(`Order for Table ${tableNumber} in ${selectedTable.section} created successfully!`);
       setTableNumber('');
       setOrderItems([]);
       navigate('/tableorder');
@@ -203,10 +207,8 @@ const AdminAddTableOrderPage: React.FC = () => {
       return;
     }
 
-    // Keep selectedCategory as 'All' to show all categories
     setSelectedCategory('All');
 
-    // Find all categories with matching items and open them
     const lowerTerm = term.toLowerCase();
     const matchingCategories = Object.entries(groupedItems)
       .filter(([, items]) => items.some((item) => item.name.toLowerCase().includes(lowerTerm)))
@@ -215,7 +217,7 @@ const AdminAddTableOrderPage: React.FC = () => {
     setOpenCategories((prev) =>
       Object.keys(prev).reduce(
         (acc, category) => {
-          acc[category] = matchingCategories.includes(category); // Open if it has matches
+          acc[category] = matchingCategories.includes(category);
           return acc;
         },
         {} as Record<string, boolean>,
@@ -256,7 +258,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                   .filter((table) => table.status === 'empty')
                   .map((table) => (
                     <MenuItem key={table.id} value={table.table_number}>
-                      Table {table.table_number}
+                      Table {table.table_number} ({table.section})
                     </MenuItem>
                   ))}
               </Select>
@@ -267,7 +269,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                 variant="outlined"
                 fullWidth
                 value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)} // Updated to use handleSearch
+                onChange={(e) => handleSearch(e.target.value)}
               />
               <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
                 <Box
