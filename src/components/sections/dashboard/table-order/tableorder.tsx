@@ -13,6 +13,10 @@ import {
   Grid,
   Typography,
   TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -20,6 +24,7 @@ interface TableType {
   id: number;
   table_number: string;
   status: 'empty' | 'occupied' | 'reserved';
+  section: string;
 }
 
 interface OrderType {
@@ -28,7 +33,7 @@ interface OrderType {
   payment_method: string;
   total_amount: number;
   items: ItemType[];
-  status: string; // 'Pending', 'Completed'
+  status: string;
 }
 
 interface ItemType {
@@ -44,6 +49,8 @@ interface SettingsType {
   upiId: string;
 }
 
+const sections = ['Ground Floor', 'First Floor', 'Underground'];
+
 const TableOrdersPage: React.FC = () => {
   const [tables, setTables] = useState<TableType[]>([]);
   const [orders, setOrders] = useState<OrderType[]>([]);
@@ -52,6 +59,7 @@ const TableOrdersPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addTableDialogOpen, setAddTableDialogOpen] = useState(false);
   const [newTableNumber, setNewTableNumber] = useState('');
+  const [newTableSection, setNewTableSection] = useState('Ground Floor');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -112,9 +120,7 @@ const TableOrdersPage: React.FC = () => {
     fetchSettings();
 
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
+    ws.onopen = () => console.log('WebSocket connection established');
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -159,7 +165,7 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'delete_table_order') {
-          setOrders((prev) => prev.filter((order) => order.id === Number(data.id)));
+          setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order?.table_number ? { ...t, status: 'empty' } : t,
@@ -170,12 +176,8 @@ const TableOrdersPage: React.FC = () => {
         console.error('Error processing WebSocket message:', error);
       }
     };
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+    ws.onerror = (error) => console.error('WebSocket error:', error);
+    ws.onclose = () => console.log('WebSocket connection closed');
 
     return () => ws.close();
   }, []);
@@ -186,7 +188,7 @@ const TableOrdersPage: React.FC = () => {
       ? '#d4edda' // Green (empty or completed)
       : order.status === 'Pending'
         ? '#fff3cd' // Yellow (occupied)
-        : '#f8d7da'; // Red (shouldn't occur with current logic)
+        : '#f8d7da'; // Red
   };
 
   const handleTableClick = (tableNumber: string) => {
@@ -195,14 +197,14 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleAddTable = async () => {
-    if (!newTableNumber) {
-      alert('Please enter a table number');
+    if (!newTableNumber || !newTableSection) {
+      alert('Please enter a table number and select a section');
       return;
     }
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tables`,
-        { table_number: newTableNumber },
+        { table_number: newTableNumber, section: newTableSection },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -212,6 +214,7 @@ const TableOrdersPage: React.FC = () => {
       );
       setAddTableDialogOpen(false);
       setNewTableNumber('');
+      setNewTableSection('Ground Floor');
     } catch (error) {
       console.error('Error adding table:', error);
       alert('Failed to add table');
@@ -229,9 +232,6 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Update state locally after successful deletion
-      setTables((prev) => prev.filter((t) => t.id !== table.id));
-      setOrders((prev) => prev.filter((o) => o.table_number !== table.table_number));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table:', error);
@@ -291,7 +291,7 @@ const TableOrdersPage: React.FC = () => {
             <p>Phone: ${settings.phone}</p>
           </div>
           <div class="items">
-            <h3>Table ${order.table_number} Items:</h3>
+            <h3>Table ${order.table_number} (${tables.find((t) => t.table_number === selectedTable)?.section}) Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
               ${order.items
@@ -386,21 +386,9 @@ const TableOrdersPage: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        padding: { xs: 2, sm: 3, md: 4 },
-        maxWidth: '100%',
-        margin: '0 auto',
-      }}
-    >
+    <Box sx={{ padding: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%', margin: '0 auto' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography
-          variant="h4"
-          sx={{
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-            textAlign: { xs: 'center', sm: 'left' },
-          }}
-        >
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Table Management
         </Typography>
         <Button variant="contained" color="primary" onClick={() => setAddTableDialogOpen(true)}>
@@ -408,102 +396,65 @@ const TableOrdersPage: React.FC = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} justifyContent="center">
-        {tables.map((table) => (
-          <Grid item xs={6} sm={4} md={3} lg={2} key={table.id}>
-            <Card
-              sx={{
-                backgroundColor: getTableStatusColor(table),
-                cursor: 'pointer',
-                '&:hover': { boxShadow: 6 },
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                transition: 'all 0.3s ease-in-out',
-              }}
-              onClick={() => handleTableClick(table.table_number)}
-            >
-              <CardContent
-                sx={{
-                  textAlign: 'center',
-                  p: { xs: 1, sm: 2 },
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontSize: { xs: '1rem', sm: '1.25rem' },
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  Table {table.table_number}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  }}
-                >
-                  {table.status === 'empty'
-                    ? 'Empty'
-                    : table.status === 'occupied'
-                      ? 'Occupied'
-                      : 'Reserved'}
-                </Typography>
-              </CardContent>
-            </Card>
+      {sections.map((section) => (
+        <Box key={section} sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            {section}
+          </Typography>
+          <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} justifyContent="center">
+            {tables
+              .filter((table) => table.section === section)
+              .map((table) => (
+                <Grid item xs={6} sm={4} md={3} lg={2} key={table.id}>
+                  <Card
+                    sx={{
+                      backgroundColor: getTableStatusColor(table),
+                      cursor: 'pointer',
+                      '&:hover': { boxShadow: 6 },
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}
+                    onClick={() => handleTableClick(table.table_number)}
+                  >
+                    <CardContent sx={{ textAlign: 'center', p: { xs: 1, sm: 2 } }}>
+                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                        Table {table.table_number}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
+                        {table.status === 'empty'
+                          ? 'Empty'
+                          : table.status === 'occupied'
+                            ? 'Occupied'
+                            : 'Reserved'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
           </Grid>
-        ))}
-      </Grid>
+        </Box>
+      ))}
 
       {/* Table Management Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{
-          sx: {
-            m: { xs: 1, sm: 2 },
-            width: { xs: '100%', sm: 'auto' },
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            p: { xs: 1, sm: 2 },
-          }}
-        >
-          Manage Table {selectedTable}
-        </DialogTitle>
-        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Manage Table {selectedTable}</DialogTitle>
+        <DialogContent>
           {orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <Box>
-              <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                Order Details:
-              </Typography>
+              <Typography>Order Details:</Typography>
               {orders
                 .find((o) => o.table_number === selectedTable && o.status === 'Pending')
                 ?.items.map((item) => (
-                  <Typography
-                    key={item.id}
-                    sx={{
-                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                      py: 0.5,
-                    }}
-                  >
+                  <Typography key={item.id}>
                     {item.name} - ₹{item.price} x {item.quantity}
                   </Typography>
                 ))}
-              <Typography
-                sx={{
-                  mt: 1,
-                  fontSize: { xs: '0.9rem', sm: '1rem' },
-                  fontWeight: 'bold',
-                }}
-              >
+              <Typography sx={{ mt: 1, fontWeight: 'bold' }}>
                 Total: ₹
                 {
                   orders.find((o) => o.table_number === selectedTable && o.status === 'Pending')
@@ -512,57 +463,25 @@ const TableOrdersPage: React.FC = () => {
               </Typography>
             </Box>
           ) : (
-            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              No active order for this table.
-            </Typography>
+            <Typography>No active order for this table.</Typography>
           )}
         </DialogContent>
-        <DialogActions
-          sx={{
-            flexWrap: 'wrap',
-            gap: 1,
-            p: { xs: 1, sm: 2 },
-          }}
-        >
+        <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
           {!orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <>
-              <Button
-                onClick={handleAddOrder}
-                color="primary"
-                variant="contained"
-                size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
-              >
+              <Button onClick={handleAddOrder} color="primary" variant="contained" size="small">
                 Add Order
               </Button>
-              <Button
-                onClick={handleDeleteTable}
-                color="error"
-                variant="contained"
-                size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
-              >
+              <Button onClick={handleDeleteTable} color="error" variant="contained" size="small">
                 Delete Table
               </Button>
             </>
           ) : (
             <>
-              <Button
-                onClick={handleEditOrder}
-                color="primary"
-                variant="contained"
-                size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
-              >
+              <Button onClick={handleEditOrder} color="primary" variant="contained" size="small">
                 Edit Order
               </Button>
-              <Button
-                onClick={handlePrintOrder}
-                color="secondary"
-                variant="contained"
-                size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
-              >
+              <Button onClick={handlePrintOrder} color="secondary" variant="contained" size="small">
                 Print
               </Button>
               <Button
@@ -570,17 +489,10 @@ const TableOrdersPage: React.FC = () => {
                 color="success"
                 variant="contained"
                 size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
               >
                 Complete
               </Button>
-              <Button
-                onClick={handleDeleteOrder}
-                color="error"
-                variant="contained"
-                size="small"
-                sx={{ minWidth: { xs: '80px', sm: '100px' } }}
-              >
+              <Button onClick={handleDeleteOrder} color="error" variant="contained" size="small">
                 Delete Order
               </Button>
             </>
@@ -590,7 +502,6 @@ const TableOrdersPage: React.FC = () => {
             color="inherit"
             variant="outlined"
             size="small"
-            sx={{ minWidth: { xs: '80px', sm: '100px' } }}
           >
             Close
           </Button>
@@ -615,6 +526,20 @@ const TableOrdersPage: React.FC = () => {
             value={newTableNumber}
             onChange={(e) => setNewTableNumber(e.target.value)}
           />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Section</InputLabel>
+            <Select
+              value={newTableSection}
+              onChange={(e) => setNewTableSection(e.target.value as string)}
+              label="Section"
+            >
+              {sections.map((section) => (
+                <MenuItem key={section} value={section}>
+                  {section}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAddTableDialogOpen(false)}>Cancel</Button>
