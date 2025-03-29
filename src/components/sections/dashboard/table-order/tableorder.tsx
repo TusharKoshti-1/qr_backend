@@ -25,6 +25,12 @@ interface TableType {
   table_number: string;
   status: 'empty' | 'occupied' | 'reserved';
   section: string;
+  section_id: number;
+}
+
+interface SectionType {
+  id: number;
+  name: string;
 }
 
 interface OrderType {
@@ -49,75 +55,63 @@ interface SettingsType {
   upiId: string;
 }
 
-const sections = ['Ground Floor', 'First Floor', 'Underground'];
-
 const TableOrdersPage: React.FC = () => {
   const [tables, setTables] = useState<TableType[]>([]);
+  const [sections, setSections] = useState<SectionType[]>([]);
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addTableDialogOpen, setAddTableDialogOpen] = useState(false);
+  const [addSectionDialogOpen, setAddSectionDialogOpen] = useState(false);
   const [newTableNumber, setNewTableNumber] = useState('');
-  const [newTableSection, setNewTableSection] = useState('Ground Floor');
+  const [newTableSectionId, setNewTableSectionId] = useState<number | ''>('');
+  const [newSectionName, setNewSectionName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTables = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get<TableType[]>(
-          `${import.meta.env.VITE_API_URL}/api/tables`,
-          {
+        const [tablesRes, sectionsRes, ordersRes, settingsRes] = await Promise.all([
+          axios.get<TableType[]>(`${import.meta.env.VITE_API_URL}/api/tables`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
-          },
-        );
-        setTables(response.data);
-      } catch (error) {
-        console.error('Error fetching tables:', error);
-      }
-    };
-
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get<OrderType[]>(
-          `${import.meta.env.VITE_API_URL}/api/tableorder`,
-          {
+          }),
+          axios.get<SectionType[]>(`${import.meta.env.VITE_API_URL}/api/sections`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
-          },
-        );
-        const tableOrders = response.data.filter((order) => order.table_number !== null);
-        setOrders(tableOrders);
-      } catch (error) {
-        console.error('Error fetching table orders:', error);
-      }
-    };
-
-    const fetchSettings = async () => {
-      try {
-        const response = await axios.get<SettingsType>(
-          `${import.meta.env.VITE_API_URL}/api/settings`,
-          {
+          }),
+          axios.get<OrderType[]>(`${import.meta.env.VITE_API_URL}/api/tableorder`, {
             headers: {
               'ngrok-skip-browser-warning': 'true',
               Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
             },
-          },
-        );
-        setSettings(response.data);
+          }),
+          axios.get<SettingsType>(`${import.meta.env.VITE_API_URL}/api/settings`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }),
+        ]);
+
+        setTables(tablesRes.data);
+        setSections(sectionsRes.data);
+        setOrders(ordersRes.data.filter((order) => order.table_number !== null));
+        setSettings(settingsRes.data);
+        if (sectionsRes.data.length > 0) {
+          setNewTableSectionId(sectionsRes.data[0].id); // Set default section
+        }
       } catch (error) {
-        console.error('Error fetching settings:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchTables();
-    fetchOrders();
-    fetchSettings();
+    fetchData();
 
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
     ws.onopen = () => console.log('WebSocket connection established');
@@ -142,6 +136,17 @@ const TableOrdersPage: React.FC = () => {
             }
             return prevTables.filter((t) => t.id !== data.id);
           });
+        } else if (data.type === 'new_section') {
+          setSections((prev) => [...prev, data.section]);
+          if (!newTableSectionId) {
+            setNewTableSectionId(data.section.id); // Set first section as default
+          }
+        } else if (data.type === 'delete_section') {
+          setSections((prev) => prev.filter((s) => s.id !== data.id));
+          setTables((prev) => prev.filter((t) => t.section_id !== data.id));
+          if (newTableSectionId === data.id && sections.length > 0) {
+            setNewTableSectionId(sections[0].id);
+          }
         } else if (data.type === 'new_table_order') {
           setOrders((prev) => [data.order, ...prev]);
           setTables((prev) =>
@@ -197,14 +202,14 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleAddTable = async () => {
-    if (!newTableNumber || !newTableSection) {
+    if (!newTableNumber || newTableSectionId === '') {
       alert('Please enter a table number and select a section');
       return;
     }
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tables`,
-        { table_number: newTableNumber, section: newTableSection },
+        { table_number: newTableNumber, section_id: newTableSectionId },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -214,10 +219,33 @@ const TableOrdersPage: React.FC = () => {
       );
       setAddTableDialogOpen(false);
       setNewTableNumber('');
-      setNewTableSection('Ground Floor');
     } catch (error) {
       console.error('Error adding table:', error);
-      alert('Failed to add table');
+      alert(error.response?.data?.message || 'Failed to add table');
+    }
+  };
+
+  const handleAddSection = async () => {
+    if (!newSectionName) {
+      alert('Please enter a section name');
+      return;
+    }
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/sections`,
+        { name: newSectionName },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+      setAddSectionDialogOpen(false);
+      setNewSectionName('');
+    } catch (error) {
+      console.error('Error adding section:', error);
+      alert(error.response?.data?.message || 'Failed to add section');
     }
   };
 
@@ -236,6 +264,22 @@ const TableOrdersPage: React.FC = () => {
     } catch (error) {
       console.error('Error deleting table:', error);
       alert('Failed to delete table');
+    }
+  };
+
+  const handleDeleteSection = async (sectionId: number) => {
+    if (!confirm('Are you sure you want to delete this section? All tables in it will be deleted.'))
+      return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+        },
+      });
+    } catch (error) {
+      console.error('Error deleting section:', error);
+      alert(error.response?.data?.message || 'Failed to delete section');
     }
   };
 
@@ -391,19 +435,43 @@ const TableOrdersPage: React.FC = () => {
         <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Table Management
         </Typography>
-        <Button variant="contained" color="primary" onClick={() => setAddTableDialogOpen(true)}>
-          Add Table
-        </Button>
+        <Box>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setAddTableDialogOpen(true)}
+            sx={{ mr: 1 }}
+          >
+            Add Table
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => setAddSectionDialogOpen(true)}
+          >
+            Add Section
+          </Button>
+        </Box>
       </Box>
 
       {sections.map((section) => (
-        <Box key={section} sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            {section}
-          </Typography>
+        <Box key={section.id} sx={{ mb: 4 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+          >
+            <Typography variant="h5">{section.name}</Typography>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => handleDeleteSection(section.id)}
+            >
+              Delete Section
+            </Button>
+          </Box>
           <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} justifyContent="center">
             {tables
-              .filter((table) => table.section === section)
+              .filter((table) => table.section_id === section.id)
               .map((table) => (
                 <Grid item xs={6} sm={4} md={3} lg={2} key={table.id}>
                   <Card
@@ -529,13 +597,13 @@ const TableOrdersPage: React.FC = () => {
           <FormControl fullWidth margin="dense">
             <InputLabel>Section</InputLabel>
             <Select
-              value={newTableSection}
-              onChange={(e) => setNewTableSection(e.target.value as string)}
+              value={newTableSectionId}
+              onChange={(e) => setNewTableSectionId(e.target.value as number)}
               label="Section"
             >
               {sections.map((section) => (
-                <MenuItem key={section} value={section}>
-                  {section}
+                <MenuItem key={section.id} value={section.id}>
+                  {section.name}
                 </MenuItem>
               ))}
             </Select>
@@ -544,6 +612,33 @@ const TableOrdersPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setAddTableDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleAddTable} color="primary" variant="contained">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Section Dialog */}
+      <Dialog
+        open={addSectionDialogOpen}
+        onClose={() => setAddSectionDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Add New Section</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Section Name"
+            type="text"
+            fullWidth
+            value={newSectionName}
+            onChange={(e) => setNewSectionName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddSectionDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddSection} color="primary" variant="contained">
             Add
           </Button>
         </DialogActions>
