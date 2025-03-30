@@ -118,7 +118,13 @@ const TableOrdersPage: React.FC = () => {
             setNewTableSectionId(sections[0].id);
           }
         } else if (data.type === 'new_table_order') {
-          setOrders((prev) => [{ ...data.order, items: data.order.items || [] }, ...prev]);
+          setOrders((prev) => [
+            {
+              ...data.order,
+              items: Array.isArray(data.order.items) ? data.order.items : [],
+            },
+            ...prev,
+          ]);
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order.table_number && t.section_id === data.order.section_id
@@ -127,11 +133,16 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'update_table_order') {
+          console.log('Processing update_table_order:', data.order);
           setOrders((prev) =>
             prev
               .map((order) =>
                 order.id === Number(data.order.id)
-                  ? { ...order, ...data.order, items: data.order.items || [] }
+                  ? {
+                      ...order,
+                      ...data.order,
+                      items: Array.isArray(data.order.items) ? data.order.items : [],
+                    }
                   : order,
               )
               .filter((order) => order.status !== 'Completed'),
@@ -166,7 +177,7 @@ const TableOrdersPage: React.FC = () => {
 
     ws.onclose = () => {
       console.log('WebSocket connection closed. Attempting to reconnect...');
-      setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
+      setTimeout(connectWebSocket, 2000);
     };
 
     return ws;
@@ -207,10 +218,21 @@ const TableOrdersPage: React.FC = () => {
         setOrders(
           ordersRes.data
             .filter((order) => order.table_number !== null)
-            .map((order) => ({
-              ...order,
-              items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [],
-            })),
+            .map((order) => {
+              let parsedItems: ItemType[] = [];
+              try {
+                parsedItems =
+                  typeof order.items === 'string'
+                    ? JSON.parse(order.items)
+                    : Array.isArray(order.items)
+                      ? order.items
+                      : [];
+              } catch (error) {
+                console.error('Error parsing order items:', error, order);
+                parsedItems = [];
+              }
+              return { ...order, items: parsedItems };
+            }),
         );
         setSettings(settingsRes.data);
         if (sectionsRes.data.length > 0) {
@@ -232,10 +254,10 @@ const TableOrdersPage: React.FC = () => {
       (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
     return !order || order.status === 'Completed'
-      ? '#d4edda' // Green (empty or completed)
+      ? '#d4edda'
       : order.status === 'Pending'
-        ? '#fff3cd' // Yellow (occupied)
-        : '#f8d7da'; // Red
+        ? '#fff3cd'
+        : '#f8d7da';
   };
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
@@ -606,41 +628,34 @@ const TableOrdersPage: React.FC = () => {
           )
         </DialogTitle>
         <DialogContent>
-          {orders.find(
-            (o) =>
-              o.table_number === selectedTable &&
-              o.section_id === selectedSectionId &&
-              o.status === 'Pending',
-          ) ? (
-            <Box>
-              <Typography>Order Details:</Typography>
-              {orders
-                .find(
-                  (o) =>
-                    o.table_number === selectedTable &&
-                    o.section_id === selectedSectionId &&
-                    o.status === 'Pending',
-                )
-                ?.items.map((item) => (
-                  <Typography key={item.id}>
-                    {item.name} - ₹{item.price} x {item.quantity}
-                  </Typography>
-                ))}
-              <Typography sx={{ mt: 1, fontWeight: 'bold' }}>
-                Total: ₹
-                {
-                  orders.find(
-                    (o) =>
-                      o.table_number === selectedTable &&
-                      o.section_id === selectedSectionId &&
-                      o.status === 'Pending',
-                  )?.total_amount
-                }
-              </Typography>
-            </Box>
-          ) : (
-            <Typography>No active order for this table.</Typography>
-          )}
+          {(() => {
+            const selectedOrder = orders.find(
+              (o) =>
+                o.table_number === selectedTable &&
+                o.section_id === selectedSectionId &&
+                o.status === 'Pending',
+            );
+            if (!selectedOrder) {
+              return <Typography>No active order for this table.</Typography>;
+            }
+            return (
+              <Box>
+                <Typography>Order Details:</Typography>
+                {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
+                  selectedOrder.items.map((item) => (
+                    <Typography key={item.id}>
+                      {item.name} - ₹{item.price} x {item.quantity}
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography>No items in this order.</Typography>
+                )}
+                <Typography sx={{ mt: 1, fontWeight: 'bold' }}>
+                  Total: ₹{selectedOrder.total_amount}
+                </Typography>
+              </Box>
+            );
+          })()}
         </DialogContent>
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
           {!orders.find(
