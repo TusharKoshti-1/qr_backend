@@ -43,7 +43,7 @@ const AdminAddTableOrderPage: React.FC = () => {
   const [tables, setTables] = useState<TableType[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [tableNumber, setTableNumber] = useState<string>('');
-  const [sectionId, setSectionId] = useState<number | null>(null); // New state for section_id
+  const [sectionId, setSectionId] = useState<number | null>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
@@ -158,10 +158,8 @@ const AdminAddTableOrderPage: React.FC = () => {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
-          customer_name: null,
-          phone: null,
           table_number: tableNumber,
-          section_id: sectionId, // Include section_id in the order payload
+          section_id: sectionId,
           items: orderItems,
           total_amount: totalAmount,
           payment_method: 'Cash',

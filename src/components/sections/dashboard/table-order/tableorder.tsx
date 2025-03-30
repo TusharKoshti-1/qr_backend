@@ -36,6 +36,7 @@ interface SectionType {
 interface OrderType {
   id: number;
   table_number: string;
+  section_id: number; // Added section_id
   payment_method: string;
   total_amount: number;
   items: ItemType[];
@@ -132,7 +133,13 @@ const TableOrdersPage: React.FC = () => {
             const deletedTable = prevTables.find((t) => t.id === data.id);
             if (deletedTable) {
               setOrders((prevOrders) =>
-                prevOrders.filter((o) => o.table_number !== deletedTable.table_number),
+                prevOrders.filter(
+                  (o) =>
+                    !(
+                      o.table_number === deletedTable.table_number &&
+                      o.section_id === deletedTable.section_id
+                    ),
+                ),
               );
             }
             return prevTables.filter((t) => t.id !== data.id);
@@ -167,7 +174,9 @@ const TableOrdersPage: React.FC = () => {
           );
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number && data.order.status === 'Completed'
+              t.table_number === data.order.table_number &&
+              t.section_id === data.order.section_id &&
+              data.order.status === 'Completed'
                 ? { ...t, status: 'empty' }
                 : t,
             ),
@@ -176,7 +185,9 @@ const TableOrdersPage: React.FC = () => {
           setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order?.table_number ? { ...t, status: 'empty' } : t,
+              t.table_number === data.order?.table_number && t.section_id === data.order?.section_id
+                ? { ...t, status: 'empty' }
+                : t,
             ),
           );
         }
@@ -192,9 +203,7 @@ const TableOrdersPage: React.FC = () => {
 
   const getTableStatusColor = (table: TableType) => {
     const order = orders.find(
-      (o) =>
-        o.table_number === table.table_number &&
-        tables.find((t) => t.table_number === o.table_number)?.section_id === table.section_id,
+      (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
     return !order || order.status === 'Completed'
       ? '#d4edda' // Green (empty or completed)
@@ -301,13 +310,23 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleEditOrder = () => {
-    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
+    const order = orders.find(
+      (o) =>
+        o.table_number === selectedTable &&
+        o.section_id === selectedSectionId &&
+        o.status === 'Pending',
+    );
     setDialogOpen(false);
     if (order) navigate('/edittableorder', { state: { order } });
   };
 
   const handlePrintOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
+    const order = orders.find(
+      (o) =>
+        o.table_number === selectedTable &&
+        o.section_id === selectedSectionId &&
+        o.status === 'Pending',
+    );
     if (!order || !settings || !settings.upiId) {
       alert('No pending order found or UPI ID not configured.');
       return;
@@ -379,7 +398,12 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleCompleteOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
+    const order = orders.find(
+      (o) =>
+        o.table_number === selectedTable &&
+        o.section_id === selectedSectionId &&
+        o.status === 'Pending',
+    );
     const table = tables.find(
       (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
     );
@@ -418,7 +442,12 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleDeleteOrder = async () => {
-    const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
+    const order = orders.find(
+      (o) =>
+        o.table_number === selectedTable &&
+        o.section_id === selectedSectionId &&
+        o.status === 'Pending',
+    );
     const table = tables.find(
       (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
     );
@@ -542,11 +571,21 @@ const TableOrdersPage: React.FC = () => {
           )
         </DialogTitle>
         <DialogContent>
-          {orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
+          {orders.find(
+            (o) =>
+              o.table_number === selectedTable &&
+              o.section_id === selectedSectionId &&
+              o.status === 'Pending',
+          ) ? (
             <Box>
               <Typography>Order Details:</Typography>
               {orders
-                .find((o) => o.table_number === selectedTable && o.status === 'Pending')
+                .find(
+                  (o) =>
+                    o.table_number === selectedTable &&
+                    o.section_id === selectedSectionId &&
+                    o.status === 'Pending',
+                )
                 ?.items.map((item) => (
                   <Typography key={item.id}>
                     {item.name} - ₹{item.price} x {item.quantity}
@@ -555,8 +594,12 @@ const TableOrdersPage: React.FC = () => {
               <Typography sx={{ mt: 1, fontWeight: 'bold' }}>
                 Total: ₹
                 {
-                  orders.find((o) => o.table_number === selectedTable && o.status === 'Pending')
-                    ?.total_amount
+                  orders.find(
+                    (o) =>
+                      o.table_number === selectedTable &&
+                      o.section_id === selectedSectionId &&
+                      o.status === 'Pending',
+                  )?.total_amount
                 }
               </Typography>
             </Box>
@@ -565,7 +608,12 @@ const TableOrdersPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
-          {!orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
+          {!orders.find(
+            (o) =>
+              o.table_number === selectedTable &&
+              o.section_id === selectedSectionId &&
+              o.status === 'Pending',
+          ) ? (
             <>
               <Button onClick={handleAddOrder} color="primary" variant="contained" size="small">
                 Add Order
