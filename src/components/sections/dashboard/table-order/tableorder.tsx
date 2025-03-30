@@ -61,7 +61,7 @@ const TableOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
-  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null); // New state for section context
+  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addTableDialogOpen, setAddTableDialogOpen] = useState(false);
   const [addSectionDialogOpen, setAddSectionDialogOpen] = useState(false);
@@ -105,7 +105,7 @@ const TableOrdersPage: React.FC = () => {
         setOrders(ordersRes.data.filter((order) => order.table_number !== null));
         setSettings(settingsRes.data);
         if (sectionsRes.data.length > 0) {
-          setNewTableSectionId(sectionsRes.data[0].id); // Set default section
+          setNewTableSectionId(sectionsRes.data[0].id);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -140,7 +140,7 @@ const TableOrdersPage: React.FC = () => {
         } else if (data.type === 'new_section') {
           setSections((prev) => [...prev, data.section]);
           if (!newTableSectionId) {
-            setNewTableSectionId(data.section.id); // Set first section as default
+            setNewTableSectionId(data.section.id);
           }
         } else if (data.type === 'delete_section') {
           setSections((prev) => prev.filter((s) => s.id !== data.id));
@@ -205,7 +205,7 @@ const TableOrdersPage: React.FC = () => {
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
     setSelectedTable(tableNumber);
-    setSelectedSectionId(sectionId); // Store section context
+    setSelectedSectionId(sectionId);
     setDialogOpen(true);
   };
 
@@ -295,7 +295,9 @@ const TableOrdersPage: React.FC = () => {
 
   const handleAddOrder = () => {
     setDialogOpen(false);
-    navigate('/addtableorder', { state: { table_number: selectedTable } });
+    navigate('/addtableorder', {
+      state: { table_number: selectedTable, section_id: selectedSectionId },
+    });
   };
 
   const handleEditOrder = () => {
@@ -384,7 +386,6 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
-      // Update order status to Completed
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
         { status: 'Completed' },
@@ -396,7 +397,6 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      // Update table status to empty, including section_id
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
         { status: 'empty', section_id: table.section_id },
@@ -432,7 +432,6 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
-      // Update table status to empty after deleting order
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
         { status: 'empty', section_id: table.section_id },
@@ -532,7 +531,6 @@ const TableOrdersPage: React.FC = () => {
         </Box>
       ))}
 
-      {/* Table Management Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
           Manage Table {selectedTable} (
@@ -608,7 +606,6 @@ const TableOrdersPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Add Table Dialog */}
       <Dialog
         open={addTableDialogOpen}
         onClose={() => setAddTableDialogOpen(false)}
@@ -649,7 +646,6 @@ const TableOrdersPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Add Section Dialog */}
       <Dialog
         open={addSectionDialogOpen}
         onClose={() => setAddSectionDialogOpen(false)}

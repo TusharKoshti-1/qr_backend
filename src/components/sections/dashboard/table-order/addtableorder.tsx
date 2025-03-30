@@ -43,6 +43,7 @@ const AdminAddTableOrderPage: React.FC = () => {
   const [tables, setTables] = useState<TableType[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [tableNumber, setTableNumber] = useState<string>('');
+  const [sectionId, setSectionId] = useState<number | null>(null); // New state for section_id
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
@@ -53,7 +54,6 @@ const AdminAddTableOrderPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch menu items
         const menuResponse = await axios.get<MenuItemType[]>(
           `${import.meta.env.VITE_API_URL}/api/menu`,
           {
@@ -73,14 +73,13 @@ const AdminAddTableOrderPage: React.FC = () => {
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
-              acc[category] = false; // Closed by default
+              acc[category] = false;
               return acc;
             },
             {} as Record<string, boolean>,
           ),
         );
 
-        // Fetch tables with section information
         const tablesResponse = await axios.get<TableType[]>(
           `${import.meta.env.VITE_API_URL}/api/tables`,
           {
@@ -92,10 +91,17 @@ const AdminAddTableOrderPage: React.FC = () => {
         );
         setTables(tablesResponse.data);
 
-        // Pre-fill table number from location state if provided
         const prefilledTable = location.state?.table_number;
-        if (prefilledTable && tablesResponse.data.some((t) => t.table_number === prefilledTable)) {
+        const prefilledSectionId = location.state?.section_id;
+        if (
+          prefilledTable &&
+          prefilledSectionId &&
+          tablesResponse.data.some(
+            (t) => t.table_number === prefilledTable && t.section_id === prefilledSectionId,
+          )
+        ) {
           setTableNumber(prefilledTable);
+          setSectionId(prefilledSectionId);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -135,25 +141,27 @@ const AdminAddTableOrderPage: React.FC = () => {
   const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleSubmitOrder = async () => {
-    if (!tableNumber) {
-      alert('Please select a table number.');
+    if (!tableNumber || sectionId === null) {
+      alert('Please select a table number and section.');
       return;
     }
 
-    const selectedTable = tables.find((t) => t.table_number === tableNumber);
+    const selectedTable = tables.find(
+      (t) => t.table_number === tableNumber && t.section_id === sectionId,
+    );
     if (!selectedTable) {
-      alert('Invalid table number.');
+      alert('Invalid table number or section.');
       return;
     }
 
     try {
-      // Create the table order
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tableorder`,
         {
           customer_name: null,
           phone: null,
           table_number: tableNumber,
+          section_id: sectionId, // Include section_id in the order payload
           items: orderItems,
           total_amount: totalAmount,
           payment_method: 'Cash',
@@ -167,10 +175,9 @@ const AdminAddTableOrderPage: React.FC = () => {
         },
       );
 
-      // Update table status to occupied
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tables/${selectedTable.id}`,
-        { status: 'occupied', section_id: selectedTable.section_id }, // Include section_id
+        { status: 'occupied', section_id: selectedTable.section_id },
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
@@ -181,11 +188,12 @@ const AdminAddTableOrderPage: React.FC = () => {
 
       alert(`Order for Table ${tableNumber} in ${selectedTable.section} created successfully!`);
       setTableNumber('');
+      setSectionId(null);
       setOrderItems([]);
       navigate('/tableorder');
     } catch (error) {
       console.error('Error creating table order:', error);
-      alert('Failed to create table order');
+      alert(error.response?.data?.message || 'Failed to create table order');
     }
   };
 
@@ -238,7 +246,11 @@ const AdminAddTableOrderPage: React.FC = () => {
               <InputLabel>Table Number *</InputLabel>
               <Select
                 value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value as string)}
+                onChange={(e) => {
+                  const selected = tables.find((t) => t.table_number === e.target.value);
+                  setTableNumber(e.target.value as string);
+                  setSectionId(selected ? selected.section_id : null);
+                }}
                 label="Table Number *"
                 required
                 sx={{
@@ -476,7 +488,7 @@ const AdminAddTableOrderPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleSubmitOrder}
-            disabled={!tableNumber || orderItems.length === 0}
+            disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
             sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
           >
             Submit Order
