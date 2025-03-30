@@ -71,59 +71,13 @@ const TableOrdersPage: React.FC = () => {
   const [newSectionName, setNewSectionName] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [tablesRes, sectionsRes, ordersRes, settingsRes] = await Promise.all([
-          axios.get<TableType[]>(`${import.meta.env.VITE_API_URL}/api/tables`, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }),
-          axios.get<SectionType[]>(`${import.meta.env.VITE_API_URL}/api/sections`, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }),
-          axios.get<OrderType[]>(`${import.meta.env.VITE_API_URL}/api/tableorder`, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }),
-          axios.get<SettingsType>(`${import.meta.env.VITE_API_URL}/api/settings`, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true',
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-            },
-          }),
-        ]);
+  const connectWebSocket = () => {
+    const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
 
-        setTables(tablesRes.data);
-        setSections(sectionsRes.data);
-        setOrders(
-          ordersRes.data
-            .filter((order) => order.table_number !== null)
-            .map((order) => ({
-              ...order,
-              items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [],
-            })),
-        );
-        setSettings(settingsRes.data);
-        if (sectionsRes.data.length > 0) {
-          setNewTableSectionId(sectionsRes.data[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
     };
 
-    fetchData();
-
-    const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
-    ws.onopen = () => console.log('WebSocket connection established');
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -136,6 +90,7 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
+          console.log('Processing delete_table:', data);
           setTables((prevTables) => {
             const deletedTable = prevTables.find((t) => t.id === data.id);
             if (deletedTable) {
@@ -204,9 +159,71 @@ const TableOrdersPage: React.FC = () => {
         console.error('Error processing WebSocket message:', error);
       }
     };
-    ws.onerror = (error) => console.error('WebSocket error:', error);
-    ws.onclose = () => console.log('WebSocket connection closed');
 
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket connection closed. Attempting to reconnect...');
+      setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
+    };
+
+    return ws;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tablesRes, sectionsRes, ordersRes, settingsRes] = await Promise.all([
+          axios.get<TableType[]>(`${import.meta.env.VITE_API_URL}/api/tables`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }),
+          axios.get<SectionType[]>(`${import.meta.env.VITE_API_URL}/api/sections`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }),
+          axios.get<OrderType[]>(`${import.meta.env.VITE_API_URL}/api/tableorder`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }),
+          axios.get<SettingsType>(`${import.meta.env.VITE_API_URL}/api/settings`, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            },
+          }),
+        ]);
+
+        setTables(tablesRes.data);
+        setSections(sectionsRes.data);
+        setOrders(
+          ordersRes.data
+            .filter((order) => order.table_number !== null)
+            .map((order) => ({
+              ...order,
+              items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [],
+            })),
+        );
+        setSettings(settingsRes.data);
+        if (sectionsRes.data.length > 0) {
+          setNewTableSectionId(sectionsRes.data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+
+    const ws = connectWebSocket();
     return () => ws.close();
   }, []);
 
@@ -288,10 +305,8 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      // Optimistically update the tables state
       setTables((prevTables) => {
         const updatedTables = prevTables.filter((t) => t.id !== table.id);
-        // Also remove any associated orders
         setOrders((prevOrders) =>
           prevOrders.filter(
             (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
@@ -457,7 +472,7 @@ const TableOrdersPage: React.FC = () => {
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
-      alert(error.response?.data?.message || 'Failed to complete order.');
+      alert(error.response?.data?.message || 'Failed to complete order');
     }
   };
 
