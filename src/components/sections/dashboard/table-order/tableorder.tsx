@@ -36,10 +36,10 @@ interface SectionType {
 interface OrderType {
   id: number;
   table_number: string;
-  section_id: number; // Added section_id
+  section_id: number;
   payment_method: string;
   total_amount: number;
-  items: ItemType[];
+  items: ItemType[]; // Ensure this is an array
   status: string;
 }
 
@@ -103,7 +103,15 @@ const TableOrdersPage: React.FC = () => {
 
         setTables(tablesRes.data);
         setSections(sectionsRes.data);
-        setOrders(ordersRes.data.filter((order) => order.table_number !== null));
+        // Parse items for each order
+        setOrders(
+          ordersRes.data
+            .filter((order) => order.table_number !== null)
+            .map((order) => ({
+              ...order,
+              items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [],
+            })),
+        );
         setSettings(settingsRes.data);
         if (sectionsRes.data.length > 0) {
           setNewTableSectionId(sectionsRes.data[0].id);
@@ -156,7 +164,10 @@ const TableOrdersPage: React.FC = () => {
             setNewTableSectionId(sections[0].id);
           }
         } else if (data.type === 'new_table_order') {
-          setOrders((prev) => [data.order, ...prev]);
+          setOrders((prev) => [
+            { ...data.order, items: data.order.items || [] }, // Ensure items is an array
+            ...prev,
+          ]);
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order.table_number && t.section_id === data.order.section_id
@@ -168,7 +179,9 @@ const TableOrdersPage: React.FC = () => {
           setOrders((prev) =>
             prev
               .map((order) =>
-                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+                order.id === Number(data.order.id)
+                  ? { ...order, ...data.order, items: data.order.items || [] } // Ensure items is an array
+                  : order,
               )
               .filter((order) => order.status !== 'Completed'),
           );
