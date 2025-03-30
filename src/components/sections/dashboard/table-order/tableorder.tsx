@@ -39,7 +39,7 @@ interface OrderType {
   section_id: number;
   payment_method: string;
   total_amount: number;
-  items: ItemType[]; // Ensure this is an array
+  items: ItemType[];
   status: string;
 }
 
@@ -103,7 +103,6 @@ const TableOrdersPage: React.FC = () => {
 
         setTables(tablesRes.data);
         setSections(sectionsRes.data);
-        // Parse items for each order
         setOrders(
           ordersRes.data
             .filter((order) => order.table_number !== null)
@@ -164,10 +163,7 @@ const TableOrdersPage: React.FC = () => {
             setNewTableSectionId(sections[0].id);
           }
         } else if (data.type === 'new_table_order') {
-          setOrders((prev) => [
-            { ...data.order, items: data.order.items || [] }, // Ensure items is an array
-            ...prev,
-          ]);
+          setOrders((prev) => [{ ...data.order, items: data.order.items || [] }, ...prev]);
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order.table_number && t.section_id === data.order.section_id
@@ -180,7 +176,7 @@ const TableOrdersPage: React.FC = () => {
             prev
               .map((order) =>
                 order.id === Number(data.order.id)
-                  ? { ...order, ...data.order, items: data.order.items || [] } // Ensure items is an array
+                  ? { ...order, ...data.order, items: data.order.items || [] }
                   : order,
               )
               .filter((order) => order.status !== 'Completed'),
@@ -292,10 +288,21 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
+      // Optimistically update the tables state
+      setTables((prevTables) => {
+        const updatedTables = prevTables.filter((t) => t.id !== table.id);
+        // Also remove any associated orders
+        setOrders((prevOrders) =>
+          prevOrders.filter(
+            (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
+          ),
+        );
+        return updatedTables;
+      });
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table:', error);
-      alert('Failed to delete table');
+      alert(error.response?.data?.message || 'Failed to delete table');
     }
   };
 
