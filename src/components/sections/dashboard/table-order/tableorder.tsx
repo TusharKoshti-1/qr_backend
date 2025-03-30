@@ -61,6 +61,7 @@ const TableOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<OrderType[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null); // New state for section context
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addTableDialogOpen, setAddTableDialogOpen] = useState(false);
   const [addSectionDialogOpen, setAddSectionDialogOpen] = useState(false);
@@ -151,7 +152,9 @@ const TableOrdersPage: React.FC = () => {
           setOrders((prev) => [data.order, ...prev]);
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number ? { ...t, status: 'occupied' } : t,
+              t.table_number === data.order.table_number && t.section_id === data.order.section_id
+                ? { ...t, status: 'occupied' }
+                : t,
             ),
           );
         } else if (data.type === 'update_table_order') {
@@ -188,7 +191,11 @@ const TableOrdersPage: React.FC = () => {
   }, []);
 
   const getTableStatusColor = (table: TableType) => {
-    const order = orders.find((o) => o.table_number === table.table_number);
+    const order = orders.find(
+      (o) =>
+        o.table_number === table.table_number &&
+        tables.find((t) => t.table_number === o.table_number)?.section_id === table.section_id,
+    );
     return !order || order.status === 'Completed'
       ? '#d4edda' // Green (empty or completed)
       : order.status === 'Pending'
@@ -196,8 +203,9 @@ const TableOrdersPage: React.FC = () => {
         : '#f8d7da'; // Red
   };
 
-  const handleTableClick = (tableNumber: string) => {
+  const handleTableClick = (tableNumber: string, sectionId: number) => {
     setSelectedTable(tableNumber);
+    setSelectedSectionId(sectionId); // Store section context
     setDialogOpen(true);
   };
 
@@ -250,7 +258,9 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleDeleteTable = async () => {
-    const table = tables.find((t) => t.table_number === selectedTable);
+    const table = tables.find(
+      (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
+    );
     if (!table) return;
 
     try {
@@ -335,7 +345,7 @@ const TableOrdersPage: React.FC = () => {
             <p>Phone: ${settings.phone}</p>
           </div>
           <div class="items">
-            <h3>Table ${order.table_number} (${tables.find((t) => t.table_number === selectedTable)?.section}) Items:</h3>
+            <h3>Table ${order.table_number} (${tables.find((t) => t.table_number === selectedTable && t.section_id === selectedSectionId)?.section}) Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
               ${order.items
@@ -368,7 +378,9 @@ const TableOrdersPage: React.FC = () => {
 
   const handleCompleteOrder = async () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
-    const table = tables.find((t) => t.table_number === selectedTable);
+    const table = tables.find(
+      (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
+    );
     if (!order || !table) return;
 
     try {
@@ -397,9 +409,7 @@ const TableOrdersPage: React.FC = () => {
       );
 
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) =>
-        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
-      );
+      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error completing table order:', error);
@@ -409,7 +419,9 @@ const TableOrdersPage: React.FC = () => {
 
   const handleDeleteOrder = async () => {
     const order = orders.find((o) => o.table_number === selectedTable && o.status === 'Pending');
-    const table = tables.find((t) => t.table_number === selectedTable);
+    const table = tables.find(
+      (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
+    );
     if (!order || !table) return;
 
     try {
@@ -433,9 +445,7 @@ const TableOrdersPage: React.FC = () => {
       );
 
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) =>
-        prev.map((t) => (t.table_number === order.table_number ? { ...t, status: 'empty' } : t)),
-      );
+      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
     } catch (error) {
       console.error('Error deleting table order:', error);
@@ -498,7 +508,7 @@ const TableOrdersPage: React.FC = () => {
                       flexDirection: 'column',
                       justifyContent: 'center',
                     }}
-                    onClick={() => handleTableClick(table.table_number)}
+                    onClick={() => handleTableClick(table.table_number, table.section_id)}
                   >
                     <CardContent sx={{ textAlign: 'center', p: { xs: 1, sm: 2 } }}>
                       <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
@@ -524,7 +534,15 @@ const TableOrdersPage: React.FC = () => {
 
       {/* Table Management Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Manage Table {selectedTable}</DialogTitle>
+        <DialogTitle>
+          Manage Table {selectedTable} (
+          {
+            tables.find(
+              (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
+            )?.section
+          }
+          )
+        </DialogTitle>
         <DialogContent>
           {orders.find((o) => o.table_number === selectedTable && o.status === 'Pending') ? (
             <Box>
