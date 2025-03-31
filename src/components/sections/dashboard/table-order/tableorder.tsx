@@ -81,7 +81,7 @@ const TableOrdersPage: React.FC = () => {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
+        console.log('WebSocket message received:', JSON.stringify(data, null, 2));
 
         if (data.type === 'new_table') {
           setTables((prev) => [...prev, data.table]);
@@ -134,9 +134,9 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'update_table_order') {
-          console.log('Processing update_table_order:', data.order);
-          setOrders((prev) =>
-            prev
+          console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
+          setOrders((prev) => {
+            const updatedOrders = prev
               .map((order) =>
                 order.id === Number(data.order.id)
                   ? {
@@ -148,8 +148,10 @@ const TableOrdersPage: React.FC = () => {
                     }
                   : order,
               )
-              .filter((order) => order.status !== 'Completed'),
-          );
+              .filter((order) => order.status !== 'Completed');
+            console.log('Updated orders state:', JSON.stringify(updatedOrders, null, 2));
+            return updatedOrders;
+          });
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === data.order.table_number && t.section_id === data.order.section_id
