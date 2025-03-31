@@ -17,6 +17,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  CircularProgress,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -69,6 +70,8 @@ const TableOrdersPage: React.FC = () => {
   const [newTableNumber, setNewTableNumber] = useState('');
   const [newTableSectionId, setNewTableSectionId] = useState<number | ''>('');
   const [newSectionName, setNewSectionName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const connectWebSocket = () => {
@@ -136,7 +139,6 @@ const TableOrdersPage: React.FC = () => {
         } else if (data.type === 'update_table_order') {
           console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
 
-          // Ensure section_id is a number
           const orderSectionId = Number(data.order.section_id);
           const orderTableNumber = data.order.table_number.toString();
 
@@ -147,7 +149,7 @@ const TableOrdersPage: React.FC = () => {
                   ? {
                       ...order,
                       ...data.order,
-                      section_id: orderSectionId, // Ensure section_id is a number
+                      section_id: orderSectionId,
                       items: Array.isArray(data.order.items)
                         ? data.order.items
                         : JSON.parse(data.order.items || '[]'),
@@ -252,6 +254,7 @@ const TableOrdersPage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        setError('Failed to load data. Please try again.');
       }
     };
 
@@ -283,6 +286,7 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
     try {
+      setIsLoading(true);
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tables`,
         { table_number: newTableNumber, section_id: newTableSectionId },
@@ -295,9 +299,13 @@ const TableOrdersPage: React.FC = () => {
       );
       setAddTableDialogOpen(false);
       setNewTableNumber('');
+      setError(null);
     } catch (error) {
       console.error('Error adding table:', error);
+      setError(error.response?.data?.message || 'Failed to add table');
       alert(error.response?.data?.message || 'Failed to add table');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -307,6 +315,7 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
     try {
+      setIsLoading(true);
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/sections`,
         { name: newSectionName },
@@ -319,9 +328,13 @@ const TableOrdersPage: React.FC = () => {
       );
       setAddSectionDialogOpen(false);
       setNewSectionName('');
+      setError(null);
     } catch (error) {
       console.error('Error adding section:', error);
+      setError(error.response?.data?.message || 'Failed to add section');
       alert(error.response?.data?.message || 'Failed to add section');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -332,6 +345,7 @@ const TableOrdersPage: React.FC = () => {
     if (!table) return;
 
     try {
+      setIsLoading(true);
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tables/${table.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -348,25 +362,47 @@ const TableOrdersPage: React.FC = () => {
         return updatedTables;
       });
       setDialogOpen(false);
+      setError(null);
     } catch (error) {
       console.error('Error deleting table:', error);
+      setError(error.response?.data?.message || 'Failed to delete table');
       alert(error.response?.data?.message || 'Failed to delete table');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteSection = async (sectionId: number) => {
     if (!confirm('Are you sure you want to delete this section? All tables in it will be deleted.'))
       return;
+
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+      setIsLoading(true);
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`,
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
-      });
+      );
+
+      // Update state only if the deletion was successful (status 204)
+      if (response.status === 204) {
+        setSections((prev) => prev.filter((s) => s.id !== sectionId));
+        setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
+        setOrders((prev) => prev.filter((o) => o.section_id !== sectionId));
+        setError(null);
+        alert('Section deleted successfully');
+      }
     } catch (error) {
       console.error('Error deleting section:', error);
-      alert(error.response?.data?.message || 'Failed to delete section');
+      const errorMessage = error.response?.data?.message || 'Failed to delete section';
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -418,7 +454,7 @@ const TableOrdersPage: React.FC = () => {
           <title>Table Order Receipt</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .header { text-align: center; margin-bottom: 20px; }
+            .header { text-alert: center; margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
@@ -478,6 +514,7 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
+      setIsLoading(true);
       await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
         { status: 'Completed' },
@@ -503,9 +540,13 @@ const TableOrdersPage: React.FC = () => {
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
+      setError(null);
     } catch (error) {
       console.error('Error completing table order:', error);
+      setError(error.response?.data?.message || 'Failed to complete order');
       alert(error.response?.data?.message || 'Failed to complete order');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -522,6 +563,7 @@ const TableOrdersPage: React.FC = () => {
     if (!order || !table) return;
 
     try {
+      setIsLoading(true);
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true',
@@ -543,14 +585,28 @@ const TableOrdersPage: React.FC = () => {
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
       setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
+      setError(null);
     } catch (error) {
       console.error('Error deleting table order:', error);
+      setError(error.response?.data?.message || 'Failed to delete order');
       alert(error.response?.data?.message || 'Failed to delete order');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Box sx={{ padding: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%', margin: '0 auto' }}>
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <CircularProgress />
+        </Box>
+      )}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
           Table Management
@@ -561,6 +617,7 @@ const TableOrdersPage: React.FC = () => {
             color="primary"
             onClick={() => setAddTableDialogOpen(true)}
             sx={{ mr: 1 }}
+            disabled={isLoading}
           >
             Add Table
           </Button>
@@ -568,6 +625,7 @@ const TableOrdersPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={() => setAddSectionDialogOpen(true)}
+            disabled={isLoading}
           >
             Add Section
           </Button>
@@ -585,6 +643,7 @@ const TableOrdersPage: React.FC = () => {
               color="error"
               size="small"
               onClick={() => handleDeleteSection(section.id)}
+              disabled={isLoading}
             >
               Delete Section
             </Button>
@@ -686,19 +745,43 @@ const TableOrdersPage: React.FC = () => {
               o.status === 'Pending',
           ) ? (
             <>
-              <Button onClick={handleAddOrder} color="primary" variant="contained" size="small">
+              <Button
+                onClick={handleAddOrder}
+                color="primary"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+              >
                 Add Order
               </Button>
-              <Button onClick={handleDeleteTable} color="error" variant="contained" size="small">
+              <Button
+                onClick={handleDeleteTable}
+                color="error"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+              >
                 Delete Table
               </Button>
             </>
           ) : (
             <>
-              <Button onClick={handleEditOrder} color="primary" variant="contained" size="small">
+              <Button
+                onClick={handleEditOrder}
+                color="primary"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+              >
                 Edit Order
               </Button>
-              <Button onClick={handlePrintOrder} color="secondary" variant="contained" size="small">
+              <Button
+                onClick={handlePrintOrder}
+                color="secondary"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+              >
                 Print
               </Button>
               <Button
@@ -706,10 +789,17 @@ const TableOrdersPage: React.FC = () => {
                 color="success"
                 variant="contained"
                 size="small"
+                disabled={isLoading}
               >
                 Complete
               </Button>
-              <Button onClick={handleDeleteOrder} color="error" variant="contained" size="small">
+              <Button
+                onClick={handleDeleteOrder}
+                color="error"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+              >
                 Delete Order
               </Button>
             </>
@@ -719,6 +809,7 @@ const TableOrdersPage: React.FC = () => {
             color="inherit"
             variant="outlined"
             size="small"
+            disabled={isLoading}
           >
             Close
           </Button>
@@ -741,6 +832,7 @@ const TableOrdersPage: React.FC = () => {
             fullWidth
             value={newTableNumber}
             onChange={(e) => setNewTableNumber(e.target.value)}
+            disabled={isLoading}
           />
           <FormControl fullWidth margin="dense">
             <InputLabel>Section</InputLabel>
@@ -748,6 +840,7 @@ const TableOrdersPage: React.FC = () => {
               value={newTableSectionId}
               onChange={(e) => setNewTableSectionId(e.target.value as number)}
               label="Section"
+              disabled={isLoading}
             >
               {sections.map((section) => (
                 <MenuItem key={section.id} value={section.id}>
@@ -758,8 +851,10 @@ const TableOrdersPage: React.FC = () => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddTableDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddTable} color="primary" variant="contained">
+          <Button onClick={() => setAddTableDialogOpen(false)} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleAddTable} color="primary" variant="contained" disabled={isLoading}>
             Add
           </Button>
         </DialogActions>
@@ -781,11 +876,19 @@ const TableOrdersPage: React.FC = () => {
             fullWidth
             value={newSectionName}
             onChange={(e) => setNewSectionName(e.target.value)}
+            disabled={isLoading}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddSectionDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddSection} color="primary" variant="contained">
+          <Button onClick={() => setAddSectionDialogOpen(false)} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddSection}
+            color="primary"
+            variant="contained"
+            disabled={isLoading}
+          >
             Add
           </Button>
         </DialogActions>
