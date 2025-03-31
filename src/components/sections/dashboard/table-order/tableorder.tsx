@@ -622,7 +622,17 @@ const TableOrdersPage: React.FC = () => {
         </Box>
       ))}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        key={JSON.stringify(
+          orders.find(
+            (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
+          ),
+        )}
+      >
         <DialogTitle>
           Manage Table {selectedTable} (
           {
