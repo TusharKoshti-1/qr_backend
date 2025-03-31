@@ -120,7 +120,9 @@ const TableOrdersPage: React.FC = () => {
           setOrders((prev) => [
             {
               ...data.order,
-              items: Array.isArray(data.order.items) ? data.order.items : [],
+              items: Array.isArray(data.order.items)
+                ? data.order.items
+                : JSON.parse(data.order.items || '[]'),
             },
             ...prev,
           ]);
@@ -140,7 +142,9 @@ const TableOrdersPage: React.FC = () => {
                   ? {
                       ...order,
                       ...data.order,
-                      items: Array.isArray(data.order.items) ? data.order.items : [],
+                      items: Array.isArray(data.order.items)
+                        ? data.order.items
+                        : JSON.parse(data.order.items || '[]'),
                     }
                   : order,
               )
