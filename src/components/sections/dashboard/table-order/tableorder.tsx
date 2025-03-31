@@ -18,8 +18,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
-  useMediaQuery,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -74,20 +74,15 @@ const TableOrdersPage: React.FC = () => {
   const [newSectionName, setNewSectionName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [wsStatus, setWsStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>(
-    'disconnected',
-  );
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check if screen size is mobile (below 'sm')
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detect mobile screens
 
   const connectWebSocket = () => {
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
-      setWsStatus('connected');
-      setError(null);
     };
 
     ws.onmessage = (event) => {
@@ -102,8 +97,8 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
-          setTables((prev) => {
-            const deletedTable = prev.find((t) => t.id === data.id);
+          setTables((prevTables) => {
+            const deletedTable = prevTables.find((t) => t.id === data.id);
             if (deletedTable) {
               setOrders((prevOrders) =>
                 prevOrders.filter(
@@ -115,97 +110,95 @@ const TableOrdersPage: React.FC = () => {
                 ),
               );
             }
-            return prev.filter((t) => t.id !== data.id);
+            return prevTables.filter((t) => t.id !== data.id);
           });
         } else if (data.type === 'new_section') {
           setSections((prev) => [...prev, data.section]);
-          if (!newTableSectionId) setNewTableSectionId(data.section.id);
+          if (!newTableSectionId) {
+            setNewTableSectionId(data.section.id);
+          }
         } else if (data.type === 'delete_section') {
           setSections((prev) => prev.filter((s) => s.id !== data.id));
           setTables((prev) => prev.filter((t) => t.section_id !== data.id));
-          setOrders((prev) => prev.filter((o) => o.section_id !== data.id));
-          if (newTableSectionId === data.id && sections.length > 0)
+          if (newTableSectionId === data.id && sections.length > 0) {
             setNewTableSectionId(sections[0].id);
+          }
         } else if (data.type === 'new_table_order') {
-          setOrders((prev) => {
-            const newOrder = {
+          setOrders((prev) => [
+            {
               ...data.order,
-              id: Number(data.order.id),
-              section_id: Number(data.order.section_id),
-              total_amount: Number(data.order.total_amount),
               items: Array.isArray(data.order.items)
                 ? data.order.items
                 : JSON.parse(data.order.items || '[]'),
-            };
-            const updatedOrders = [newOrder, ...prev.filter((o) => o.status !== 'Completed')];
-            updateTableStatus(newOrder.table_number, newOrder.section_id, 'occupied');
-            console.log('New table order added:', JSON.stringify(updatedOrders, null, 2));
-            return updatedOrders;
-          });
+            },
+            ...prev,
+          ]);
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === data.order.table_number && t.section_id === data.order.section_id
+                ? { ...t, status: 'occupied' }
+                : t,
+            ),
+          );
         } else if (data.type === 'update_table_order') {
+          console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
+
+          const orderSectionId = Number(data.order.section_id);
+          const orderTableNumber = data.order.table_number.toString();
+
           setOrders((prev) => {
-            const orderId = Number(data.order.id);
-            const updatedOrder = {
-              ...data.order,
-              id: orderId,
-              section_id: Number(data.order.section_id),
-              total_amount: Number(data.order.total_amount),
-              items: Array.isArray(data.order.items)
-                ? data.order.items
-                : JSON.parse(data.order.items || '[]'),
-            };
             const updatedOrders = prev
-              .map((order) => (order.id === orderId ? updatedOrder : order))
+              .map((order) =>
+                order.id === Number(data.order.id)
+                  ? {
+                      ...order,
+                      ...data.order,
+                      section_id: orderSectionId,
+                      items: Array.isArray(data.order.items)
+                        ? data.order.items
+                        : JSON.parse(data.order.items || '[]'),
+                    }
+                  : order,
+              )
               .filter((order) => order.status !== 'Completed');
-            updateTableStatus(
-              updatedOrder.table_number,
-              updatedOrder.section_id,
-              updatedOrder.status === 'Pending' ? 'occupied' : 'empty',
-            );
-            console.log('Orders after update_table_order:', JSON.stringify(updatedOrders, null, 2));
-            return [...updatedOrders]; // Force new array reference
-          });
-        } else if (data.type === 'delete_table_order') {
-          setOrders((prev) => {
-            const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
-            if (data.order?.table_number && data.order?.section_id) {
-              updateTableStatus(data.order.table_number, Number(data.order.section_id), 'empty');
-            }
-            console.log('Orders after delete_table_order:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
+
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === orderTableNumber && t.section_id === orderSectionId
+                ? {
+                    ...t,
+                    status: data.order.status === 'Pending' ? 'occupied' : 'empty',
+                  }
+                : t,
+            ),
+          );
+        } else if (data.type === 'delete_table_order') {
+          setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
+          setTables((prev) =>
+            prev.map((t) =>
+              t.table_number === data.order?.table_number && t.section_id === data.order?.section_id
+                ? { ...t, status: 'empty' }
+                : t,
+            ),
+          );
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
-        setError('Failed to process real-time update. Please refresh.');
       }
     };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
-      setError('WebSocket connection error. Attempting to reconnect...');
-      setWsStatus('reconnecting');
     };
 
     ws.onclose = () => {
       console.log('WebSocket connection closed. Attempting to reconnect...');
-      setWsStatus('reconnecting');
-      setTimeout(connectWebSocket, 1000); // Faster reconnect
+      setTimeout(connectWebSocket, 2000);
     };
 
     return ws;
-  };
-
-  const updateTableStatus = (
-    tableNumber: string,
-    sectionId: number,
-    status: 'empty' | 'occupied' | 'reserved',
-  ) => {
-    setTables((prev) =>
-      prev.map((t) =>
-        t.table_number === tableNumber && t.section_id === sectionId ? { ...t, status } : t,
-      ),
-    );
   };
 
   useEffect(() => {
@@ -241,28 +234,34 @@ const TableOrdersPage: React.FC = () => {
         setTables(tablesRes.data);
         setSections(sectionsRes.data);
         setOrders(
-          tablesRes.data.length > 0 && ordersRes.data.length > 0
-            ? ordersRes.data
-                .filter((order) => order.table_number !== null && order.status !== 'Completed')
-                .map((order) => ({
-                  ...order,
-                  items: Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]'),
-                  total_amount: Number(order.total_amount),
-                  section_id: Number(order.section_id),
-                }))
-            : [],
+          ordersRes.data
+            .filter((order) => order.table_number !== null)
+            .map((order) => {
+              let parsedItems: ItemType[] = [];
+              try {
+                parsedItems =
+                  typeof order.items === 'string'
+                    ? JSON.parse(order.items)
+                    : Array.isArray(order.items)
+                      ? order.items
+                      : [];
+              } catch (error) {
+                console.error('Error parsing order items:', error, order);
+                parsedItems = [];
+              }
+              return { ...order, items: parsedItems };
+            }),
         );
         setSettings(settingsRes.data);
-        if (sectionsRes.data.length > 0) setNewTableSectionId(sectionsRes.data[0].id);
+        if (sectionsRes.data.length > 0) {
+          setNewTableSectionId(sectionsRes.data[0].id);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to load data. Please try again.');
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    setIsLoading(true);
     fetchData();
 
     const ws = connectWebSocket();
@@ -273,7 +272,10 @@ const TableOrdersPage: React.FC = () => {
     const order = orders.find(
       (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
-    return !order || order.status === 'Completed' ? '#d4edda' : '#fff3cd';
+    if (!order || order.status === 'Completed') {
+      return '#d4edda'; // Green for empty or completed
+    }
+    return '#fff3cd'; // Yellow for occupied (Pending)
   };
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
@@ -283,13 +285,13 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleAddTable = async () => {
-    if (!newTableNumber || !newTableSectionId) {
+    if (!newTableNumber || newTableSectionId === '') {
       alert('Please enter a table number and select a section');
       return;
     }
     try {
       setIsLoading(true);
-      const response = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tables`,
         { table_number: newTableNumber, section_id: newTableSectionId },
         {
@@ -299,7 +301,6 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
-      setTables((prev) => [...prev, response.data]);
       setAddTableDialogOpen(false);
       setNewTableNumber('');
       setError(null);
@@ -319,7 +320,7 @@ const TableOrdersPage: React.FC = () => {
     }
     try {
       setIsLoading(true);
-      const response = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/sections`,
         { name: newSectionName },
         {
@@ -329,7 +330,6 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
-      setSections((prev) => [...prev, response.data]);
       setAddSectionDialogOpen(false);
       setNewSectionName('');
       setError(null);
@@ -356,12 +356,15 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      setTables((prev) => prev.filter((t) => t.id !== table.id));
-      setOrders((prev) =>
-        prev.filter(
-          (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
-        ),
-      );
+      setTables((prevTables) => {
+        const updatedTables = prevTables.filter((t) => t.id !== table.id);
+        setOrders((prevOrders) =>
+          prevOrders.filter(
+            (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
+          ),
+        );
+        return updatedTables;
+      });
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -379,21 +382,29 @@ const TableOrdersPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`,
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
         },
-      });
-      setSections((prev) => prev.filter((s) => s.id !== sectionId));
-      setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
-      setOrders((prev) => prev.filter((o) => o.section_id !== sectionId));
-      setError(null);
-      alert('Section deleted successfully');
+      );
+
+      // Update state only if the deletion was successful (status 204)
+      if (response.status === 204) {
+        setSections((prev) => prev.filter((s) => s.id !== sectionId));
+        setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
+        setOrders((prev) => prev.filter((o) => o.section_id !== sectionId));
+        setError(null);
+        alert('Section deleted successfully');
+      }
     } catch (error) {
       console.error('Error deleting section:', error);
-      setError(error.response?.data?.message || 'Failed to delete section');
-      alert(error.response?.data?.message || 'Failed to delete section');
+      const errorMessage = error.response?.data?.message || 'Failed to delete section';
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -429,7 +440,9 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
 
-    const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.restaurantName)}&am=${order.total_amount}&cu=INR`;
+    const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
+      settings.restaurantName,
+    )}&am=${order.total_amount}&cu=INR`;
 
     const qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 }).catch((error) => {
       console.error('Error generating QR code:', error);
@@ -445,7 +458,7 @@ const TableOrdersPage: React.FC = () => {
           <title>Table Order Receipt</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .header { text-align: center; margin-bottom: 20px; }
+            .header { text-alert: center; margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
@@ -464,7 +477,14 @@ const TableOrdersPage: React.FC = () => {
             <h3>Table ${order.table_number} (${tables.find((t) => t.table_number === selectedTable && t.section_id === selectedSectionId)?.section}) Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
-              ${order.items.map((item) => `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${item.price * item.quantity}</td></tr>`).join('')}
+              ${order.items
+                .map(
+                  (item) =>
+                    `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${
+                      item.price * item.quantity
+                    }</td></tr>`,
+                )
+                .join('')}
             </table>
             <p class="total-amount"><strong>Total Amount:</strong> ₹${order.total_amount}</p>
           </div>
@@ -510,8 +530,19 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
+        { status: 'empty', section_id: table.section_id },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      updateTableStatus(table.table_number, table.section_id, 'empty');
+      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -544,8 +575,19 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
+        { status: 'empty', section_id: table.section_id },
+        {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+          },
+        },
+      );
+
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      updateTableStatus(table.table_number, table.section_id, 'empty');
+      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -560,11 +602,11 @@ const TableOrdersPage: React.FC = () => {
   return (
     <Box
       sx={{
-        padding: { xs: 1, sm: 2, md: 3, lg: 4 },
+        padding: { xs: 1, sm: 2, md: 3, lg: 4 }, // Responsive padding
         maxWidth: '100%',
         margin: '0 auto',
-        minHeight: '100vh',
-        overflowX: 'hidden',
+        minHeight: '100vh', // Full height for all devices
+        overflowX: 'hidden', // Prevent horizontal scroll
       }}
     >
       {error && (
@@ -572,7 +614,7 @@ const TableOrdersPage: React.FC = () => {
           color="error"
           sx={{ mb: 2, fontSize: { xs: '0.875rem', sm: '1rem' }, textAlign: 'center' }}
         >
-          {error} (WebSocket: {wsStatus})
+          {error}
         </Typography>
       )}
       {isLoading && (
@@ -583,7 +625,7 @@ const TableOrdersPage: React.FC = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile, row on larger screens
           justifyContent: 'space-between',
           alignItems: { xs: 'flex-start', sm: 'center' },
           mb: { xs: 2, sm: 3 },
@@ -604,14 +646,14 @@ const TableOrdersPage: React.FC = () => {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 1,
-            width: { xs: '100%', sm: 'auto' },
+            width: { xs: '100%', sm: 'auto' }, // Full width on mobile
           }}
         >
           <Button
             variant="contained"
             color="primary"
             onClick={() => setAddTableDialogOpen(true)}
-            fullWidth={isMobile} // Responsive fullWidth
+            fullWidth={isMobile} // Full width on mobile
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -621,7 +663,7 @@ const TableOrdersPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={() => setAddSectionDialogOpen(true)}
-            fullWidth={isMobile} // Responsive fullWidth
+            fullWidth={isMobile} // Full width on mobile
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -671,7 +713,7 @@ const TableOrdersPage: React.FC = () => {
                     sx={{
                       backgroundColor: getTableStatusColor(table),
                       cursor: 'pointer',
-                      '&:hover': { boxShadow: { sm: 6 } },
+                      '&:hover': { boxShadow: { sm: 6 } }, // Hover only on larger screens
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
@@ -691,7 +733,11 @@ const TableOrdersPage: React.FC = () => {
                         variant="body2"
                         sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                       >
-                        {table.status}
+                        {table.status === 'empty'
+                          ? 'Empty'
+                          : table.status === 'occupied'
+                            ? 'Occupied'
+                            : 'Reserved'}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -706,8 +752,13 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setDialogOpen(false)}
         fullWidth
         maxWidth="sm"
-        fullScreen={isMobile} // Responsive fullScreen
+        fullScreen={isMobile} // Full screen on mobile
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
+        key={JSON.stringify(
+          orders.find(
+            (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
+          ),
+        )}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, p: { xs: 1, sm: 2 } }}>
           Manage Table {selectedTable} (
@@ -726,20 +777,22 @@ const TableOrdersPage: React.FC = () => {
                 o.section_id === selectedSectionId &&
                 o.status === 'Pending',
             );
-            if (!selectedOrder) return <Typography>No active order for this table.</Typography>;
+            if (!selectedOrder) {
+              return <Typography>No active order for this table.</Typography>;
+            }
             return (
               <Box>
                 <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.125rem' } }}>
                   Order Details:
                 </Typography>
-                {selectedOrder.items.length > 0 ? (
+                {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
                   selectedOrder.items.map((item) => (
                     <Typography
                       key={item.id}
                       variant="body1"
                       sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
                     >
-                      {item.name} - ₹{item.price} x {item.quantity} = ₹{item.price * item.quantity}
+                      {item.name} - ₹{item.price} x {item.quantity}
                     </Typography>
                   ))
                 ) : (
@@ -747,7 +800,7 @@ const TableOrdersPage: React.FC = () => {
                 )}
                 <Typography
                   variant="h6"
-                  sx={{ mt: 2, fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.125rem' } }}
+                  sx={{ mt: 1, fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.125rem' } }}
                 >
                   Total: ₹{selectedOrder.total_amount}
                 </Typography>
@@ -776,7 +829,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Add Order
               </Button>
@@ -786,7 +839,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Delete Table
               </Button>
@@ -799,7 +852,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Edit Order
               </Button>
@@ -809,7 +862,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Print
               </Button>
@@ -819,7 +872,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Complete
               </Button>
@@ -829,7 +882,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
-                fullWidth={isMobile} // Responsive fullWidth
+                fullWidth={isMobile}
               >
                 Delete Order
               </Button>
@@ -841,7 +894,7 @@ const TableOrdersPage: React.FC = () => {
             variant="outlined"
             size="small"
             disabled={isLoading}
-            fullWidth={isMobile} // Responsive fullWidth
+            fullWidth={isMobile}
           >
             Close
           </Button>
@@ -853,7 +906,7 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddTableDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile} // Responsive fullScreen
+        fullScreen={isMobile} // Full screen on mobile
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Table</DialogTitle>
@@ -873,7 +926,7 @@ const TableOrdersPage: React.FC = () => {
             <InputLabel>Section</InputLabel>
             <Select
               value={newTableSectionId}
-              onChange={(e) => setNewTableSectionId(Number(e.target.value) || '')}
+              onChange={(e) => setNewTableSectionId(e.target.value as number)}
               label="Section"
               disabled={isLoading}
             >
@@ -900,7 +953,7 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddSectionDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile} // Responsive fullScreen
+        fullScreen={isMobile} // Full screen on mobile
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Section</DialogTitle>
