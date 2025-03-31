@@ -72,6 +72,9 @@ const TableOrdersPage: React.FC = () => {
   const [newSectionName, setNewSectionName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wsStatus, setWsStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>(
+    'disconnected',
+  );
   const navigate = useNavigate();
 
   const connectWebSocket = () => {
@@ -79,6 +82,8 @@ const TableOrdersPage: React.FC = () => {
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
+      setWsStatus('connected');
+      setError(null);
     };
 
     ws.onmessage = (event) => {
@@ -93,8 +98,8 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
-          setTables((prevTables) => {
-            const deletedTable = prevTables.find((t) => t.id === data.id);
+          setTables((prev) => {
+            const deletedTable = prev.find((t) => t.id === data.id);
             if (deletedTable) {
               setOrders((prevOrders) =>
                 prevOrders.filter(
@@ -106,33 +111,31 @@ const TableOrdersPage: React.FC = () => {
                 ),
               );
             }
-            return prevTables.filter((t) => t.id !== data.id);
+            return prev.filter((t) => t.id !== data.id);
           });
         } else if (data.type === 'new_section') {
           setSections((prev) => [...prev, data.section]);
-          if (!newTableSectionId) {
-            setNewTableSectionId(data.section.id);
-          }
+          if (!newTableSectionId) setNewTableSectionId(data.section.id);
         } else if (data.type === 'delete_section') {
           setSections((prev) => prev.filter((s) => s.id !== data.id));
           setTables((prev) => prev.filter((t) => t.section_id !== data.id));
           setOrders((prev) => prev.filter((o) => o.section_id !== data.id));
-          if (newTableSectionId === data.id && sections.length > 0) {
+          if (newTableSectionId === data.id && sections.length > 0)
             setNewTableSectionId(sections[0].id);
-          }
         } else if (data.type === 'new_table_order') {
           setOrders((prev) => {
             const newOrder = {
               ...data.order,
+              id: Number(data.order.id),
+              section_id: Number(data.order.section_id),
+              total_amount: Number(data.order.total_amount),
               items: Array.isArray(data.order.items)
                 ? data.order.items
                 : JSON.parse(data.order.items || '[]'),
-              total_amount: Number(data.order.total_amount),
-              section_id: Number(data.order.section_id),
             };
             const updatedOrders = [newOrder, ...prev.filter((o) => o.status !== 'Completed')];
             updateTableStatus(newOrder.table_number, newOrder.section_id, 'occupied');
-            console.log('New table order added:', updatedOrders);
+            console.log('New table order added:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
         } else if (data.type === 'update_table_order') {
@@ -140,30 +143,31 @@ const TableOrdersPage: React.FC = () => {
             const orderId = Number(data.order.id);
             const updatedOrder = {
               ...data.order,
+              id: orderId,
+              section_id: Number(data.order.section_id),
+              total_amount: Number(data.order.total_amount),
               items: Array.isArray(data.order.items)
                 ? data.order.items
                 : JSON.parse(data.order.items || '[]'),
-              total_amount: Number(data.order.total_amount),
-              section_id: Number(data.order.section_id),
             };
             const updatedOrders = prev
-              .map((order) => (order.id === orderId ? { ...order, ...updatedOrder } : order))
+              .map((order) => (order.id === orderId ? updatedOrder : order))
               .filter((order) => order.status !== 'Completed');
-            console.log('Orders after update_table_order:', updatedOrders);
             updateTableStatus(
               updatedOrder.table_number,
               updatedOrder.section_id,
               updatedOrder.status === 'Pending' ? 'occupied' : 'empty',
             );
-            return updatedOrders;
+            console.log('Orders after update_table_order:', JSON.stringify(updatedOrders, null, 2));
+            return [...updatedOrders]; // Force new array reference
           });
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => {
             const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
-            console.log('Orders after delete_table_order:', updatedOrders);
-            if (data.order && data.order.table_number && data.order.section_id) {
-              updateTableStatus(data.order.table_number, data.order.section_id, 'empty');
+            if (data.order?.table_number && data.order?.section_id) {
+              updateTableStatus(data.order.table_number, Number(data.order.section_id), 'empty');
             }
+            console.log('Orders after delete_table_order:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
         }
@@ -176,11 +180,13 @@ const TableOrdersPage: React.FC = () => {
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
       setError('WebSocket connection error. Attempting to reconnect...');
+      setWsStatus('reconnecting');
     };
 
     ws.onclose = () => {
       console.log('WebSocket connection closed. Attempting to reconnect...');
-      setTimeout(connectWebSocket, 2000);
+      setWsStatus('reconnecting');
+      setTimeout(connectWebSocket, 1000); // Faster reconnect
     };
 
     return ws;
@@ -231,19 +237,19 @@ const TableOrdersPage: React.FC = () => {
         setTables(tablesRes.data);
         setSections(sectionsRes.data);
         setOrders(
-          ordersRes.data
-            .filter((order) => order.table_number !== null && order.status !== 'Completed')
-            .map((order) => ({
-              ...order,
-              items: Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]'),
-              total_amount: Number(order.total_amount),
-              section_id: Number(order.section_id),
-            })),
+          tablesRes.data.length > 0 && ordersRes.data.length > 0
+            ? ordersRes.data
+                .filter((order) => order.table_number !== null && order.status !== 'Completed')
+                .map((order) => ({
+                  ...order,
+                  items: Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]'),
+                  total_amount: Number(order.total_amount),
+                  section_id: Number(order.section_id),
+                }))
+            : [],
         );
         setSettings(settingsRes.data);
-        if (sectionsRes.data.length > 0) {
-          setNewTableSectionId(sectionsRes.data[0].id);
-        }
+        if (sectionsRes.data.length > 0) setNewTableSectionId(sectionsRes.data[0].id);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to load data. Please try again.');
@@ -454,12 +460,7 @@ const TableOrdersPage: React.FC = () => {
             <h3>Table ${order.table_number} (${tables.find((t) => t.table_number === selectedTable && t.section_id === selectedSectionId)?.section}) Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
-              ${order.items
-                .map(
-                  (item) =>
-                    `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${item.price * item.quantity}</td></tr>`,
-                )
-                .join('')}
+              ${order.items.map((item) => `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${item.price * item.quantity}</td></tr>`).join('')}
             </table>
             <p class="total-amount"><strong>Total Amount:</strong> ₹${order.total_amount}</p>
           </div>
@@ -556,7 +557,7 @@ const TableOrdersPage: React.FC = () => {
     <Box sx={{ padding: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%', margin: '0 auto' }}>
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
-          {error}
+          {error} (WebSocket: {wsStatus})
         </Typography>
       )}
       {isLoading && (
@@ -658,9 +659,7 @@ const TableOrdersPage: React.FC = () => {
                 o.section_id === selectedSectionId &&
                 o.status === 'Pending',
             );
-            if (!selectedOrder) {
-              return <Typography>No active order for this table.</Typography>;
-            }
+            if (!selectedOrder) return <Typography>No active order for this table.</Typography>;
             return (
               <Box>
                 <Typography variant="h6">Order Details:</Typography>
