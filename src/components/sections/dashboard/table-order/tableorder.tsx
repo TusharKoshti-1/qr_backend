@@ -116,77 +116,66 @@ const TableOrdersPage: React.FC = () => {
         } else if (data.type === 'delete_section') {
           setSections((prev) => prev.filter((s) => s.id !== data.id));
           setTables((prev) => prev.filter((t) => t.section_id !== data.id));
+          setOrders((prev) => prev.filter((o) => o.section_id !== data.id));
           if (newTableSectionId === data.id && sections.length > 0) {
             setNewTableSectionId(sections[0].id);
           }
         } else if (data.type === 'new_table_order') {
-          setOrders((prev) => [
-            {
+          setOrders((prev) => {
+            const newOrder = {
               ...data.order,
               items: Array.isArray(data.order.items)
                 ? data.order.items
                 : JSON.parse(data.order.items || '[]'),
-            },
-            ...prev,
-          ]);
-          setTables((prev) =>
-            prev.map((t) =>
-              t.table_number === data.order.table_number && t.section_id === data.order.section_id
-                ? { ...t, status: 'occupied' }
-                : t,
-            ),
-          );
-        } else if (data.type === 'update_table_order') {
-          console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
-
-          const orderSectionId = Number(data.order.section_id);
-          const orderTableNumber = data.order.table_number.toString();
-
-          setOrders((prev) => {
-            const updatedOrders = prev
-              .map((order) =>
-                order.id === Number(data.order.id)
-                  ? {
-                      ...order,
-                      ...data.order,
-                      section_id: orderSectionId,
-                      items: Array.isArray(data.order.items)
-                        ? data.order.items
-                        : JSON.parse(data.order.items || '[]'),
-                    }
-                  : order,
-              )
-              .filter((order) => order.status !== 'Completed');
+              total_amount: Number(data.order.total_amount),
+              section_id: Number(data.order.section_id),
+            };
+            const updatedOrders = [newOrder, ...prev.filter((o) => o.status !== 'Completed')];
+            updateTableStatus(newOrder.table_number, newOrder.section_id, 'occupied');
+            console.log('New table order added:', updatedOrders);
             return updatedOrders;
           });
-
-          setTables((prev) =>
-            prev.map((t) =>
-              t.table_number === orderTableNumber && t.section_id === orderSectionId
-                ? {
-                    ...t,
-                    status: data.order.status === 'Pending' ? 'occupied' : 'empty',
-                  }
-                : t,
-            ),
-          );
+        } else if (data.type === 'update_table_order') {
+          setOrders((prev) => {
+            const orderId = Number(data.order.id);
+            const updatedOrder = {
+              ...data.order,
+              items: Array.isArray(data.order.items)
+                ? data.order.items
+                : JSON.parse(data.order.items || '[]'),
+              total_amount: Number(data.order.total_amount),
+              section_id: Number(data.order.section_id),
+            };
+            const updatedOrders = prev
+              .map((order) => (order.id === orderId ? { ...order, ...updatedOrder } : order))
+              .filter((order) => order.status !== 'Completed');
+            console.log('Orders after update_table_order:', updatedOrders);
+            updateTableStatus(
+              updatedOrder.table_number,
+              updatedOrder.section_id,
+              updatedOrder.status === 'Pending' ? 'occupied' : 'empty',
+            );
+            return updatedOrders;
+          });
         } else if (data.type === 'delete_table_order') {
-          setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
-          setTables((prev) =>
-            prev.map((t) =>
-              t.table_number === data.order?.table_number && t.section_id === data.order?.section_id
-                ? { ...t, status: 'empty' }
-                : t,
-            ),
-          );
+          setOrders((prev) => {
+            const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
+            console.log('Orders after delete_table_order:', updatedOrders);
+            if (data.order && data.order.table_number && data.order.section_id) {
+              updateTableStatus(data.order.table_number, data.order.section_id, 'empty');
+            }
+            return updatedOrders;
+          });
         }
       } catch (error) {
         console.error('Error processing WebSocket message:', error);
+        setError('Failed to process real-time update. Please refresh.');
       }
     };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
+      setError('WebSocket connection error. Attempting to reconnect...');
     };
 
     ws.onclose = () => {
@@ -195,6 +184,18 @@ const TableOrdersPage: React.FC = () => {
     };
 
     return ws;
+  };
+
+  const updateTableStatus = (
+    tableNumber: string,
+    sectionId: number,
+    status: 'empty' | 'occupied' | 'reserved',
+  ) => {
+    setTables((prev) =>
+      prev.map((t) =>
+        t.table_number === tableNumber && t.section_id === sectionId ? { ...t, status } : t,
+      ),
+    );
   };
 
   useEffect(() => {
@@ -231,22 +232,13 @@ const TableOrdersPage: React.FC = () => {
         setSections(sectionsRes.data);
         setOrders(
           ordersRes.data
-            .filter((order) => order.table_number !== null)
-            .map((order) => {
-              let parsedItems: ItemType[] = [];
-              try {
-                parsedItems =
-                  typeof order.items === 'string'
-                    ? JSON.parse(order.items)
-                    : Array.isArray(order.items)
-                      ? order.items
-                      : [];
-              } catch (error) {
-                console.error('Error parsing order items:', error, order);
-                parsedItems = [];
-              }
-              return { ...order, items: parsedItems };
-            }),
+            .filter((order) => order.table_number !== null && order.status !== 'Completed')
+            .map((order) => ({
+              ...order,
+              items: Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]'),
+              total_amount: Number(order.total_amount),
+              section_id: Number(order.section_id),
+            })),
         );
         setSettings(settingsRes.data);
         if (sectionsRes.data.length > 0) {
@@ -255,9 +247,12 @@ const TableOrdersPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to load data. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
+    setIsLoading(true);
     fetchData();
 
     const ws = connectWebSocket();
@@ -268,10 +263,7 @@ const TableOrdersPage: React.FC = () => {
     const order = orders.find(
       (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
-    if (!order || order.status === 'Completed') {
-      return '#d4edda'; // Green for empty or completed
-    }
-    return '#fff3cd'; // Yellow for occupied (Pending)
+    return !order || order.status === 'Completed' ? '#d4edda' : '#fff3cd';
   };
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
@@ -281,13 +273,13 @@ const TableOrdersPage: React.FC = () => {
   };
 
   const handleAddTable = async () => {
-    if (!newTableNumber || newTableSectionId === '') {
+    if (!newTableNumber || !newTableSectionId) {
       alert('Please enter a table number and select a section');
       return;
     }
     try {
       setIsLoading(true);
-      await axios.post(
+      const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/tables`,
         { table_number: newTableNumber, section_id: newTableSectionId },
         {
@@ -297,6 +289,7 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
+      setTables((prev) => [...prev, response.data]);
       setAddTableDialogOpen(false);
       setNewTableNumber('');
       setError(null);
@@ -316,7 +309,7 @@ const TableOrdersPage: React.FC = () => {
     }
     try {
       setIsLoading(true);
-      await axios.post(
+      const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/sections`,
         { name: newSectionName },
         {
@@ -326,6 +319,7 @@ const TableOrdersPage: React.FC = () => {
           },
         },
       );
+      setSections((prev) => [...prev, response.data]);
       setAddSectionDialogOpen(false);
       setNewSectionName('');
       setError(null);
@@ -352,15 +346,12 @@ const TableOrdersPage: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
       });
-      setTables((prevTables) => {
-        const updatedTables = prevTables.filter((t) => t.id !== table.id);
-        setOrders((prevOrders) =>
-          prevOrders.filter(
-            (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
-          ),
-        );
-        return updatedTables;
-      });
+      setTables((prev) => prev.filter((t) => t.id !== table.id));
+      setOrders((prev) =>
+        prev.filter(
+          (o) => !(o.table_number === table.table_number && o.section_id === table.section_id),
+        ),
+      );
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -378,29 +369,21 @@ const TableOrdersPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`,
-        {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-          },
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/sections/${sectionId}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
         },
-      );
-
-      // Update state only if the deletion was successful (status 204)
-      if (response.status === 204) {
-        setSections((prev) => prev.filter((s) => s.id !== sectionId));
-        setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
-        setOrders((prev) => prev.filter((o) => o.section_id !== sectionId));
-        setError(null);
-        alert('Section deleted successfully');
-      }
+      });
+      setSections((prev) => prev.filter((s) => s.id !== sectionId));
+      setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
+      setOrders((prev) => prev.filter((o) => o.section_id !== sectionId));
+      setError(null);
+      alert('Section deleted successfully');
     } catch (error) {
       console.error('Error deleting section:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to delete section';
-      setError(errorMessage);
-      alert(errorMessage);
+      setError(error.response?.data?.message || 'Failed to delete section');
+      alert(error.response?.data?.message || 'Failed to delete section');
     } finally {
       setIsLoading(false);
     }
@@ -436,9 +419,7 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
 
-    const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
-      settings.restaurantName,
-    )}&am=${order.total_amount}&cu=INR`;
+    const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(settings.restaurantName)}&am=${order.total_amount}&cu=INR`;
 
     const qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 }).catch((error) => {
       console.error('Error generating QR code:', error);
@@ -454,7 +435,7 @@ const TableOrdersPage: React.FC = () => {
           <title>Table Order Receipt</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .header { text-alert: center; margin-bottom: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
@@ -476,9 +457,7 @@ const TableOrdersPage: React.FC = () => {
               ${order.items
                 .map(
                   (item) =>
-                    `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${
-                      item.price * item.quantity
-                    }</td></tr>`,
+                    `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${item.price * item.quantity}</td></tr>`,
                 )
                 .join('')}
             </table>
@@ -526,19 +505,8 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
-        { status: 'empty', section_id: table.section_id },
-        {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-          },
-        },
-      );
-
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
+      updateTableStatus(table.table_number, table.section_id, 'empty');
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -571,19 +539,8 @@ const TableOrdersPage: React.FC = () => {
         },
       });
 
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/tables/${table.id}`,
-        { status: 'empty', section_id: table.section_id },
-        {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
-          },
-        },
-      );
-
       setOrders((prev) => prev.filter((o) => o.id !== order.id));
-      setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
+      updateTableStatus(table.table_number, table.section_id, 'empty');
       setDialogOpen(false);
       setError(null);
     } catch (error) {
@@ -673,11 +630,7 @@ const TableOrdersPage: React.FC = () => {
                         variant="body2"
                         sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                       >
-                        {table.status === 'empty'
-                          ? 'Empty'
-                          : table.status === 'occupied'
-                            ? 'Occupied'
-                            : 'Reserved'}
+                        {table.status}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -687,17 +640,7 @@ const TableOrdersPage: React.FC = () => {
         </Box>
       ))}
 
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        key={JSON.stringify(
-          orders.find(
-            (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
-          ),
-        )}
-      >
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>
           Manage Table {selectedTable} (
           {
@@ -720,24 +663,24 @@ const TableOrdersPage: React.FC = () => {
             }
             return (
               <Box>
-                <Typography>Order Details:</Typography>
-                {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
+                <Typography variant="h6">Order Details:</Typography>
+                {selectedOrder.items.length > 0 ? (
                   selectedOrder.items.map((item) => (
-                    <Typography key={item.id}>
-                      {item.name} - ₹{item.price} x {item.quantity}
+                    <Typography key={item.id} variant="body1">
+                      {item.name} - ₹{item.price} x {item.quantity} = ₹{item.price * item.quantity}
                     </Typography>
                   ))
                 ) : (
-                  <Typography>No items in this order.</Typography>
+                  <Typography variant="body1">No items in this order.</Typography>
                 )}
-                <Typography sx={{ mt: 1, fontWeight: 'bold' }}>
+                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>
                   Total: ₹{selectedOrder.total_amount}
                 </Typography>
               </Box>
             );
           })()}
         </DialogContent>
-        <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
+        <DialogActions sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end' }}>
           {!orders.find(
             (o) =>
               o.table_number === selectedTable &&
@@ -838,7 +781,7 @@ const TableOrdersPage: React.FC = () => {
             <InputLabel>Section</InputLabel>
             <Select
               value={newTableSectionId}
-              onChange={(e) => setNewTableSectionId(e.target.value as number)}
+              onChange={(e) => setNewTableSectionId(Number(e.target.value) || '')}
               label="Section"
               disabled={isLoading}
             >
