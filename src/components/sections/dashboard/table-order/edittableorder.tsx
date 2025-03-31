@@ -157,7 +157,7 @@ const TableEditOrder: React.FC = () => {
     const updatedOrder = {
       items: editedItems,
       total_amount: total,
-      DETstatus: 'Pending',
+      status: 'Pending', // Fixed typo from DETstatus
     };
 
     try {

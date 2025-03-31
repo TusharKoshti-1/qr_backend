@@ -90,7 +90,6 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
-          console.log('Processing delete_table:', data);
           setTables((prevTables) => {
             const deletedTable = prevTables.find((t) => t.id === data.id);
             if (deletedTable) {
@@ -149,10 +148,11 @@ const TableOrdersPage: React.FC = () => {
           );
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number &&
-              t.section_id === data.order.section_id &&
-              data.order.status === 'Completed'
-                ? { ...t, status: 'empty' }
+              t.table_number === data.order.table_number && t.section_id === data.order.section_id
+                ? {
+                    ...t,
+                    status: data.order.status === 'Pending' ? 'occupied' : 'empty',
+                  }
                 : t,
             ),
           );
@@ -253,11 +253,10 @@ const TableOrdersPage: React.FC = () => {
     const order = orders.find(
       (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
-    return !order || order.status === 'Completed'
-      ? '#d4edda'
-      : order.status === 'Pending'
-        ? '#fff3cd'
-        : '#f8d7da';
+    if (!order || order.status === 'Completed') {
+      return '#d4edda'; // Green for empty or completed
+    }
+    return '#fff3cd'; // Yellow for occupied (Pending)
   };
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
