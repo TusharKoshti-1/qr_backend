@@ -20,20 +20,7 @@ import {
   CircularProgress,
   useTheme,
   useMediaQuery,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  Print as PrintIcon,
-  CheckCircle as CompleteIcon,
-  Delete as DeleteIcon,
-  Close as CloseIcon,
-} from '@mui/icons-material';
-import { motion } from 'framer-motion'; // Import framer-motion
 import QRCode from 'qrcode';
 
 interface TableType {
@@ -89,7 +76,7 @@ const TableOrdersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detect mobile screens
 
   const connectWebSocket = () => {
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
@@ -405,6 +392,7 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
+      // Update state only if the deletion was successful (status 204)
       if (response.status === 204) {
         setSections((prev) => prev.filter((s) => s.id !== sectionId));
         setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
@@ -470,7 +458,7 @@ const TableOrdersPage: React.FC = () => {
           <title>Table Order Receipt</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .header { text-align: center; margin-bottom: 20px; }
+            .header { text-alert: center; margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
@@ -611,17 +599,14 @@ const TableOrdersPage: React.FC = () => {
     }
   };
 
-  // Create an animated Dialog component using framer-motion
-  const MotionDialog = motion(Dialog);
-
   return (
     <Box
       sx={{
-        padding: { xs: 1, sm: 2, md: 3, lg: 4 },
+        padding: { xs: 1, sm: 2, md: 3, lg: 4 }, // Responsive padding
         maxWidth: '100%',
         margin: '0 auto',
-        minHeight: '100vh',
-        overflowX: 'hidden',
+        minHeight: '100vh', // Full height for all devices
+        overflowX: 'hidden', // Prevent horizontal scroll
       }}
     >
       {error && (
@@ -640,7 +625,7 @@ const TableOrdersPage: React.FC = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile, row on larger screens
           justifyContent: 'space-between',
           alignItems: { xs: 'flex-start', sm: 'center' },
           mb: { xs: 2, sm: 3 },
@@ -661,14 +646,14 @@ const TableOrdersPage: React.FC = () => {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 1,
-            width: { xs: '100%', sm: 'auto' },
+            width: { xs: '100%', sm: 'auto' }, // Full width on mobile
           }}
         >
           <Button
             variant="contained"
             color="primary"
             onClick={() => setAddTableDialogOpen(true)}
-            fullWidth={isMobile}
+            fullWidth={isMobile} // Full width on mobile
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -678,7 +663,7 @@ const TableOrdersPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={() => setAddSectionDialogOpen(true)}
-            fullWidth={isMobile}
+            fullWidth={isMobile} // Full width on mobile
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -728,7 +713,7 @@ const TableOrdersPage: React.FC = () => {
                     sx={{
                       backgroundColor: getTableStatusColor(table),
                       cursor: 'pointer',
-                      '&:hover': { boxShadow: { sm: 6 } },
+                      '&:hover': { boxShadow: { sm: 6 } }, // Hover only on larger screens
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
@@ -762,58 +747,29 @@ const TableOrdersPage: React.FC = () => {
         </Box>
       ))}
 
-      <MotionDialog
+      <Dialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         fullWidth
         maxWidth="sm"
-        fullScreen={isMobile}
-        sx={{
-          '& .MuiDialog-paper': { m: { xs: 0, sm: 2 }, bgcolor: isMobile ? '#f5f5f5' : 'inherit' },
-        }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
+        fullScreen={isMobile} // Full screen on mobile
+        sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
+        key={JSON.stringify(
+          orders.find(
+            (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
+          ),
+        )}
       >
-        <DialogTitle
-          sx={{
-            fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            p: { xs: 2, sm: 2 },
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            bgcolor: isMobile ? '#1976d2' : 'inherit',
-            color: isMobile ? '#fff' : 'inherit',
-          }}
-        >
-          <span>
-            Manage Table {selectedTable} (
-            {
-              tables.find(
-                (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
-              )?.section
-            }
-            )
-          </span>
-          {isMobile && (
-            <IconButton
-              edge="end"
-              color="inherit"
-              onClick={() => setDialogOpen(false)}
-              disabled={isLoading}
-            >
-              <CloseIcon />
-            </IconButton>
-          )}
+        <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, p: { xs: 1, sm: 2 } }}>
+          Manage Table {selectedTable} (
+          {
+            tables.find(
+              (t) => t.table_number === selectedTable && t.section_id === selectedSectionId,
+            )?.section
+          }
+          )
         </DialogTitle>
-        <DialogContent
-          sx={{
-            p: { xs: 2, sm: 2 },
-            bgcolor: isMobile ? '#fff' : 'inherit',
-            borderRadius: isMobile ? '0 0 8px 8px' : 0,
-          }}
-        >
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           {(() => {
             const selectedOrder = orders.find(
               (o) =>
@@ -822,93 +778,32 @@ const TableOrdersPage: React.FC = () => {
                 o.status === 'Pending',
             );
             if (!selectedOrder) {
-              return (
-                <Typography sx={{ textAlign: 'center', color: 'text.secondary', mt: 2 }}>
-                  No active order for this table.
-                </Typography>
-              );
+              return <Typography>No active order for this table.</Typography>;
             }
             return (
               <Box>
+                <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.125rem' } }}>
+                  Order Details:
+                </Typography>
+                {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
+                  selectedOrder.items.map((item) => (
+                    <Typography
+                      key={item.id}
+                      variant="body1"
+                      sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                    >
+                      {item.name} - ₹{item.price} x {item.quantity}
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography variant="body1">No items in this order.</Typography>
+                )}
                 <Typography
                   variant="h6"
-                  sx={{
-                    fontSize: { xs: '1.125rem', sm: '1.25rem' },
-                    mb: 1,
-                    fontWeight: 'bold',
-                    color: 'primary.main',
-                  }}
+                  sx={{ mt: 1, fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.125rem' } }}
                 >
-                  Order Details
+                  Total: ₹{selectedOrder.total_amount}
                 </Typography>
-                <List
-                  sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: isMobile ? 1 : 0 }}
-                >
-                  {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
-                    selectedOrder.items.map((item, index) => (
-                      <React.Fragment key={item.id}>
-                        <ListItem sx={{ py: 1.5, px: 2 }}>
-                          <ListItemText
-                            primary={
-                              <Typography
-                                variant="body1"
-                                sx={{
-                                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                                  fontWeight: 'medium',
-                                }}
-                              >
-                                {item.name}
-                              </Typography>
-                            }
-                            secondary={
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                  color: 'text.secondary',
-                                }}
-                              >
-                                ₹{item.price} x {item.quantity} = ₹{item.price * item.quantity}
-                              </Typography>
-                            }
-                          />
-                        </ListItem>
-                        {index < selectedOrder.items.length - 1 && <Divider />}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <ListItem>
-                      <ListItemText
-                        primary="No items in this order"
-                        primaryTypographyProps={{ color: 'text.secondary', textAlign: 'center' }}
-                      />
-                    </ListItem>
-                  )}
-                </List>
-                {isMobile && (
-                  <Box
-                    sx={{
-                      position: 'sticky',
-                      bottom: 0,
-                      bgcolor: '#fff',
-                      p: 2,
-                      borderTop: '1px solid #e0e0e0',
-                      zIndex: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontSize: '1.125rem',
-                        fontWeight: 'bold',
-                        color: 'success.main',
-                        textAlign: 'center',
-                      }}
-                    >
-                      Total: ₹{selectedOrder.total_amount}
-                    </Typography>
-                  </Box>
-                )}
               </Box>
             );
           })()}
@@ -918,8 +813,7 @@ const TableOrdersPage: React.FC = () => {
             flexWrap: 'wrap',
             gap: 1,
             justifyContent: { xs: 'center', sm: 'flex-end' },
-            p: { xs: 2, sm: 2 },
-            bgcolor: isMobile ? '#fff' : 'inherit',
+            p: { xs: 1, sm: 2 },
           }}
         >
           {!orders.find(
@@ -930,28 +824,22 @@ const TableOrdersPage: React.FC = () => {
           ) ? (
             <>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleAddOrder}
                 color="primary"
                 variant="contained"
-                startIcon={<EditIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
                 Add Order
               </Button>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleDeleteTable}
                 color="error"
                 variant="contained"
-                startIcon={<DeleteIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
                 Delete Table
               </Button>
@@ -959,87 +847,67 @@ const TableOrdersPage: React.FC = () => {
           ) : (
             <>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleEditOrder}
                 color="primary"
                 variant="contained"
-                startIcon={<EditIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
-                Edit
+                Edit Order
               </Button>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handlePrintOrder}
                 color="secondary"
                 variant="contained"
-                startIcon={<PrintIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
                 Print
               </Button>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleCompleteOrder}
                 color="success"
                 variant="contained"
-                startIcon={<CompleteIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
                 Complete
               </Button>
               <Button
-                component={motion.button}
-                whileTap={{ scale: 0.95 }}
                 onClick={handleDeleteOrder}
                 color="error"
                 variant="contained"
-                startIcon={<DeleteIcon />}
-                fullWidth={isMobile}
+                size="small"
                 disabled={isLoading}
-                sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
+                fullWidth={isMobile}
               >
-                Delete
+                Delete Order
               </Button>
             </>
           )}
-          {!isMobile && (
-            <Button
-              component={motion.button}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setDialogOpen(false)}
-              color="inherit"
-              variant="outlined"
-              startIcon={<CloseIcon />}
-              disabled={isLoading}
-              sx={{ minWidth: { xs: 120, sm: 100 }, py: 1 }}
-            >
-              Close
-            </Button>
-          )}
+          <Button
+            onClick={() => setDialogOpen(false)}
+            color="inherit"
+            variant="outlined"
+            size="small"
+            disabled={isLoading}
+            fullWidth={isMobile}
+          >
+            Close
+          </Button>
         </DialogActions>
-      </MotionDialog>
+      </Dialog>
 
-      <MotionDialog
+      <Dialog
         open={addTableDialogOpen}
         onClose={() => setAddTableDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile}
+        fullScreen={isMobile} // Full screen on mobile
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Table</DialogTitle>
         <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
@@ -1078,19 +946,15 @@ const TableOrdersPage: React.FC = () => {
             Add
           </Button>
         </DialogActions>
-      </MotionDialog>
+      </Dialog>
 
-      <MotionDialog
+      <Dialog
         open={addSectionDialogOpen}
         onClose={() => setAddSectionDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile}
+        fullScreen={isMobile} // Full screen on mobile
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Section</DialogTitle>
         <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
@@ -1118,7 +982,7 @@ const TableOrdersPage: React.FC = () => {
             Add
           </Button>
         </DialogActions>
-      </MotionDialog>
+      </Dialog>
     </Box>
   );
 };
