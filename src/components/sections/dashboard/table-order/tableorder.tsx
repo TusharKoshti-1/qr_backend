@@ -135,6 +135,11 @@ const TableOrdersPage: React.FC = () => {
           );
         } else if (data.type === 'update_table_order') {
           console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
+
+          // Ensure section_id is a number
+          const orderSectionId = Number(data.order.section_id);
+          const orderTableNumber = data.order.table_number.toString();
+
           setOrders((prev) => {
             const updatedOrders = prev
               .map((order) =>
@@ -142,6 +147,7 @@ const TableOrdersPage: React.FC = () => {
                   ? {
                       ...order,
                       ...data.order,
+                      section_id: orderSectionId, // Ensure section_id is a number
                       items: Array.isArray(data.order.items)
                         ? data.order.items
                         : JSON.parse(data.order.items || '[]'),
@@ -149,12 +155,12 @@ const TableOrdersPage: React.FC = () => {
                   : order,
               )
               .filter((order) => order.status !== 'Completed');
-            console.log('Updated orders state:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
+
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number && t.section_id === data.order.section_id
+              t.table_number === orderTableNumber && t.section_id === orderSectionId
                 ? {
                     ...t,
                     status: data.order.status === 'Pending' ? 'occupied' : 'empty',
