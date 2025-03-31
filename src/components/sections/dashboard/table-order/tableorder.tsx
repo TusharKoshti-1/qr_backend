@@ -18,6 +18,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -76,6 +78,8 @@ const TableOrdersPage: React.FC = () => {
     'disconnected',
   );
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check if screen size is mobile (below 'sm')
 
   const connectWebSocket = () => {
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
@@ -554,27 +558,61 @@ const TableOrdersPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: { xs: 2, sm: 3, md: 4 }, maxWidth: '100%', margin: '0 auto' }}>
+    <Box
+      sx={{
+        padding: { xs: 1, sm: 2, md: 3, lg: 4 },
+        maxWidth: '100%',
+        margin: '0 auto',
+        minHeight: '100vh',
+        overflowX: 'hidden',
+      }}
+    >
       {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
+        <Typography
+          color="error"
+          sx={{ mb: 2, fontSize: { xs: '0.875rem', sm: '1rem' }, textAlign: 'center' }}
+        >
           {error} (WebSocket: {wsStatus})
         </Typography>
       )}
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <CircularProgress />
+          <CircularProgress size={24} />
         </Box>
       )}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          mb: { xs: 2, sm: 3 },
+          gap: 1,
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem', lg: '2.125rem' },
+            fontWeight: 'bold',
+          }}
+        >
           Table Management
         </Typography>
-        <Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 1,
+            width: { xs: '100%', sm: 'auto' },
+          }}
+        >
           <Button
             variant="contained"
             color="primary"
             onClick={() => setAddTableDialogOpen(true)}
-            sx={{ mr: 1 }}
+            fullWidth={isMobile} // Responsive fullWidth
+            sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
             Add Table
@@ -583,6 +621,8 @@ const TableOrdersPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={() => setAddSectionDialogOpen(true)}
+            fullWidth={isMobile} // Responsive fullWidth
+            sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
             Add Section
@@ -591,11 +631,23 @@ const TableOrdersPage: React.FC = () => {
       </Box>
 
       {sections.map((section) => (
-        <Box key={section.id} sx={{ mb: 4 }}>
+        <Box key={section.id} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
           <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              mb: { xs: 1, sm: 2 },
+              gap: 1,
+            }}
           >
-            <Typography variant="h5">{section.name}</Typography>
+            <Typography
+              variant="h5"
+              sx={{ fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.5rem' } }}
+            >
+              {section.name}
+            </Typography>
             <Button
               variant="outlined"
               color="error"
@@ -606,7 +658,11 @@ const TableOrdersPage: React.FC = () => {
               Delete Section
             </Button>
           </Box>
-          <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} justifyContent="center">
+          <Grid
+            container
+            spacing={{ xs: 1, sm: 2, md: 3 }}
+            justifyContent={{ xs: 'flex-start', sm: 'center' }}
+          >
             {tables
               .filter((table) => table.section_id === section.id)
               .map((table) => (
@@ -615,16 +671,20 @@ const TableOrdersPage: React.FC = () => {
                     sx={{
                       backgroundColor: getTableStatusColor(table),
                       cursor: 'pointer',
-                      '&:hover': { boxShadow: 6 },
+                      '&:hover': { boxShadow: { sm: 6 } },
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'center',
+                      transition: 'box-shadow 0.3s ease',
                     }}
                     onClick={() => handleTableClick(table.table_number, table.section_id)}
                   >
                     <CardContent sx={{ textAlign: 'center', p: { xs: 1, sm: 2 } }}>
-                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } }}
+                      >
                         Table {table.table_number}
                       </Typography>
                       <Typography
@@ -641,8 +701,15 @@ const TableOrdersPage: React.FC = () => {
         </Box>
       ))}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        fullScreen={isMobile} // Responsive fullScreen
+        sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
+      >
+        <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' }, p: { xs: 1, sm: 2 } }}>
           Manage Table {selectedTable} (
           {
             tables.find(
@@ -651,7 +718,7 @@ const TableOrdersPage: React.FC = () => {
           }
           )
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           {(() => {
             const selectedOrder = orders.find(
               (o) =>
@@ -662,24 +729,40 @@ const TableOrdersPage: React.FC = () => {
             if (!selectedOrder) return <Typography>No active order for this table.</Typography>;
             return (
               <Box>
-                <Typography variant="h6">Order Details:</Typography>
+                <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.125rem' } }}>
+                  Order Details:
+                </Typography>
                 {selectedOrder.items.length > 0 ? (
                   selectedOrder.items.map((item) => (
-                    <Typography key={item.id} variant="body1">
+                    <Typography
+                      key={item.id}
+                      variant="body1"
+                      sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                    >
                       {item.name} - ₹{item.price} x {item.quantity} = ₹{item.price * item.quantity}
                     </Typography>
                   ))
                 ) : (
                   <Typography variant="body1">No items in this order.</Typography>
                 )}
-                <Typography variant="h6" sx={{ mt: 2, fontWeight: 'bold' }}>
+                <Typography
+                  variant="h6"
+                  sx={{ mt: 2, fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.125rem' } }}
+                >
                   Total: ₹{selectedOrder.total_amount}
                 </Typography>
               </Box>
             );
           })()}
         </DialogContent>
-        <DialogActions sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end' }}>
+        <DialogActions
+          sx={{
+            flexWrap: 'wrap',
+            gap: 1,
+            justifyContent: { xs: 'center', sm: 'flex-end' },
+            p: { xs: 1, sm: 2 },
+          }}
+        >
           {!orders.find(
             (o) =>
               o.table_number === selectedTable &&
@@ -693,6 +776,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Add Order
               </Button>
@@ -702,6 +786,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Delete Table
               </Button>
@@ -714,6 +799,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Edit Order
               </Button>
@@ -723,6 +809,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Print
               </Button>
@@ -732,6 +819,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Complete
               </Button>
@@ -741,6 +829,7 @@ const TableOrdersPage: React.FC = () => {
                 variant="contained"
                 size="small"
                 disabled={isLoading}
+                fullWidth={isMobile} // Responsive fullWidth
               >
                 Delete Order
               </Button>
@@ -752,6 +841,7 @@ const TableOrdersPage: React.FC = () => {
             variant="outlined"
             size="small"
             disabled={isLoading}
+            fullWidth={isMobile} // Responsive fullWidth
           >
             Close
           </Button>
@@ -763,9 +853,11 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddTableDialogOpen(false)}
         fullWidth
         maxWidth="xs"
+        fullScreen={isMobile} // Responsive fullScreen
+        sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
-        <DialogTitle>Add New Table</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Table</DialogTitle>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           <TextField
             autoFocus
             margin="dense"
@@ -775,6 +867,7 @@ const TableOrdersPage: React.FC = () => {
             value={newTableNumber}
             onChange={(e) => setNewTableNumber(e.target.value)}
             disabled={isLoading}
+            sx={{ mb: 2 }}
           />
           <FormControl fullWidth margin="dense">
             <InputLabel>Section</InputLabel>
@@ -792,7 +885,7 @@ const TableOrdersPage: React.FC = () => {
             </Select>
           </FormControl>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ justifyContent: 'space-between', p: { xs: 1, sm: 2 } }}>
           <Button onClick={() => setAddTableDialogOpen(false)} disabled={isLoading}>
             Cancel
           </Button>
@@ -807,9 +900,11 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddSectionDialogOpen(false)}
         fullWidth
         maxWidth="xs"
+        fullScreen={isMobile} // Responsive fullScreen
+        sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
-        <DialogTitle>Add New Section</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Section</DialogTitle>
+        <DialogContent sx={{ p: { xs: 1, sm: 2 } }}>
           <TextField
             autoFocus
             margin="dense"
@@ -821,7 +916,7 @@ const TableOrdersPage: React.FC = () => {
             disabled={isLoading}
           />
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ justifyContent: 'space-between', p: { xs: 1, sm: 2 } }}>
           <Button onClick={() => setAddSectionDialogOpen(false)} disabled={isLoading}>
             Cancel
           </Button>
