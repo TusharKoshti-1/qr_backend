@@ -140,24 +140,21 @@ const TableOrdersPage: React.FC = () => {
             ),
           );
         } else if (data.type === 'update_table_order') {
-          console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
-          const parsedItems =
-            typeof data.order.items === 'string'
-              ? JSON.parse(data.order.items)
-              : data.order.items || [];
           setOrders((prev) => {
+            const orderId = data.order?.id !== undefined ? Number(data.order.id) : Number(data.id);
+            const updatedOrderData = {
+              ...data.order,
+              items:
+                typeof data.order.items === 'string'
+                  ? JSON.parse(data.order.items)
+                  : data.order.items || [],
+              section_id: Number(data.order.section_id),
+              table_number: data.order.table_number.toString(),
+            };
             const updatedOrders = prev.map((order) =>
-              order.id === Number(data.order.id)
-                ? {
-                    ...order,
-                    ...data.order,
-                    items: parsedItems,
-                    section_id: Number(data.order.section_id),
-                    table_number: data.order.table_number.toString(),
-                  }
-                : order,
+              order.id === orderId ? { ...order, ...updatedOrderData } : order,
             );
-            console.log('Updated orders state:', JSON.stringify(updatedOrders, null, 2));
+            console.log('Orders after update_table_order:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
           setTables((prev) =>
