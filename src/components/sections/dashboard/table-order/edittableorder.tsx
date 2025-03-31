@@ -34,8 +34,10 @@ interface OrderItem {
 interface Order {
   id: number;
   table_number: string | null;
-  items: OrderItem[];
+  section_id: number | null;
+  items: OrderItem[] | string;
   total_amount: number;
+  payment_method?: string;
   status: 'Pending' | 'Completed';
 }
 
@@ -45,7 +47,7 @@ const TableEditOrder: React.FC = () => {
   const navigate = useNavigate();
 
   const [groupedItems, setGroupedItems] = useState<Record<string, MenuItem[]>>({});
-  const [editedItems, setEditedItems] = useState<OrderItem[]>(order.items || []);
+  const [editedItems, setEditedItems] = useState<OrderItem[]>([]);
   const [total, setTotal] = useState<number>(order.total_amount || 0);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -53,6 +55,9 @@ const TableEditOrder: React.FC = () => {
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
+    const parsedItems = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+    setEditedItems(Array.isArray(parsedItems) ? parsedItems : []);
+
     const fetchMenu = async () => {
       try {
         const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/menu`, {
@@ -73,7 +78,7 @@ const TableEditOrder: React.FC = () => {
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
-              acc[category] = false; // Closed by default
+              acc[category] = false;
               return acc;
             },
             {} as Record<string, boolean>,
@@ -86,7 +91,6 @@ const TableEditOrder: React.FC = () => {
 
     fetchMenu();
 
-    // Validate order status
     if (order.status !== 'Pending') {
       alert('Only Pending orders can be edited.');
       navigate('/tableorder');
@@ -153,11 +157,11 @@ const TableEditOrder: React.FC = () => {
     const updatedOrder = {
       items: editedItems,
       total_amount: total,
-      status: 'Pending', // Ensure status remains 'Pending'
+      DETstatus: 'Pending',
     };
 
     try {
-      await axios.put(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/tableorder/update/${order.id}`,
         updatedOrder,
         {
@@ -167,8 +171,10 @@ const TableEditOrder: React.FC = () => {
           },
         },
       );
-      alert(`Order for Table ${order.table_number} updated successfully!`);
-      navigate('/tableorder');
+      if (response.status === 200) {
+        alert(`Order for Table ${order.table_number} updated successfully!`);
+        navigate('/tableorder');
+      }
     } catch (error) {
       console.error('Error saving updated table order:', error);
       alert('Failed to update order.');
@@ -193,10 +199,8 @@ const TableEditOrder: React.FC = () => {
       return;
     }
 
-    // Keep selectedCategory as 'All' to show all categories
     setSelectedCategory('All');
 
-    // Find all categories with matching items and open them
     const lowerTerm = term.toLowerCase();
     const matchingCategories = Object.entries(groupedItems)
       .filter(([, items]) => items.some((item) => item.name.toLowerCase().includes(lowerTerm)))
@@ -205,7 +209,7 @@ const TableEditOrder: React.FC = () => {
     setOpenCategories((prev) =>
       Object.keys(prev).reduce(
         (acc, category) => {
-          acc[category] = matchingCategories.includes(category); // Open if it has matches
+          acc[category] = matchingCategories.includes(category);
           return acc;
         },
         {} as Record<string, boolean>,
@@ -245,7 +249,7 @@ const TableEditOrder: React.FC = () => {
               variant="outlined"
               fullWidth
               value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)} // Updated to use handleSearch
+              onChange={(e) => handleSearch(e.target.value)}
             />
             <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
               <Box
