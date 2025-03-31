@@ -117,50 +117,53 @@ const TableOrdersPage: React.FC = () => {
             setNewTableSectionId(sections[0].id);
           }
         } else if (data.type === 'new_table_order') {
+          console.log('Processing new_table_order:', JSON.stringify(data.order, null, 2));
+          const parsedItems =
+            typeof data.order.items === 'string'
+              ? JSON.parse(data.order.items)
+              : data.order.items || [];
           setOrders((prev) => [
             {
               ...data.order,
-              items: Array.isArray(data.order.items)
-                ? data.order.items
-                : JSON.parse(data.order.items || '[]'),
+              items: parsedItems,
+              section_id: Number(data.order.section_id),
+              table_number: data.order.table_number.toString(),
             },
             ...prev,
           ]);
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order.table_number && t.section_id === data.order.section_id
+              t.table_number === data.order.table_number &&
+              t.section_id === Number(data.order.section_id)
                 ? { ...t, status: 'occupied' }
                 : t,
             ),
           );
         } else if (data.type === 'update_table_order') {
           console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
-
-          // Ensure section_id is a number
-          const orderSectionId = Number(data.order.section_id);
-          const orderTableNumber = data.order.table_number.toString();
-
+          const parsedItems =
+            typeof data.order.items === 'string'
+              ? JSON.parse(data.order.items)
+              : data.order.items || [];
           setOrders((prev) => {
-            const updatedOrders = prev
-              .map((order) =>
-                order.id === Number(data.order.id)
-                  ? {
-                      ...order,
-                      ...data.order,
-                      section_id: orderSectionId, // Ensure section_id is a number
-                      items: Array.isArray(data.order.items)
-                        ? data.order.items
-                        : JSON.parse(data.order.items || '[]'),
-                    }
-                  : order,
-              )
-              .filter((order) => order.status !== 'Completed');
+            const updatedOrders = prev.map((order) =>
+              order.id === Number(data.order.id)
+                ? {
+                    ...order,
+                    ...data.order,
+                    items: parsedItems,
+                    section_id: Number(data.order.section_id),
+                    table_number: data.order.table_number.toString(),
+                  }
+                : order,
+            );
+            console.log('Updated orders state:', JSON.stringify(updatedOrders, null, 2));
             return updatedOrders;
           });
-
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === orderTableNumber && t.section_id === orderSectionId
+              t.table_number === data.order.table_number &&
+              t.section_id === Number(data.order.section_id)
                 ? {
                     ...t,
                     status: data.order.status === 'Pending' ? 'occupied' : 'empty',
@@ -172,7 +175,8 @@ const TableOrdersPage: React.FC = () => {
           setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
           setTables((prev) =>
             prev.map((t) =>
-              t.table_number === data.order?.table_number && t.section_id === data.order?.section_id
+              t.table_number === data.order?.table_number &&
+              t.section_id === Number(data.order?.section_id)
                 ? { ...t, status: 'empty' }
                 : t,
             ),
@@ -230,21 +234,12 @@ const TableOrdersPage: React.FC = () => {
         setOrders(
           ordersRes.data
             .filter((order) => order.table_number !== null)
-            .map((order) => {
-              let parsedItems: ItemType[] = [];
-              try {
-                parsedItems =
-                  typeof order.items === 'string'
-                    ? JSON.parse(order.items)
-                    : Array.isArray(order.items)
-                      ? order.items
-                      : [];
-              } catch (error) {
-                console.error('Error parsing order items:', error, order);
-                parsedItems = [];
-              }
-              return { ...order, items: parsedItems };
-            }),
+            .map((order) => ({
+              ...order,
+              items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items || [],
+              section_id: Number(order.section_id),
+              table_number: order.table_number.toString(),
+            })),
         );
         setSettings(settingsRes.data);
         if (sectionsRes.data.length > 0) {
@@ -479,7 +474,7 @@ const TableOrdersPage: React.FC = () => {
 
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/tableorder/${order.id}`,
+        `${import.meta.env.VITE_API_URL}/api/tableorder/update/${order.id}`,
         { status: 'Completed' },
         {
           headers: {
@@ -500,7 +495,7 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: 'Completed' } : o)));
       setTables((prev) => prev.map((t) => (t.id === table.id ? { ...t, status: 'empty' } : t)));
       setDialogOpen(false);
     } catch (error) {
@@ -651,17 +646,14 @@ const TableOrdersPage: React.FC = () => {
         <DialogContent>
           {(() => {
             const selectedOrder = orders.find(
-              (o) =>
-                o.table_number === selectedTable &&
-                o.section_id === selectedSectionId &&
-                o.status === 'Pending',
+              (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
             );
             if (!selectedOrder) {
-              return <Typography>No active order for this table.</Typography>;
+              return <Typography>No order found for this table.</Typography>;
             }
             return (
               <Box>
-                <Typography>Order Details:</Typography>
+                <Typography>Order Details (Status: {selectedOrder.status}):</Typography>
                 {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
                   selectedOrder.items.map((item) => (
                     <Typography key={item.id}>
@@ -679,41 +671,54 @@ const TableOrdersPage: React.FC = () => {
           })()}
         </DialogContent>
         <DialogActions sx={{ flexWrap: 'wrap', gap: 1 }}>
-          {!orders.find(
-            (o) =>
-              o.table_number === selectedTable &&
-              o.section_id === selectedSectionId &&
-              o.status === 'Pending',
-          ) ? (
-            <>
-              <Button onClick={handleAddOrder} color="primary" variant="contained" size="small">
-                Add Order
-              </Button>
-              <Button onClick={handleDeleteTable} color="error" variant="contained" size="small">
-                Delete Table
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={handleEditOrder} color="primary" variant="contained" size="small">
-                Edit Order
-              </Button>
-              <Button onClick={handlePrintOrder} color="secondary" variant="contained" size="small">
-                Print
-              </Button>
-              <Button
-                onClick={handleCompleteOrder}
-                color="success"
-                variant="contained"
-                size="small"
-              >
-                Complete
-              </Button>
-              <Button onClick={handleDeleteOrder} color="error" variant="contained" size="small">
-                Delete Order
-              </Button>
-            </>
-          )}
+          {(() => {
+            const selectedOrder = orders.find(
+              (o) => o.table_number === selectedTable && o.section_id === selectedSectionId,
+            );
+            if (!selectedOrder || selectedOrder.status === 'Completed') {
+              return (
+                <>
+                  <Button onClick={handleAddOrder} color="primary" variant="contained" size="small">
+                    Add Order
+                  </Button>
+                  <Button
+                    onClick={handleDeleteTable}
+                    color="error"
+                    variant="contained"
+                    size="small"
+                  >
+                    Delete Table
+                  </Button>
+                </>
+              );
+            }
+            return (
+              <>
+                <Button onClick={handleEditOrder} color="primary" variant="contained" size="small">
+                  Edit Order
+                </Button>
+                <Button
+                  onClick={handlePrintOrder}
+                  color="secondary"
+                  variant="contained"
+                  size="small"
+                >
+                  Print
+                </Button>
+                <Button
+                  onClick={handleCompleteOrder}
+                  color="success"
+                  variant="contained"
+                  size="small"
+                >
+                  Complete
+                </Button>
+                <Button onClick={handleDeleteOrder} color="error" variant="contained" size="small">
+                  Delete Order
+                </Button>
+              </>
+            );
+          })()}
           <Button
             onClick={() => setDialogOpen(false)}
             color="inherit"
