@@ -97,21 +97,12 @@ const TableOrdersPage: React.FC = () => {
             prev.map((t) => (t.id === data.table.id ? { ...t, ...data.table } : t)),
           );
         } else if (data.type === 'delete_table') {
-          setTables((prevTables) => {
-            const deletedTable = prevTables.find((t) => t.id === data.id);
-            if (deletedTable) {
-              setOrders((prevOrders) =>
-                prevOrders.filter(
-                  (o) =>
-                    !(
-                      o.table_number === deletedTable.table_number &&
-                      o.section_id === deletedTable.section_id
-                    ),
-                ),
-              );
-            }
-            return prevTables.filter((t) => t.id !== data.id);
-          });
+          setTables((prevTables) => prevTables.filter((t) => t.id !== data.id));
+          setOrders((prevOrders) =>
+            prevOrders.filter(
+              (o) => o.table_number !== data.table_number || o.section_id !== data.section_id,
+            ),
+          );
         } else if (data.type === 'new_section') {
           setSections((prev) => [...prev, data.section]);
           if (!newTableSectionId) {
