@@ -233,16 +233,20 @@ const AdminAddTableOrderPage: React.FC = () => {
 
   return (
     <Box
-      sx={{ padding: { xs: '0.5rem', md: '2rem' }, backgroundColor: '#f5f5f5', minHeight: '100vh' }}
+      sx={{
+        padding: { xs: '0.5rem', sm: '1rem', md: '2rem' },
+        backgroundColor: '#f5f5f5',
+        minHeight: '100vh',
+      }}
     >
-      <Box sx={{ textAlign: 'center', marginBottom: { xs: '1rem', md: '2rem' } }}>
-        <Typography variant="h5" sx={{ fontSize: { xs: '1.5rem', md: '2.5rem' } }}>
+      <Box sx={{ textAlign: 'center', marginBottom: { xs: '1rem', sm: '2rem' } }}>
+        <Typography variant="h5" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
           Add Table Order
         </Typography>
       </Box>
 
-      <Box sx={{ padding: { xs: '0.5rem', md: '1rem' } }}>
-        <FormControl fullWidth sx={{ marginBottom: { xs: '1rem', md: '2rem' } }}>
+      <Box sx={{ padding: { xs: '0.5rem', sm: '1rem' } }}>
+        <FormControl fullWidth sx={{ marginBottom: { xs: '1rem', sm: '2rem' } }}>
           <InputLabel>Table Number *</InputLabel>
           <Select
             value={tableNumber}
@@ -278,11 +282,11 @@ const AdminAddTableOrderPage: React.FC = () => {
 
         <Box
           sx={{
-            marginBottom: { xs: '1rem', md: '2rem' },
+            marginBottom: { xs: '1rem', sm: '2rem' },
             display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: { xs: '0.5rem', md: '1rem' },
-            alignItems: { md: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: '0.5rem', sm: '1rem' },
+            alignItems: { sm: 'center' },
           }}
         >
           <TextField
@@ -292,16 +296,16 @@ const AdminAddTableOrderPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             size="small"
-            sx={{ flex: { md: 1 } }}
+            sx={{ flex: { sm: 1 } }}
           />
-          <Box sx={{ position: 'relative', width: { xs: '100%', md: '200px' } }}>
+          <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
             <Box
               onClick={handleBarClick}
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: { xs: '0.5rem', md: '1rem' },
+                padding: { xs: '0.5rem', sm: '1rem' },
                 border: '1px solid #ccc',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -311,7 +315,7 @@ const AdminAddTableOrderPage: React.FC = () => {
             >
               <Typography
                 variant="body1"
-                sx={{ fontSize: { xs: '0.9rem', md: '1rem' }, fontWeight: 'bold' }}
+                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, fontWeight: 'bold' }}
               >
                 {selectedCategory}
               </Typography>
@@ -394,7 +398,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                     {openCategories[category] && (
                       <Grid
                         container
-                        spacing={{ xs: 1, md: 2 }}
+                        spacing={{ xs: 1, sm: 2 }}
                         sx={{ marginTop: { xs: '0.5rem', md: '1rem' } }}
                       >
                         {filteredItems.map((item) => (
@@ -406,9 +410,11 @@ const AdminAddTableOrderPage: React.FC = () => {
                                 justifyContent: 'space-between',
                                 border: '1px solid #ddd',
                                 borderRadius: '4px',
-                                padding: { xs: '0.5rem', md: '1rem' },
+                                padding: { xs: '0.5rem', sm: '1rem' },
                                 backgroundColor: '#fff',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'transform 0.2s',
+                                '&:hover': { transform: 'scale(1.02)' },
                               }}
                             >
                               <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
@@ -425,14 +431,14 @@ const AdminAddTableOrderPage: React.FC = () => {
                                 <Box>
                                   <Typography
                                     variant="body2"
-                                    sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}
+                                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
                                   >
                                     {item.name}
                                   </Typography>
                                   <Typography
                                     variant="caption"
                                     color="text.secondary"
-                                    sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' } }}
+                                    sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                                   >
                                     ₹{item.price}
                                   </Typography>
@@ -444,9 +450,9 @@ const AdminAddTableOrderPage: React.FC = () => {
                                 onClick={() => handleAddToOrder(item)}
                                 size="small"
                                 sx={{
-                                  minWidth: { xs: '60px', md: '80px' },
-                                  padding: { xs: '0.25rem 0.5rem', md: '0.5rem 1rem' },
-                                  fontSize: { xs: '0.75rem', md: '0.9rem' },
+                                  minWidth: { xs: '60px', sm: '80px' },
+                                  padding: { xs: '0.25rem 0.5rem', sm: '0.5rem 1rem' },
+                                  fontSize: { xs: '0.75rem', sm: '0.9rem' },
                                 }}
                               >
                                 Add
@@ -470,7 +476,7 @@ const AdminAddTableOrderPage: React.FC = () => {
               alignSelf: { md: 'flex-start' },
               maxHeight: { md: 'calc(100vh - 4rem)' },
               overflowY: { md: 'auto' },
-              padding: { xs: '1rem', md: '2rem' },
+              padding: { xs: '1rem', sm: '2rem' },
               border: '1px solid #ccc',
               borderRadius: '4px',
               backgroundColor: '#fff',
@@ -480,8 +486,8 @@ const AdminAddTableOrderPage: React.FC = () => {
             <Typography
               variant="h6"
               sx={{
-                fontSize: { xs: '1.1rem', md: '1.5rem' },
-                marginBottom: { xs: '0.5rem', md: '1rem' },
+                fontSize: { xs: '1.1rem', sm: '1.5rem' },
+                marginBottom: { xs: '0.5rem', sm: '1rem' },
               }}
             >
               Order Summary
@@ -491,14 +497,14 @@ const AdminAddTableOrderPage: React.FC = () => {
                 color="text.secondary"
                 sx={{
                   textAlign: 'center',
-                  py: { xs: 1, md: 2 },
-                  fontSize: { xs: '0.9rem', md: '1rem' },
+                  py: { xs: 1, sm: 2 },
+                  fontSize: { xs: '0.9rem', sm: '1rem' },
                 }}
               >
                 No items added yet
               </Typography>
             ) : (
-              <Grid container spacing={{ xs: 1, md: 2 }}>
+              <Grid container spacing={{ xs: 1, sm: 2 }}>
                 {orderItems.map((item) => (
                   <Grid item xs={12} key={item.id}>
                     <Box
@@ -508,18 +514,20 @@ const AdminAddTableOrderPage: React.FC = () => {
                         justifyContent: 'space-between',
                         border: '1px solid #ddd',
                         borderRadius: '4px',
-                        padding: { xs: '0.5rem', md: '1rem' },
+                        padding: { xs: '0.5rem', sm: '1rem' },
                         backgroundColor: '#fff',
+                        transition: 'transform 0.2s',
+                        '&:hover': { transform: 'scale(1.02)' },
                       }}
                     >
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                           {item.name}
                         </Typography>
                         <Typography
                           variant="caption"
                           color="text.secondary"
-                          sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' } }}
+                          sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                         >
                           ₹{item.price} x {item.quantity}
                         </Typography>
@@ -528,7 +536,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: { xs: '0.25rem', md: '0.5rem' },
+                          gap: { xs: '0.25rem', sm: '0.5rem' },
                         }}
                       >
                         <IconButton
@@ -561,7 +569,7 @@ const AdminAddTableOrderPage: React.FC = () => {
             )}
             <Typography
               variant="h6"
-              sx={{ marginTop: { xs: '1rem', md: '2rem' }, fontSize: { xs: '1rem', md: '1.5rem' } }}
+              sx={{ marginTop: { xs: '1rem', sm: '2rem' }, fontSize: { xs: '1rem', sm: '1.5rem' } }}
             >
               Total: ₹{totalAmount}
             </Typography>
@@ -571,10 +579,10 @@ const AdminAddTableOrderPage: React.FC = () => {
               onClick={handleSubmitOrder}
               disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
               sx={{
-                marginTop: { xs: '0.5rem', md: '1rem' },
+                marginTop: { xs: '0.5rem', sm: '1rem' },
                 width: '100%',
-                padding: { xs: '0.5rem', md: '0.75rem' },
-                fontSize: { xs: '0.9rem', md: '1rem' },
+                padding: { xs: '0.5rem', sm: '0.75rem' },
+                fontSize: { xs: '0.9rem', sm: '1rem' },
               }}
             >
               Submit Order
