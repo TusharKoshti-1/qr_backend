@@ -104,7 +104,7 @@ const Order: React.FC = () => {
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
-    };
+    }; // Fixed: Removed stray "- (error);" and properly closed the function
 
     fetchOrders();
     fetchSettings();
@@ -113,6 +113,7 @@ const Order: React.FC = () => {
     ws.onopen = () => {
       console.log('WebSocket connection established');
     };
+
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
@@ -121,25 +122,30 @@ const Order: React.FC = () => {
         if (data.type === 'new_order') {
           setOrders((prev) => {
             const updatedOrders = [data.order, ...prev];
-            console.log('New order added:', updatedOrders);
+            aggregateItems(updatedOrders);
+            return updatedOrders;
+          });
+        } else if (data.type === 'complete_order') {
+          setOrders((prev) => {
+            const updatedOrders = prev
+              .map((order) =>
+                order.id === data.order.id ? { ...order, status: data.order.status } : order,
+              )
+              .filter((order) => order.status !== 'Completed');
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'update_order') {
           setOrders((prev) => {
-            const orderId = data.order?.id !== undefined ? Number(data.order.id) : Number(data.id);
-            const updatedOrderData = data.order || { id: orderId, status: data.status };
-            const updatedOrders = prev
-              .map((order) => (order.id === orderId ? { ...order, ...updatedOrderData } : order))
-              .filter((order) => order.status !== 'Completed');
-            console.log('Orders after update_order:', updatedOrders);
+            const updatedOrders = prev.map((order) =>
+              order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+            );
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
         } else if (data.type === 'delete_order') {
           setOrders((prev) => {
             const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
-            console.log('Orders after delete_order:', updatedOrders);
             aggregateItems(updatedOrders);
             return updatedOrders;
           });
@@ -148,9 +154,11 @@ const Order: React.FC = () => {
         console.error('Error processing WebSocket message:', error);
       }
     };
+
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
+
     ws.onclose = () => {
       console.log('WebSocket connection closed');
     };
