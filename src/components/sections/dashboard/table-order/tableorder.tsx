@@ -142,45 +142,60 @@ const TableOrdersPage: React.FC = () => {
           );
         } else if (data.type === 'update_table_order') {
           console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
-          const orderSectionId = Number(data.order.section_id);
-          const orderTableNumber = data.order.table_number.toString();
+          if (!data.order.id) {
+            console.error('Missing order ID in update_table_order');
+            return;
+          }
+          const orderId = Number(data.order.id);
           setOrders((prev) => {
+            const orderToUpdate = prev.find((order) => order.id === orderId);
+            if (!orderToUpdate) {
+              console.warn(`Order ID ${orderId} not found in current orders`);
+              return prev;
+            }
             let updatedItems: ItemType[];
             try {
               updatedItems = Array.isArray(data.order.items)
                 ? data.order.items
                 : typeof data.order.items === 'string'
                   ? JSON.parse(data.order.items)
-                  : data.order.items; // Fallback to existing items if parsing fails
+                  : orderToUpdate.items; // Fallback to existing items
             } catch (e) {
               console.error('Error parsing items in update_table_order:', e, data.order.items);
-              updatedItems = prev.find((o) => o.id === Number(data.order.id))?.items || [];
+              updatedItems = orderToUpdate.items;
             }
             const updatedOrders = prev
               .map((order) =>
-                order.id === Number(data.order.id)
+                order.id === orderId
                   ? {
                       ...order,
                       ...data.order,
-                      section_id: orderSectionId,
-                      items: updatedItems, // Use parsed or fallback items
+                      section_id: data.order.section_id
+                        ? Number(data.order.section_id)
+                        : order.section_id,
+                      table_number: data.order.table_number || order.table_number,
+                      items: updatedItems,
                     }
                   : order,
               )
               .filter((order) => order.status !== 'Completed');
             console.log('Updated orders after update_table_order:', updatedOrders);
-            return [...updatedOrders]; // Ensure new array reference
+            return [...updatedOrders];
           });
-          setTables((prev) =>
-            prev.map((t) =>
-              t.table_number === orderTableNumber && t.section_id === orderSectionId
-                ? {
-                    ...t,
-                    status: data.order.status === 'Pending' ? 'occupied' : 'empty',
-                  }
-                : t,
-            ),
-          );
+          if (data.order.table_number && data.order.section_id) {
+            const orderSectionId = Number(data.order.section_id);
+            const orderTableNumber = data.order.table_number.toString();
+            setTables((prev) =>
+              prev.map((t) =>
+                t.table_number === orderTableNumber && t.section_id === orderSectionId
+                  ? {
+                      ...t,
+                      status: data.order.status === 'Pending' ? 'occupied' : 'empty',
+                    }
+                  : t,
+              ),
+            );
+          }
         } else if (data.type === 'delete_table_order') {
           setOrders((prev) => prev.filter((order) => order.id !== Number(data.id)));
           setTables((prev) =>
