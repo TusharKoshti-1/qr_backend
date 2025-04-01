@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState /*, useRef*/ } from 'react';
 import axios from 'axios';
 import {
   Box,
@@ -49,7 +49,7 @@ const AdminAddTableOrderPage: React.FC = () => {
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
   const location = useLocation();
-  const selectRef = useRef<HTMLSelectElement>(null);
+  // const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -195,12 +195,12 @@ const AdminAddTableOrderPage: React.FC = () => {
     }
   };
 
-  const handleBarClick = () => {
-    if (selectRef.current) {
-      selectRef.current.focus();
-      selectRef.current.click();
-    }
-  };
+  // const handleBarClick = () => {
+  //   if (selectRef.current) {
+  //     selectRef.current.focus();
+  //     selectRef.current.click();
+  //   }
+  // };
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -232,269 +232,245 @@ const AdminAddTableOrderPage: React.FC = () => {
   };
 
   return (
-    <div className="menu__container">
-      <Box sx={{ padding: '1rem', textAlign: 'center', marginBottom: '2rem' }}>
-        <Typography variant="h4">Add Table Order</Typography>
-      </Box>
+    <Box
+      sx={{
+        maxWidth: '1400px',
+        mx: 'auto',
+        p: { xs: 2, md: 3 },
+        bgcolor: '#f5f5f5',
+        minHeight: '100vh',
+      }}
+    >
+      <Typography
+        variant="h4"
+        sx={{
+          mb: 3,
+          textAlign: 'center',
+          fontSize: { xs: '1.5rem', md: '2.25rem' },
+          fontWeight: 600,
+          color: '#333',
+        }}
+      >
+        Add Table Order
+      </Typography>
 
-      <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
-        <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
-          <Box sx={{ marginBottom: '2rem' }}>
-            <FormControl fullWidth sx={{ marginBottom: '1rem' }}>
-              <InputLabel>Table Number *</InputLabel>
-              <Select
-                value={tableNumber}
-                onChange={(e) => {
-                  const selected = tables.find((t) => t.table_number === e.target.value);
-                  setTableNumber(e.target.value as string);
-                  setSectionId(selected ? selected.section_id : null);
-                }}
-                label="Table Number *"
-                required
-                sx={{
-                  backgroundColor: '#fff9c4',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#f57c00',
-                    borderWidth: '2px',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ef6c00' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e65100' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>Select a table</em>
-                </MenuItem>
-                {tables
-                  .filter((table) => table.status === 'empty')
-                  .map((table) => (
-                    <MenuItem key={table.id} value={table.table_number}>
-                      Table {table.table_number} ({table.section})
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '1rem' }}>
-              <TextField
-                label="Search Menu Items"
-                variant="outlined"
-                fullWidth
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
-                <Box
-                  onClick={handleBarClick}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    backgroundColor: '#fff',
-                    borderBottom: '2px solid black',
-                  }}
-                >
-                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                    {selectedCategory}
-                  </Typography>
-                  <ExpandMoreIcon />
-                </Box>
-                <Select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as string)}
-                  inputRef={selectRef}
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                  }}
-                >
-                  <MenuItem value="All">All</MenuItem>
-                  {Object.keys(groupedItems)
-                    .sort()
-                    .map((category) => (
-                      <MenuItem key={category} value={category}>
-                        {category}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </Box>
-            </Box>
-          </Box>
-
-          {Object.entries(groupedItems)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
-            .map(([category, items]) => {
-              const filteredItems = searchTerm
-                ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                : items;
-              if (filteredItems.length === 0) return null;
-              return (
-                <Box key={category} sx={{ marginBottom: '2rem' }}>
-                  <Box
-                    onClick={() =>
-                      setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
-                    }
+      <Grid container spacing={3}>
+        {/* Left Section - Menu Selection */}
+        <Grid item xs={12} md={7}>
+          <Box sx={{ bgcolor: 'white', borderRadius: 2, p: 2, boxShadow: 1 }}>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Table Number</InputLabel>
+                  <Select
+                    value={tableNumber}
+                    onChange={(e) => {
+                      const selected = tables.find((t) => t.table_number === e.target.value);
+                      setTableNumber(e.target.value as string);
+                      setSectionId(selected ? selected.section_id : null);
+                    }}
+                    label="Table Number"
                     sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      borderBottom: '2px solid black',
-                      paddingBottom: '1rem',
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: '#f5f5f5' },
+                      bgcolor: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#ddd' },
+                      '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#999' },
                     }}
                   >
-                    <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
-                      {category}
-                    </Typography>
-                    {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                  </Box>
-                  {openCategories[category] && (
-                    <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
-                      {filteredItems.map((item) => (
-                        <Grid item xs={12} key={item.id}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              border: '1px solid #ccc',
-                              borderRadius: '4px',
-                              padding: '1rem',
-                              minHeight: '70px',
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                    <MenuItem value="">
+                      <em>Select table</em>
+                    </MenuItem>
+                    {tables
+                      .filter((table) => table.status === 'empty')
+                      .map((table) => (
+                        <MenuItem key={table.id} value={table.table_number}>
+                          Table {table.table_number} ({table.section})
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Search Menu"
+                  variant="outlined"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  sx={{ bgcolor: 'white' }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Category Filter */}
+            <Select
+              fullWidth
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value as string)}
+              sx={{ mb: 2, bgcolor: 'white' }}
+            >
+              <MenuItem value="All">All Categories</MenuItem>
+              {Object.keys(groupedItems)
+                .sort()
+                .map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+            </Select>
+
+            {/* Menu Items */}
+            <Box sx={{ maxHeight: { xs: '60vh', md: '70vh' }, overflowY: 'auto' }}>
+              {Object.entries(groupedItems)
+                .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+                .map(([category, items]) => {
+                  const filteredItems = searchTerm
+                    ? items.filter((item) =>
+                        item.name.toLowerCase().includes(searchTerm.toLowerCase()),
+                      )
+                    : items;
+                  if (filteredItems.length === 0) return null;
+                  return (
+                    <Box key={category} sx={{ mb: 2 }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#f0f0f0',
+                          p: 1,
+                          borderRadius: 1,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() =>
+                          setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
+                        }
+                      >
+                        <Typography variant="h6" sx={{ fontSize: '1.1rem', color: '#444' }}>
+                          {category}
+                        </Typography>
+                        {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      </Box>
+                      {openCategories[category] && (
+                        <Box sx={{ mt: 1 }}>
+                          {filteredItems.map((item) => (
+                            <Box
+                              key={item.id}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                p: 1,
+                                borderBottom: '1px solid #eee',
+                                '&:hover': { bgcolor: '#f9f9f9' },
+                              }}
+                            >
                               <img
                                 src={item.image}
                                 alt={item.name}
-                                style={{
-                                  width: 50,
-                                  height: 50,
-                                  marginRight: '10px',
-                                  borderRadius: '4px',
-                                }}
+                                style={{ width: 40, height: 40, borderRadius: 4, marginRight: 2 }}
                               />
-                              <Box>
-                                <Typography variant="body1">{item.name}</Typography>
-                                <Typography variant="body2" color="text.secondary">
+                              <Box sx={{ flex: 1 }}>
+                                <Typography sx={{ fontSize: '0.95rem' }}>{item.name}</Typography>
+                                <Typography sx={{ fontSize: '0.85rem', color: '#666' }}>
                                   ₹{item.price}
                                 </Typography>
                               </Box>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => handleAddToOrder(item)}
+                                sx={{ ml: 2, minWidth: '70px' }}
+                              >
+                                Add
+                              </Button>
                             </Box>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={() => handleAddToOrder(item)}
-                              sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
-                            >
-                              Add
-                            </Button>
-                          </Box>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  )}
-                </Box>
-              );
-            })}
-        </Box>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  );
+                })}
+            </Box>
+          </Box>
+        </Grid>
 
-        <Box
-          sx={{
-            flex: { xs: 'none', md: 1 },
-            position: { xs: 'static', md: 'sticky' },
-            top: { md: '2rem' },
-            alignSelf: { md: 'flex-start' },
-            maxHeight: { md: 'calc(100vh - 4rem)' },
-            overflowY: { md: 'auto' },
-            padding: '1rem',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            width: { xs: '100%', md: 'auto' },
-            mt: { xs: '2rem', md: 0 },
-          }}
-        >
-          <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
-            Order Summary
-          </Typography>
-          {orderItems.length === 0 ? (
-            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-              No items added yet
+        {/* Right Section - Order Summary */}
+        <Grid item xs={12} md={5}>
+          <Box
+            sx={{
+              bgcolor: 'white',
+              borderRadius: 2,
+              p: 2,
+              boxShadow: 1,
+              position: 'sticky',
+              top: 20,
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2, fontSize: '1.25rem', color: '#333' }}>
+              Order Summary
             </Typography>
-          ) : (
-            <Grid container spacing={2}>
-              {orderItems.map((item) => (
-                <Grid item xs={12} key={item.id}>
+
+            <Box sx={{ maxHeight: '60vh', overflowY: 'auto', mb: 2 }}>
+              {orderItems.length === 0 ? (
+                <Typography sx={{ textAlign: 'center', color: '#666', py: 2 }}>
+                  No items added
+                </Typography>
+              ) : (
+                orderItems.map((item) => (
                   <Box
+                    key={item.id}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      padding: '1rem',
-                      minHeight: '70px',
+                      py: 1,
+                      borderBottom: '1px solid #eee',
                     }}
                   >
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1">{item.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography sx={{ fontSize: '0.95rem' }}>{item.name}</Typography>
+                      <Typography sx={{ fontSize: '0.85rem', color: '#666' }}>
                         ₹{item.price} x {item.quantity}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <IconButton
-                        onClick={() => handleQuantityChange(item.id, true)}
-                        size="small"
-                        sx={{ padding: '4px' }}
-                      >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <IconButton size="small" onClick={() => handleQuantityChange(item.id, true)}>
                         <Add fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        onClick={() => handleQuantityChange(item.id, false)}
-                        size="small"
-                        sx={{ padding: '4px' }}
-                      >
+                      <Typography>{item.quantity}</Typography>
+                      <IconButton size="small" onClick={() => handleQuantityChange(item.id, false)}>
                         <Remove fontSize="small" />
                       </IconButton>
                       <IconButton
-                        onClick={() => handleRemoveItem(item.id)}
                         size="small"
                         color="error"
-                        sx={{ padding: '4px' }}
+                        onClick={() => handleRemoveItem(item.id)}
                       >
                         <Delete fontSize="small" />
                       </IconButton>
                     </Box>
                   </Box>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
-            Total: ₹{totalAmount}
-          </Typography>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleSubmitOrder}
-            disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
-            sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
-          >
-            Submit Order
-          </Button>
-        </Box>
-      </Box>
-    </div>
+                ))
+              )}
+            </Box>
+
+            <Box sx={{ borderTop: '1px solid #ddd', pt: 2 }}>
+              <Typography sx={{ fontSize: '1.1rem', fontWeight: 600, mb: 2 }}>
+                Total: ₹{totalAmount}
+              </Typography>
+              <Button
+                fullWidth
+                variant="contained"
+                color="primary"
+                onClick={handleSubmitOrder}
+                disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
+                sx={{ py: 1.5, fontSize: '1rem' }}
+              >
+                Place Order
+              </Button>
+            </Box>
+          </Box>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
-
 export default AdminAddTableOrderPage;
