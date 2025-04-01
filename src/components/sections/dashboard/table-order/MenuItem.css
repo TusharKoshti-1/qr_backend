@@ -1,4 +1,4 @@
-/* .menu__container {
+.menu__container {
   padding: 20px;
   width: 100%;
   display: flex;
@@ -14,69 +14,4 @@
 
 .menu__item .css-3e0jyh-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
   padding: 8.5px 14px !important;
-} */
-
-
-/* Add some additional styling for responsiveness and hover effects */
-/* Enhanced styling for better UI/UX */
-/* Simplified and clean styling */
-@media (max-width: 600px) {
-  .MuiTypography-root {
-    font-size: 0.9em !important;
-  }
-
-  .MuiButton-root {
-    padding: 0.3rem 0.6rem !important;
-    font-size: 0.8rem !important;
-  }
-
-  .MuiInputBase-root {
-    font-size: 0.9rem !important;
-  }
-
-  .MuiSelect-select {
-    padding: 0.5rem !important;
-  }
-}
-
-@media (min-width: 601px) and (max-width: 960px) {
-  .MuiTypography-root {
-    font-size: 1.1em !important;
-  }
-
-  .MuiButton-root {
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.9rem !important;
-  }
-}
-
-@media (min-width: 961px) {
-  .MuiTypography-root {
-    font-size: 1.2em !important;
-  }
-
-  .MuiButton-root {
-    padding: 0.5rem 1rem !important;
-    font-size: 1rem !important;
-  }
-}
-
-/* Ensure no overlap on PC */
-.menu-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem; /* Increased gap to prevent overlap */
-}
-
-.menu-item-img {
-  flex-shrink: 0; /* Prevent image from shrinking */
-}
-
-.menu-item-details {
-  flex-grow: 1; /* Allow details to grow and push button away */
-}
-
-.menu-item-button {
-  margin-left: 1rem; /* Ensure button has space from text */
 }
