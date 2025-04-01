@@ -76,7 +76,7 @@ const TableOrdersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detect mobile screens
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const connectWebSocket = () => {
     const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
@@ -142,11 +142,20 @@ const TableOrdersPage: React.FC = () => {
           );
         } else if (data.type === 'update_table_order') {
           console.log('Processing update_table_order:', JSON.stringify(data.order, null, 2));
-
           const orderSectionId = Number(data.order.section_id);
           const orderTableNumber = data.order.table_number.toString();
-
           setOrders((prev) => {
+            let updatedItems: ItemType[];
+            try {
+              updatedItems = Array.isArray(data.order.items)
+                ? data.order.items
+                : typeof data.order.items === 'string'
+                  ? JSON.parse(data.order.items)
+                  : order.items; // Fallback to existing items if parsing fails
+            } catch (e) {
+              console.error('Error parsing items in update_table_order:', e, data.order.items);
+              updatedItems = prev.find((o) => o.id === Number(data.order.id))?.items || [];
+            }
             const updatedOrders = prev
               .map((order) =>
                 order.id === Number(data.order.id)
@@ -154,16 +163,14 @@ const TableOrdersPage: React.FC = () => {
                       ...order,
                       ...data.order,
                       section_id: orderSectionId,
-                      items: Array.isArray(data.order.items)
-                        ? data.order.items
-                        : JSON.parse(data.order.items || '[]'),
+                      items: updatedItems, // Use parsed or fallback items
                     }
                   : order,
               )
               .filter((order) => order.status !== 'Completed');
-            return updatedOrders;
+            console.log('Updated orders after update_table_order:', updatedOrders);
+            return [...updatedOrders]; // Ensure new array reference
           });
-
           setTables((prev) =>
             prev.map((t) =>
               t.table_number === orderTableNumber && t.section_id === orderSectionId
@@ -392,7 +399,6 @@ const TableOrdersPage: React.FC = () => {
         },
       );
 
-      // Update state only if the deletion was successful (status 204)
       if (response.status === 204) {
         setSections((prev) => prev.filter((s) => s.id !== sectionId));
         setTables((prev) => prev.filter((t) => t.section_id !== sectionId));
@@ -458,7 +464,7 @@ const TableOrdersPage: React.FC = () => {
           <title>Table Order Receipt</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            .header { text-alert: center; margin-bottom: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
             .items { margin-bottom: 20px; }
             .qr { text-align: center; margin-top: 20px; }
             table { width: 100%; border-collapse: collapse; }
@@ -602,11 +608,11 @@ const TableOrdersPage: React.FC = () => {
   return (
     <Box
       sx={{
-        padding: { xs: 1, sm: 2, md: 3, lg: 4 }, // Responsive padding
+        padding: { xs: 1, sm: 2, md: 3, lg: 4 },
         maxWidth: '100%',
         margin: '0 auto',
-        minHeight: '100vh', // Full height for all devices
-        overflowX: 'hidden', // Prevent horizontal scroll
+        minHeight: '100vh',
+        overflowX: 'hidden',
       }}
     >
       {error && (
@@ -625,7 +631,7 @@ const TableOrdersPage: React.FC = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile, row on larger screens
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
           alignItems: { xs: 'flex-start', sm: 'center' },
           mb: { xs: 2, sm: 3 },
@@ -646,14 +652,14 @@ const TableOrdersPage: React.FC = () => {
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 1,
-            width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+            width: { xs: '100%', sm: 'auto' },
           }}
         >
           <Button
             variant="contained"
             color="primary"
             onClick={() => setAddTableDialogOpen(true)}
-            fullWidth={isMobile} // Full width on mobile
+            fullWidth={isMobile}
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -663,7 +669,7 @@ const TableOrdersPage: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={() => setAddSectionDialogOpen(true)}
-            fullWidth={isMobile} // Full width on mobile
+            fullWidth={isMobile}
             sx={{ minWidth: { sm: 100 } }}
             disabled={isLoading}
           >
@@ -713,7 +719,7 @@ const TableOrdersPage: React.FC = () => {
                     sx={{
                       backgroundColor: getTableStatusColor(table),
                       cursor: 'pointer',
-                      '&:hover': { boxShadow: { sm: 6 } }, // Hover only on larger screens
+                      '&:hover': { boxShadow: { sm: 6 } },
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
@@ -752,7 +758,7 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setDialogOpen(false)}
         fullWidth
         maxWidth="sm"
-        fullScreen={isMobile} // Full screen on mobile
+        fullScreen={isMobile}
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
         key={JSON.stringify(
           orders.find(
@@ -906,7 +912,7 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddTableDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile} // Full screen on mobile
+        fullScreen={isMobile}
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Table</DialogTitle>
@@ -953,7 +959,7 @@ const TableOrdersPage: React.FC = () => {
         onClose={() => setAddSectionDialogOpen(false)}
         fullWidth
         maxWidth="xs"
-        fullScreen={isMobile} // Full screen on mobile
+        fullScreen={isMobile}
         sx={{ '& .MuiDialog-paper': { m: { xs: 0, sm: 2 } } }}
       >
         <DialogTitle sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>Add New Section</DialogTitle>
