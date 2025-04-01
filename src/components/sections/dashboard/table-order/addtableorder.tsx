@@ -11,6 +11,9 @@ import {
   IconButton,
   FormControl,
   InputLabel,
+  Paper,
+  Card,
+  CardContent,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -234,20 +237,29 @@ const AdminAddTableOrderPage: React.FC = () => {
   return (
     <Box
       sx={{
-        padding: { xs: '0.5rem', sm: '1rem', md: '2rem' },
-        backgroundColor: '#f5f5f5',
+        padding: { xs: '0.5rem', sm: '1rem', md: '2rem 4rem' },
+        backgroundColor: '#f9f9f9',
         minHeight: '100vh',
+        overflowX: 'hidden',
       }}
     >
-      <Box sx={{ textAlign: 'center', marginBottom: { xs: '1rem', sm: '2rem' } }}>
-        <Typography variant="h5" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
+      <Box sx={{ textAlign: 'center', marginBottom: { xs: '1rem', sm: '2rem', md: '3rem' } }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },
+            fontWeight: 'bold',
+            color: '#2c3e50',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+          }}
+        >
           Add Table Order
         </Typography>
       </Box>
 
-      <Box sx={{ padding: { xs: '0.5rem', sm: '1rem' } }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: 2 }}>
         <FormControl fullWidth sx={{ marginBottom: { xs: '1rem', sm: '2rem' } }}>
-          <InputLabel>Table Number *</InputLabel>
+          <InputLabel sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Table Number *</InputLabel>
           <Select
             value={tableNumber}
             onChange={(e) => {
@@ -258,22 +270,27 @@ const AdminAddTableOrderPage: React.FC = () => {
             label="Table Number *"
             required
             sx={{
-              backgroundColor: '#fff9c4',
+              backgroundColor: '#f8e1a1',
               '& .MuiOutlinedInput-notchedOutline': {
                 borderColor: '#f57c00',
                 borderWidth: '2px',
               },
               '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ef6c00' },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e65100' },
+              fontSize: { xs: '0.9rem', sm: '1rem' },
             }}
           >
-            <MenuItem value="">
+            <MenuItem value="" disabled>
               <em>Select a table</em>
             </MenuItem>
             {tables
               .filter((table) => table.status === 'empty')
               .map((table) => (
-                <MenuItem key={table.id} value={table.table_number}>
+                <MenuItem
+                  key={table.id}
+                  value={table.table_number}
+                  sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                >
                   Table {table.table_number} ({table.section})
                 </MenuItem>
               ))}
@@ -285,7 +302,7 @@ const AdminAddTableOrderPage: React.FC = () => {
             marginBottom: { xs: '1rem', sm: '2rem' },
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: '0.5rem', sm: '1rem' },
+            gap: { xs: '0.5rem', sm: '1rem', md: '1.5rem' },
             alignItems: { sm: 'center' },
           }}
         >
@@ -296,26 +313,44 @@ const AdminAddTableOrderPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             size="small"
-            sx={{ flex: { sm: 1 } }}
+            sx={{
+              flex: { sm: 1 },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 1,
+                backgroundColor: '#fff',
+                '&:hover': { borderColor: '#f57c00' },
+                '&.Mui-focused': { borderColor: '#e65100' },
+              },
+              fontSize: { xs: '0.9rem', sm: '1rem' },
+            }}
           />
-          <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
+          <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px', md: '250px' } }}>
             <Box
               onClick={handleBarClick}
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: { xs: '0.5rem', sm: '1rem' },
-                border: '1px solid #ccc',
-                borderRadius: '4px',
+                padding: { xs: '0.5rem', sm: '0.8rem', md: '1rem' },
+                border: '1px solid #ddd',
+                borderRadius: 1,
                 cursor: 'pointer',
                 backgroundColor: '#fff',
-                borderBottom: '2px solid black',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                  transform: 'translateY(-2px)',
+                },
               }}
             >
               <Typography
                 variant="body1"
-                sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, fontWeight: 'bold' }}
+                sx={{
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontWeight: 'bold',
+                  color: '#2c3e50',
+                }}
               >
                 {selectedCategory}
               </Typography>
@@ -334,11 +369,15 @@ const AdminAddTableOrderPage: React.FC = () => {
                 opacity: 0,
               }}
             >
-              <MenuItem value="All">All</MenuItem>
+              <MenuItem value="All">All Categories</MenuItem>
               {Object.keys(groupedItems)
                 .sort()
                 .map((category) => (
-                  <MenuItem key={category} value={category}>
+                  <MenuItem
+                    key={category}
+                    value={category}
+                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
+                  >
                     {category}
                   </MenuItem>
                 ))}
@@ -378,17 +417,25 @@ const AdminAddTableOrderPage: React.FC = () => {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: { xs: '1px solid #ccc', md: '2px solid black' },
-                        padding: { xs: '0.5rem', md: '1rem' },
+                        padding: { xs: '0.5rem', sm: '1rem' },
+                        borderRadius: 1,
+                        backgroundColor: '#fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                         cursor: 'pointer',
-                        '&:hover': { backgroundColor: '#f5f5f5' },
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: '#f5f5f5',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                          transform: 'translateY(-2px)',
+                        },
                       }}
                     >
                       <Typography
                         variant="h6"
                         sx={{
-                          fontSize: { xs: '1rem', md: '1.5rem' },
+                          fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
                           fontWeight: 'bold',
+                          color: '#2c3e50',
                         }}
                       >
                         {category}
@@ -398,66 +445,79 @@ const AdminAddTableOrderPage: React.FC = () => {
                     {openCategories[category] && (
                       <Grid
                         container
-                        spacing={{ xs: 1, sm: 2 }}
-                        sx={{ marginTop: { xs: '0.5rem', md: '1rem' } }}
+                        spacing={{ xs: 1, sm: 2, md: 3 }}
+                        sx={{ marginTop: { xs: '0.5rem', sm: '1rem' } }}
                       >
                         {filteredItems.map((item) => (
                           <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                            <Box
+                            <Card
                               sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                padding: { xs: '0.5rem', sm: '1rem' },
-                                backgroundColor: '#fff',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                transition: 'transform 0.2s',
-                                '&:hover': { transform: 'scale(1.02)' },
+                                borderRadius: 2,
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                  boxShadow: '0 6px 12px rgba(0,0,0,0.2)',
+                                  transform: 'translateY(-2px)',
+                                },
                               }}
                             >
-                              <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  style={{
-                                    width: 40,
-                                    height: 40,
-                                    marginRight: '0.5rem',
-                                    borderRadius: '4px',
-                                  }}
-                                />
-                                <Box>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
-                                  >
-                                    {item.name}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
-                                  >
-                                    ₹{item.price}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                              <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() => handleAddToOrder(item)}
-                                size="small"
+                              <CardContent
                                 sx={{
-                                  minWidth: { xs: '60px', sm: '80px' },
-                                  padding: { xs: '0.25rem 0.5rem', sm: '0.5rem 1rem' },
-                                  fontSize: { xs: '0.75rem', sm: '0.9rem' },
+                                  padding: { xs: '0.5rem', sm: '1rem' },
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
                                 }}
                               >
-                                Add
-                              </Button>
-                            </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    style={{
+                                      width: 50,
+                                      height: 50,
+                                      marginRight: '1rem',
+                                      borderRadius: '8px',
+                                      objectFit: 'cover',
+                                    }}
+                                  />
+                                  <Box>
+                                    <Typography
+                                      variant="subtitle1"
+                                      sx={{
+                                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                                        fontWeight: '500',
+                                        color: '#34495e',
+                                      }}
+                                    >
+                                      {item.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      color="text.secondary"
+                                      sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+                                    >
+                                      ₹{item.price}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  onClick={() => handleAddToOrder(item)}
+                                  sx={{
+                                    minWidth: { xs: '70px', sm: '90px' },
+                                    padding: { xs: '0.3rem 0.6rem', sm: '0.5rem 1rem' },
+                                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+                                    borderRadius: 1,
+                                    backgroundColor: '#4CAF50',
+                                    '&:hover': { backgroundColor: '#45a049' },
+                                  }}
+                                >
+                                  Add
+                                </Button>
+                              </CardContent>
+                            </Card>
                           </Grid>
                         ))}
                       </Grid>
@@ -474,20 +534,21 @@ const AdminAddTableOrderPage: React.FC = () => {
               position: { xs: 'static', md: 'sticky' },
               top: { md: '2rem' },
               alignSelf: { md: 'flex-start' },
-              maxHeight: { md: 'calc(100vh - 4rem)' },
+              maxHeight: { md: 'calc(100vh - 6rem)' },
               overflowY: { md: 'auto' },
-              padding: { xs: '1rem', sm: '2rem' },
-              border: '1px solid #ccc',
-              borderRadius: '4px',
+              padding: { xs: '1rem', sm: '1.5rem', md: '2rem' },
+              borderRadius: 2,
               backgroundColor: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
             }}
           >
             <Typography
-              variant="h6"
+              variant="h5"
               sx={{
-                fontSize: { xs: '1.1rem', sm: '1.5rem' },
+                fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
                 marginBottom: { xs: '0.5rem', sm: '1rem' },
+                fontWeight: 'bold',
+                color: '#2c3e50',
               }}
             >
               Order Summary
@@ -499,33 +560,48 @@ const AdminAddTableOrderPage: React.FC = () => {
                   textAlign: 'center',
                   py: { xs: 1, sm: 2 },
                   fontSize: { xs: '0.9rem', sm: '1rem' },
+                  color: '#7f8c8d',
                 }}
               >
                 No items added yet
               </Typography>
             ) : (
-              <Grid container spacing={{ xs: 1, sm: 2 }}>
+              <Box sx={{ mt: 1 }}>
                 {orderItems.map((item) => (
-                  <Grid item xs={12} key={item.id}>
-                    <Box
+                  <Card
+                    key={item.id}
+                    sx={{
+                      mb: 1,
+                      borderRadius: 2,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
+                    <CardContent
                       sx={{
+                        padding: { xs: '0.5rem', sm: '1rem' },
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        padding: { xs: '0.5rem', sm: '1rem' },
-                        backgroundColor: '#fff',
-                        transition: 'transform 0.2s',
-                        '&:hover': { transform: 'scale(1.02)' },
                       }}
                     >
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{
+                            fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                            fontWeight: '500',
+                            color: '#34495e',
+                          }}
+                        >
                           {item.name}
                         </Typography>
                         <Typography
-                          variant="caption"
+                          variant="body2"
                           color="text.secondary"
                           sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
                         >
@@ -542,14 +618,24 @@ const AdminAddTableOrderPage: React.FC = () => {
                         <IconButton
                           onClick={() => handleQuantityChange(item.id, true)}
                           size="small"
-                          sx={{ padding: '4px' }}
+                          sx={{
+                            padding: '4px',
+                            backgroundColor: '#4CAF50',
+                            color: '#fff',
+                            '&:hover': { backgroundColor: '#45a049' },
+                          }}
                         >
                           <Add fontSize="small" />
                         </IconButton>
                         <IconButton
                           onClick={() => handleQuantityChange(item.id, false)}
                           size="small"
-                          sx={{ padding: '4px' }}
+                          sx={{
+                            padding: '4px',
+                            backgroundColor: '#f44336',
+                            color: '#fff',
+                            '&:hover': { backgroundColor: '#da190b' },
+                          }}
                         >
                           <Remove fontSize="small" />
                         </IconButton>
@@ -557,39 +643,53 @@ const AdminAddTableOrderPage: React.FC = () => {
                           onClick={() => handleRemoveItem(item.id)}
                           size="small"
                           color="error"
-                          sx={{ padding: '4px' }}
+                          sx={{
+                            padding: '4px',
+                            backgroundColor: '#ff4444',
+                            color: '#fff',
+                            '&:hover': { backgroundColor: '#cc0000' },
+                          }}
                         >
                           <Delete fontSize="small" />
                         </IconButton>
                       </Box>
-                    </Box>
-                  </Grid>
+                    </CardContent>
+                  </Card>
                 ))}
-              </Grid>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mt: { xs: '1rem', sm: '1.5rem' },
+                    fontSize: { xs: '1rem', sm: '1.2rem', md: '1.5rem' },
+                    fontWeight: 'bold',
+                    color: '#2c3e50',
+                  }}
+                >
+                  Total: ₹{totalAmount}
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleSubmitOrder}
+                  disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
+                  sx={{
+                    mt: { xs: '0.5rem', sm: '1rem' },
+                    width: '100%',
+                    padding: { xs: '0.6rem', sm: '0.8rem' },
+                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                    borderRadius: 1,
+                    backgroundColor: '#ff5722',
+                    '&:hover': { backgroundColor: '#e64a19' },
+                    '&:disabled': { backgroundColor: '#cccccc', color: '#666' },
+                  }}
+                >
+                  Submit Order
+                </Button>
+              </Box>
             )}
-            <Typography
-              variant="h6"
-              sx={{ marginTop: { xs: '1rem', sm: '2rem' }, fontSize: { xs: '1rem', sm: '1.5rem' } }}
-            >
-              Total: ₹{totalAmount}
-            </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleSubmitOrder}
-              disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
-              sx={{
-                marginTop: { xs: '0.5rem', sm: '1rem' },
-                width: '100%',
-                padding: { xs: '0.5rem', sm: '0.75rem' },
-                fontSize: { xs: '0.9rem', sm: '1rem' },
-              }}
-            >
-              Submit Order
-            </Button>
           </Box>
         </Box>
-      </Box>
+      </Paper>
     </Box>
   );
 };
