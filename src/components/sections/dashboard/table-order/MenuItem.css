@@ -19,6 +19,7 @@
 
 /* Add some additional styling for responsiveness and hover effects */
 /* Enhanced styling for better UI/UX */
+/* Simplified and clean styling */
 @media (max-width: 600px) {
   .MuiTypography-root {
     font-size: 0.9em !important;
@@ -36,10 +37,6 @@
   .MuiSelect-select {
     padding: 0.5rem !important;
   }
-
-  .MuiCard-root {
-    margin: 0.5rem 0 !important;
-  }
 }
 
 @media (min-width: 601px) and (max-width: 960px) {
@@ -50,10 +47,6 @@
   .MuiButton-root {
     padding: 0.4rem 0.8rem !important;
     font-size: 0.9rem !important;
-  }
-
-  .MuiCard-root {
-    margin: 0.75rem 0 !important;
   }
 }
 
@@ -66,34 +59,24 @@
     padding: 0.5rem 1rem !important;
     font-size: 1rem !important;
   }
-
-  .MuiCard-root {
-    margin: 1rem 0 !important;
-  }
 }
 
-.menu-item-container, .order-summary-item {
-  transition: all 0.3s ease-in-out;
+/* Ensure no overlap on PC */
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem; /* Increased gap to prevent overlap */
 }
 
-.menu-item-container:hover, .order-summary-item:hover {
-  transform: scale(1.02);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2) !important;
+.menu-item-img {
+  flex-shrink: 0; /* Prevent image from shrinking */
 }
 
-.MuiPaper-root {
-  background: linear-gradient(135deg, #ffffff, #f5f7fa);
+.menu-item-details {
+  flex-grow: 1; /* Allow details to grow and push button away */
 }
 
-.MuiCard-root {
-  background: #ffffff;
-  border-radius: 12px;
-}
-
-.MuiButton-containedPrimary {
-  transition: background-color 0.3s ease;
-}
-
-.MuiButton-containedSecondary {
-  transition: background-color 0.3s ease;
+.menu-item-button {
+  margin-left: 1rem; /* Ensure button has space from text */
 }
