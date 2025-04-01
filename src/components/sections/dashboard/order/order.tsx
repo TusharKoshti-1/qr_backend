@@ -82,8 +82,13 @@ const Order: React.FC = () => {
             },
           },
         );
-        setOrders(response.data);
-        aggregateItems(response.data);
+        // Ensure all IDs are numbers
+        const normalizedOrders = response.data.map((order) => ({
+          ...order,
+          id: Number(order.id),
+        }));
+        setOrders(normalizedOrders);
+        aggregateItems(normalizedOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }
@@ -124,28 +129,31 @@ const Order: React.FC = () => {
 
           if (data.type === 'new_order') {
             setOrders((prev) => {
-              const updatedOrders = [data.order, ...prev];
+              const newOrder = { ...data.order, id: Number(data.order.id) };
+              const updatedOrders = [newOrder, ...prev];
               aggregateItems(updatedOrders);
               console.log('Updated orders after new_order:', updatedOrders);
               return updatedOrders;
             });
           } else if (data.type === 'complete_order') {
             setOrders((prev) => {
-              // Update status and filter based on the incoming data.order.id
-              const updatedOrders = prev.filter((order) => order.id !== data.order.id);
+              const orderId = Number(data.order.id);
+              const updatedOrders = prev.filter((order) => Number(order.id) !== orderId);
               aggregateItems(updatedOrders);
               console.log('Updated orders after complete_order:', updatedOrders);
               return updatedOrders;
             });
           } else if (data.type === 'update_order') {
             setOrders((prev) => {
+              const orderId = Number(data.order.id);
               const updatedOrders = prev.map((order) =>
-                order.id === Number(data.order.id)
+                Number(order.id) === orderId
                   ? {
                       ...order,
                       ...data.order,
-                      items: data.order.items || order.items, // Preserve items
-                      status: order.status, // Preserve status unless explicitly changed
+                      id: orderId, // Ensure ID remains a number
+                      items: data.order.items || order.items,
+                      status: order.status, // Preserve status
                     }
                   : order,
               );
@@ -155,7 +163,8 @@ const Order: React.FC = () => {
             });
           } else if (data.type === 'delete_order') {
             setOrders((prev) => {
-              const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
+              const orderId = Number(data.id);
+              const updatedOrders = prev.filter((order) => Number(order.id) !== orderId);
               aggregateItems(updatedOrders);
               console.log('Updated orders after delete_order:', updatedOrders);
               return updatedOrders;
@@ -300,7 +309,7 @@ const Order: React.FC = () => {
         },
       });
       setOrders((prev) => {
-        const updatedOrders = prev.filter((order) => order.id !== id);
+        const updatedOrders = prev.filter((order) => Number(order.id) !== id);
         aggregateItems(updatedOrders);
         return updatedOrders;
       });
