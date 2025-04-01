@@ -151,7 +151,7 @@ const TableOrdersPage: React.FC = () => {
                 ? data.order.items
                 : typeof data.order.items === 'string'
                   ? JSON.parse(data.order.items)
-                  : order.items; // Fallback to existing items if parsing fails
+                  : data.order.items; // Fallback to existing items if parsing fails
             } catch (e) {
               console.error('Error parsing items in update_table_order:', e, data.order.items);
               updatedItems = prev.find((o) => o.id === Number(data.order.id))?.items || [];
