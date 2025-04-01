@@ -15,3 +15,53 @@
 .menu__item .css-3e0jyh-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
   padding: 8.5px 14px !important;
 }
+
+
+/* Add some additional styling for responsiveness and hover effects */
+@media (max-width: 600px) {
+  .MuiTypography-root {
+    font-size: 0.9em !important;
+  }
+
+  .MuiButton-root {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  .MuiInputBase-root {
+    font-size: 0.9rem !important;
+  }
+
+  .MuiSelect-select {
+    padding: 0.5rem !important;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .MuiTypography-root {
+    font-size: 1.1em !important;
+  }
+
+  .MuiButton-root {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+.menu-item-container {
+  transition: transform 0.2s ease-in-out;
+}
+
+.menu-item-container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.order-summary-item {
+  transition: transform 0.2s ease-in-out;
+}
+
+.order-summary-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
