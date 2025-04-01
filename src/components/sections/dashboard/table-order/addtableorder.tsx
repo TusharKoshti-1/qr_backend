@@ -232,101 +232,105 @@ const AdminAddTableOrderPage: React.FC = () => {
   };
 
   return (
-    <div className="menu__container">
-      <Box sx={{ padding: '1rem', textAlign: 'center', marginBottom: '2rem' }}>
-        <Typography variant="h4">Add Table Order</Typography>
+    <Box
+      sx={{ padding: { xs: '0.5rem', md: '1rem' }, backgroundColor: '#f5f5f5', minHeight: '100vh' }}
+    >
+      <Box sx={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <Typography variant="h5" sx={{ fontSize: { xs: '1.5rem', md: '2rem' } }}>
+          Add Table Order
+        </Typography>
       </Box>
 
-      <Box sx={{ display: { xs: 'block', md: 'flex' }, gap: '2rem', padding: '0 1rem' }}>
-        <Box sx={{ flex: 1, mb: { xs: '2rem', md: 0 } }}>
-          <Box sx={{ marginBottom: '2rem' }}>
-            <FormControl fullWidth sx={{ marginBottom: '1rem' }}>
-              <InputLabel>Table Number *</InputLabel>
-              <Select
-                value={tableNumber}
-                onChange={(e) => {
-                  const selected = tables.find((t) => t.table_number === e.target.value);
-                  setTableNumber(e.target.value as string);
-                  setSectionId(selected ? selected.section_id : null);
-                }}
-                label="Table Number *"
-                required
-                sx={{
-                  backgroundColor: '#fff9c4',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#f57c00',
-                    borderWidth: '2px',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ef6c00' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e65100' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>Select a table</em>
+      <Box sx={{ padding: { xs: '0.5rem', md: '1rem' } }}>
+        <FormControl fullWidth sx={{ marginBottom: '1rem' }}>
+          <InputLabel>Table Number *</InputLabel>
+          <Select
+            value={tableNumber}
+            onChange={(e) => {
+              const selected = tables.find((t) => t.table_number === e.target.value);
+              setTableNumber(e.target.value as string);
+              setSectionId(selected ? selected.section_id : null);
+            }}
+            label="Table Number *"
+            required
+            sx={{
+              backgroundColor: '#fff9c4',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#f57c00',
+                borderWidth: '2px',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ef6c00' },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e65100' },
+            }}
+          >
+            <MenuItem value="">
+              <em>Select a table</em>
+            </MenuItem>
+            {tables
+              .filter((table) => table.status === 'empty')
+              .map((table) => (
+                <MenuItem key={table.id} value={table.table_number}>
+                  Table {table.table_number} ({table.section})
                 </MenuItem>
-                {tables
-                  .filter((table) => table.status === 'empty')
-                  .map((table) => (
-                    <MenuItem key={table.id} value={table.table_number}>
-                      Table {table.table_number} ({table.section})
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: '1rem' }}>
-              <TextField
-                label="Search Menu Items"
-                variant="outlined"
-                fullWidth
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-              <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
-                <Box
-                  onClick={handleBarClick}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    backgroundColor: '#fff',
-                    borderBottom: '2px solid black',
-                  }}
-                >
-                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                    {selectedCategory}
-                  </Typography>
-                  <ExpandMoreIcon />
-                </Box>
-                <Select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as string)}
-                  inputRef={selectRef}
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                  }}
-                >
-                  <MenuItem value="All">All</MenuItem>
-                  {Object.keys(groupedItems)
-                    .sort()
-                    .map((category) => (
-                      <MenuItem key={category} value={category}>
-                        {category}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </Box>
-            </Box>
-          </Box>
+              ))}
+          </Select>
+        </FormControl>
 
+        <Box sx={{ marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <TextField
+            label="Search Menu Items"
+            variant="outlined"
+            fullWidth
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            size="small"
+          />
+          <Box sx={{ position: 'relative', width: '100%' }}>
+            <Box
+              onClick={handleBarClick}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                backgroundColor: '#fff',
+                borderBottom: '2px solid black',
+              }}
+            >
+              <Typography variant="body1" sx={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                {selectedCategory}
+              </Typography>
+              <ExpandMoreIcon />
+            </Box>
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value as string)}
+              inputRef={selectRef}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+              }}
+            >
+              <MenuItem value="All">All</MenuItem>
+              {Object.keys(groupedItems)
+                .sort()
+                .map((category) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+            </Select>
+          </Box>
+        </Box>
+
+        <Box sx={{ marginBottom: '1rem' }}>
           {Object.entries(groupedItems)
             .sort(([a], [b]) => a.localeCompare(b))
             .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
@@ -336,7 +340,7 @@ const AdminAddTableOrderPage: React.FC = () => {
                 : items;
               if (filteredItems.length === 0) return null;
               return (
-                <Box key={category} sx={{ marginBottom: '2rem' }}>
+                <Box key={category} sx={{ marginBottom: '1rem' }}>
                   <Box
                     onClick={() =>
                       setOpenCategories((prev) => ({ ...prev, [category]: !prev[category] }))
@@ -345,30 +349,34 @@ const AdminAddTableOrderPage: React.FC = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      borderBottom: '2px solid black',
-                      paddingBottom: '1rem',
+                      borderBottom: '1px solid #ccc',
+                      padding: '0.5rem',
                       cursor: 'pointer',
                       '&:hover': { backgroundColor: '#f5f5f5' },
                     }}
                   >
-                    <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold' }}>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontSize: { xs: '1rem', md: '1.25rem' }, fontWeight: 'bold' }}
+                    >
                       {category}
                     </Typography>
                     {openCategories[category] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                   </Box>
                   {openCategories[category] && (
-                    <Grid container spacing={2} sx={{ marginTop: '1rem' }}>
+                    <Grid container spacing={1} sx={{ marginTop: '0.5rem' }}>
                       {filteredItems.map((item) => (
-                        <Grid item xs={12} key={item.id}>
+                        <Grid item xs={12} sm={6} md={4} key={item.id}>
                           <Box
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              border: '1px solid #ccc',
+                              border: '1px solid #ddd',
                               borderRadius: '4px',
-                              padding: '1rem',
-                              minHeight: '70px',
+                              padding: '0.5rem',
+                              backgroundColor: '#fff',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
@@ -376,15 +384,21 @@ const AdminAddTableOrderPage: React.FC = () => {
                                 src={item.image}
                                 alt={item.name}
                                 style={{
-                                  width: 50,
-                                  height: 50,
-                                  marginRight: '10px',
+                                  width: 40,
+                                  height: 40,
+                                  marginRight: '0.5rem',
                                   borderRadius: '4px',
                                 }}
                               />
                               <Box>
-                                <Typography variant="body1">{item.name}</Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="body2" sx={{ fontSize: '0.9rem' }}>
+                                  {item.name}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ fontSize: '0.8rem' }}
+                                >
                                   ₹{item.price}
                                 </Typography>
                               </Box>
@@ -393,7 +407,12 @@ const AdminAddTableOrderPage: React.FC = () => {
                               variant="contained"
                               color="primary"
                               onClick={() => handleAddToOrder(item)}
-                              sx={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
+                              size="small"
+                              sx={{
+                                minWidth: '60px',
+                                padding: '0.25rem 0.5rem',
+                                fontSize: '0.75rem',
+                              }}
                             >
                               Add
                             </Button>
@@ -409,28 +428,28 @@ const AdminAddTableOrderPage: React.FC = () => {
 
         <Box
           sx={{
-            flex: { xs: 'none', md: 1 },
-            position: { xs: 'static', md: 'sticky' },
-            top: { md: '2rem' },
-            alignSelf: { md: 'flex-start' },
-            maxHeight: { md: 'calc(100vh - 4rem)' },
-            overflowY: { md: 'auto' },
-            padding: '1rem',
-            border: '1px solid #ccc',
+            marginTop: '1rem',
+            backgroundColor: '#fff',
             borderRadius: '4px',
-            width: { xs: '100%', md: 'auto' },
-            mt: { xs: '2rem', md: 0 },
+            padding: '1rem',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontSize: { xs: '1.1rem', md: '1.5rem' }, marginBottom: '0.5rem' }}
+          >
             Order Summary
           </Typography>
           {orderItems.length === 0 ? (
-            <Typography color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+            <Typography
+              color="text.secondary"
+              sx={{ textAlign: 'center', py: 1, fontSize: '0.9rem' }}
+            >
               No items added yet
             </Typography>
           ) : (
-            <Grid container spacing={2}>
+            <Grid container spacing={1}>
               {orderItems.map((item) => (
                 <Grid item xs={12} key={item.id}>
                   <Box
@@ -438,19 +457,25 @@ const AdminAddTableOrderPage: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      border: '1px solid #ccc',
+                      border: '1px solid #ddd',
                       borderRadius: '4px',
-                      padding: '1rem',
-                      minHeight: '70px',
+                      padding: '0.5rem',
+                      backgroundColor: '#fff',
                     }}
                   >
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1">{item.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" sx={{ fontSize: '0.9rem' }}>
+                        {item.name}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontSize: '0.8rem' }}
+                      >
                         ₹{item.price} x {item.quantity}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <IconButton
                         onClick={() => handleQuantityChange(item.id, true)}
                         size="small"
@@ -479,7 +504,10 @@ const AdminAddTableOrderPage: React.FC = () => {
               ))}
             </Grid>
           )}
-          <Typography variant="h6" sx={{ marginTop: '2rem' }}>
+          <Typography
+            variant="h6"
+            sx={{ marginTop: '1rem', fontSize: { xs: '1rem', md: '1.25rem' } }}
+          >
             Total: ₹{totalAmount}
           </Typography>
           <Button
@@ -487,13 +515,13 @@ const AdminAddTableOrderPage: React.FC = () => {
             color="secondary"
             onClick={handleSubmitOrder}
             disabled={!tableNumber || orderItems.length === 0 || sectionId === null}
-            sx={{ marginTop: '1rem', width: '100%', padding: '0.75rem' }}
+            sx={{ marginTop: '0.5rem', width: '100%', padding: '0.5rem', fontSize: '0.9rem' }}
           >
             Submit Order
           </Button>
         </Box>
       </Box>
-    </div>
+    </Box>
   );
 };
 
