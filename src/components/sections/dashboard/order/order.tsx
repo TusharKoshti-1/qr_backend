@@ -143,7 +143,9 @@ const Order: React.FC = () => {
           } else if (data.type === 'update_order') {
             setOrders((prev) => {
               const updatedOrders = prev.map((order) =>
-                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+                order.id === Number(data.order.id)
+                  ? { ...order, ...data.order, items: data.order.items || order.items } // Preserve items if not provided
+                  : order,
               );
               aggregateItems(updatedOrders);
               console.log('Updated orders after update_order:', updatedOrders);
