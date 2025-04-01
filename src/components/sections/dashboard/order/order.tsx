@@ -131,11 +131,8 @@ const Order: React.FC = () => {
             });
           } else if (data.type === 'complete_order') {
             setOrders((prev) => {
-              const updatedOrders = prev
-                .map((order) =>
-                  order.id === data.order.id ? { ...order, status: data.order.status } : order,
-                )
-                .filter((order) => order.status !== 'Completed');
+              // Update status and filter based on the incoming data.order.id
+              const updatedOrders = prev.filter((order) => order.id !== data.order.id);
               aggregateItems(updatedOrders);
               console.log('Updated orders after complete_order:', updatedOrders);
               return updatedOrders;
@@ -144,7 +141,12 @@ const Order: React.FC = () => {
             setOrders((prev) => {
               const updatedOrders = prev.map((order) =>
                 order.id === Number(data.order.id)
-                  ? { ...order, ...data.order, items: data.order.items || order.items } // Preserve items if not provided
+                  ? {
+                      ...order,
+                      ...data.order,
+                      items: data.order.items || order.items, // Preserve items
+                      status: order.status, // Preserve status unless explicitly changed
+                    }
                   : order,
               );
               aggregateItems(updatedOrders);
