@@ -104,66 +104,79 @@ const Order: React.FC = () => {
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
-    }; // Fixed: Removed stray "- (error);" and properly closed the function
+    };
 
     fetchOrders();
     fetchSettings();
 
-    const ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
+    let ws: WebSocket;
+    const connectWebSocket = () => {
+      ws = new WebSocket('wss://qr-system-v1pa.onrender.com');
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
+      ws.onopen = () => {
+        console.log('WebSocket connection established');
+      };
 
-        if (data.type === 'new_order') {
-          setOrders((prev) => {
-            const updatedOrders = [data.order, ...prev];
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'complete_order') {
-          setOrders((prev) => {
-            const updatedOrders = prev
-              .map((order) =>
-                order.id === data.order.id ? { ...order, status: data.order.status } : order,
-              )
-              .filter((order) => order.status !== 'Completed');
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'update_order') {
-          setOrders((prev) => {
-            const updatedOrders = prev.map((order) =>
-              order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
-            );
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
-        } else if (data.type === 'delete_order') {
-          setOrders((prev) => {
-            const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
-            aggregateItems(updatedOrders);
-            return updatedOrders;
-          });
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
+
+          if (data.type === 'new_order') {
+            setOrders((prev) => {
+              const updatedOrders = [data.order, ...prev];
+              aggregateItems(updatedOrders);
+              console.log('Updated orders after new_order:', updatedOrders);
+              return updatedOrders;
+            });
+          } else if (data.type === 'complete_order') {
+            setOrders((prev) => {
+              const updatedOrders = prev
+                .map((order) =>
+                  order.id === data.order.id ? { ...order, status: data.order.status } : order,
+                )
+                .filter((order) => order.status !== 'Completed');
+              aggregateItems(updatedOrders);
+              console.log('Updated orders after complete_order:', updatedOrders);
+              return updatedOrders;
+            });
+          } else if (data.type === 'update_order') {
+            setOrders((prev) => {
+              const updatedOrders = prev.map((order) =>
+                order.id === Number(data.order.id) ? { ...order, ...data.order } : order,
+              );
+              aggregateItems(updatedOrders);
+              console.log('Updated orders after update_order:', updatedOrders);
+              return updatedOrders;
+            });
+          } else if (data.type === 'delete_order') {
+            setOrders((prev) => {
+              const updatedOrders = prev.filter((order) => order.id !== Number(data.id));
+              aggregateItems(updatedOrders);
+              console.log('Updated orders after delete_order:', updatedOrders);
+              return updatedOrders;
+            });
+          }
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('Error processing WebSocket message:', error);
-      }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket connection closed, attempting to reconnect...');
+        setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
+      };
     };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+    connectWebSocket();
 
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
+    return () => {
+      if (ws) ws.close();
     };
-
-    return () => ws.close();
   }, []);
 
   const handleEditOrder = (order: OrderType) => {
