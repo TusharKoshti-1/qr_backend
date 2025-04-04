@@ -1,5 +1,5 @@
 import { PaletteColorOptions, PaletteOptions } from '@mui/material/styles';
-import { grey, orange, red, green, purple, blue, yellow } from './colors';
+import { indigo, grey, orange, red, green, purple, blue, yellow } from './colors';
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -30,13 +30,13 @@ declare module '@mui/material/styles' {
 const palette: PaletteOptions = {
   grey,
   text: {
-    primary: orange[700], // Changed from indigo to a darker orange for text
-    secondary: orange[300], // Lighter orange for secondary text
+    primary: indigo[600],
+    secondary: indigo[200],
   },
 
   action: {
-    hover: orange[300], // Orange for hover states
-    selected: orange[500], // Orange for selected states
+    hover: indigo[300],
+    selected: indigo[500],
   },
 
   neutral: {
@@ -49,15 +49,15 @@ const palette: PaletteOptions = {
   },
 
   primary: {
-    lighter: orange[50], // Lightest orange shade
-    light: orange[300], // Light orange
-    main: orange[500], // Main orange (vibrant orange)
-    dark: orange[700], // Darker orange
-    darker: orange[900], // Darkest orange
+    lighter: indigo[50],
+    light: indigo[300],
+    main: indigo[500],
+    dark: indigo[700],
+    darker: indigo[900],
   },
 
   secondary: {
-    lighter: purple[50], // Keeping purple as secondary for contrast
+    lighter: purple[50],
     light: purple[300],
     main: purple[500],
     dark: purple[700],
@@ -73,7 +73,7 @@ const palette: PaletteOptions = {
   },
 
   warning: {
-    lighter: orange[50], // Using orange shades for warning to maintain theme consistency
+    lighter: orange[50],
     light: orange[300],
     main: orange[500],
     dark: orange[700],
@@ -102,11 +102,7 @@ const palette: PaletteOptions = {
   },
 
   orange: {
-    main: orange[400], // Ensuring orange is fully defined
-    lighter: orange[50],
-    light: orange[300],
-    dark: orange[700],
-    darker: orange[900],
+    main: orange[400],
   },
 
   red: {
