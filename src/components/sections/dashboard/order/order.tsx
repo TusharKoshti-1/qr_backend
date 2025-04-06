@@ -18,7 +18,6 @@ import {
   ListItemText,
   Typography,
   Divider,
-  useMediaQuery,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -561,11 +560,11 @@ const Order: React.FC = () => {
                 </CardContent>
                 <CardActions
                   sx={{
-                    flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile, horizontally on larger screens
-                    alignItems: { xs: 'stretch', sm: 'center' }, // Stretch buttons on mobile
-                    gap: { xs: 1, sm: 0.5 }, // Vertical gap on mobile, horizontal gap on larger screens
-                    p: { xs: 1, sm: '8px' }, // Adjusted padding
-                    justifyContent: { sm: 'space-between' }, // Space buttons evenly on larger screens
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'stretch', sm: 'center' },
+                    gap: { xs: 1, sm: 0.5 },
+                    p: { xs: 1, sm: '8px' },
+                    justifyContent: { sm: 'space-between' },
                     borderTop: '1px solid #ddd',
                   }}
                 >
@@ -574,12 +573,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="primary"
                     onClick={() => handleEditOrder(order)}
-                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))} // Full width on mobile only
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' }, // Larger font on mobile
-                      py: { xs: 1, sm: 'default' }, // Increased padding on mobile
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: { sm: '60px' }, // Minimum width only on larger screens
+                      width: { xs: '100%', sm: 'auto' }, // Full width on xs, auto on sm+
+                      minWidth: { sm: '60px' },
                     }}
                   >
                     Edit
@@ -589,11 +588,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="secondary"
                     onClick={() => handlePrintOrder(order)}
-                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
                       fontSize: { xs: '0.875rem', sm: '0.875rem' },
                       py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
+                      width: { xs: '100%', sm: 'auto' },
                       minWidth: { sm: '60px' },
                     }}
                   >
@@ -604,11 +603,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="info"
                     onClick={() => handlePrintForKitchen(order)}
-                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
                       fontSize: { xs: '0.875rem', sm: '0.875rem' },
                       py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
+                      width: { xs: '100%', sm: 'auto' },
                       minWidth: { sm: '60px' },
                     }}
                   >
@@ -619,11 +618,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="success"
                     onClick={() => handleOrderComplete(order.id)}
-                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
                       fontSize: { xs: '0.875rem', sm: '0.875rem' },
                       py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
+                      width: { xs: '100%', sm: 'auto' },
                       minWidth: { sm: '60px' },
                     }}
                   >
@@ -634,11 +633,11 @@ const Order: React.FC = () => {
                     size="small"
                     color="error"
                     onClick={() => setConfirmDeleteId(order.id)}
-                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
                       fontSize: { xs: '0.875rem', sm: '0.875rem' },
                       py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
+                      width: { xs: '100%', sm: 'auto' },
                       minWidth: { sm: '60px' },
                     }}
                   >
