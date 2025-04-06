@@ -283,6 +283,37 @@ const Order: React.FC = () => {
     }
   };
 
+  const handlePrintForKitchen = async (order: OrderType) => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Kitchen Order</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+            h3 { margin-bottom: 20px; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 10px 0; font-size: 16px; }
+          </style>
+        </head>
+        <body onload="window.print()">
+          <h3>Order for: ${order.customer_name}</h3>
+          <ul>
+            ${order.items
+              .map((item) => `<li>${item.name} - Quantity: ${item.quantity}</li>`)
+              .join('')}
+          </ul>
+        </body>
+      </html>
+    `;
+
+    const newWindow = window.open('', 'Print for Kitchen', 'height=600,width=800');
+    if (newWindow) {
+      newWindow.document.write(printContent);
+      newWindow.document.close();
+      newWindow.onload = () => newWindow.print();
+    }
+  };
+
   const handleOrderComplete = async (id: number) => {
     const data = { status: 'Completed' };
     try {
@@ -562,6 +593,19 @@ const Order: React.FC = () => {
                     }}
                   >
                     Print
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="info"
+                    onClick={() => handlePrintForKitchen(order)}
+                    sx={{
+                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      px: { xs: 1, sm: 1.5 },
+                      minWidth: '60px',
+                    }}
+                  >
+                    Print for Kitchen
                   </Button>
                   <Button
                     variant="contained"
