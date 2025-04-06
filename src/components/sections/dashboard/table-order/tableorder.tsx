@@ -517,6 +517,49 @@ const TableOrdersPage: React.FC = () => {
     setDialogOpen(false);
   };
 
+  const handlePrintForKitchen = async () => {
+    const order = orders.find(
+      (o) =>
+        o.table_number === selectedTable &&
+        o.section_id === selectedSectionId &&
+        o.status === 'Pending',
+    );
+    if (!order) {
+      alert('No pending order found.');
+      return;
+    }
+
+    const printContent = `
+      <html>
+        <head>
+          <title>Kitchen Order</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+            h3 { margin-bottom: 20px; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 10px 0; font-size: 16px; }
+          </style>
+        </head>
+        <body onload="window.print()">
+          <h3>Table ${order.table_number}</h3>
+          <ul>
+            ${order.items
+              .map((item) => `<li>${item.name} - Quantity: ${item.quantity}</li>`)
+              .join('')}
+          </ul>
+        </body>
+      </html>
+    `;
+
+    const newWindow = window.open('', 'Print for Kitchen', 'height=600,width=800');
+    if (newWindow) {
+      newWindow.document.write(printContent);
+      newWindow.document.close();
+      newWindow.onload = () => newWindow.print();
+    }
+    setDialogOpen(false);
+  };
+
   const handleCompleteOrder = async () => {
     const order = orders.find(
       (o) =>
@@ -877,6 +920,16 @@ const TableOrdersPage: React.FC = () => {
                 fullWidth={isMobile}
               >
                 Print
+              </Button>
+              <Button
+                onClick={handlePrintForKitchen}
+                color="info"
+                variant="contained"
+                size="small"
+                disabled={isLoading}
+                fullWidth={isMobile}
+              >
+                Print for Kitchen
               </Button>
               <Button
                 onClick={handleCompleteOrder}
