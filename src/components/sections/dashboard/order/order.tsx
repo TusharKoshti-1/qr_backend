@@ -18,6 +18,7 @@ import {
   ListItemText,
   Typography,
   Divider,
+  useMediaQuery,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -82,7 +83,6 @@ const Order: React.FC = () => {
             },
           },
         );
-        // Ensure all IDs are numbers
         const normalizedOrders = response.data.map((order) => ({
           ...order,
           id: Number(order.id),
@@ -151,9 +151,9 @@ const Order: React.FC = () => {
                   ? {
                       ...order,
                       ...data.order,
-                      id: orderId, // Ensure ID remains a number
+                      id: orderId,
                       items: data.order.items || order.items,
-                      status: order.status, // Preserve status
+                      status: order.status,
                     }
                   : order,
               );
@@ -181,7 +181,7 @@ const Order: React.FC = () => {
 
       ws.onclose = () => {
         console.log('WebSocket connection closed, attempting to reconnect...');
-        setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
+        setTimeout(connectWebSocket, 2000);
       };
     };
 
@@ -561,10 +561,11 @@ const Order: React.FC = () => {
                 </CardContent>
                 <CardActions
                   sx={{
-                    flexWrap: 'wrap',
-                    gap: 0.5,
-                    p: { xs: '4px', sm: '8px' },
-                    justifyContent: 'space-between',
+                    flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile, horizontally on larger screens
+                    alignItems: { xs: 'stretch', sm: 'center' }, // Stretch buttons on mobile
+                    gap: { xs: 1, sm: 0.5 }, // Vertical gap on mobile, horizontal gap on larger screens
+                    p: { xs: 1, sm: '8px' }, // Adjusted padding
+                    justifyContent: { sm: 'space-between' }, // Space buttons evenly on larger screens
                     borderTop: '1px solid #ddd',
                   }}
                 >
@@ -573,10 +574,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="primary"
                     onClick={() => handleEditOrder(order)}
+                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))} // Full width on mobile only
                     sx={{
-                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' }, // Larger font on mobile
+                      py: { xs: 1, sm: 'default' }, // Increased padding on mobile
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px',
+                      minWidth: { sm: '60px' }, // Minimum width only on larger screens
                     }}
                   >
                     Edit
@@ -586,10 +589,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="secondary"
                     onClick={() => handlePrintOrder(order)}
+                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
-                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px',
+                      minWidth: { sm: '60px' },
                     }}
                   >
                     Print
@@ -599,10 +604,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="info"
                     onClick={() => handlePrintForKitchen(order)}
+                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
-                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px',
+                      minWidth: { sm: '60px' },
                     }}
                   >
                     Print for Kitchen
@@ -612,10 +619,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="success"
                     onClick={() => handleOrderComplete(order.id)}
+                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
-                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px',
+                      minWidth: { sm: '60px' },
                     }}
                   >
                     Complete
@@ -625,10 +634,12 @@ const Order: React.FC = () => {
                     size="small"
                     color="error"
                     onClick={() => setConfirmDeleteId(order.id)}
+                    fullWidth={useMediaQuery((theme) => theme.breakpoints.down('sm'))}
                     sx={{
-                      fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                      py: { xs: 1, sm: 'default' },
                       px: { xs: 1, sm: 1.5 },
-                      minWidth: '60px',
+                      minWidth: { sm: '60px' },
                     }}
                   >
                     Delete
