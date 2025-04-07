@@ -231,6 +231,11 @@ const Order: React.FC = () => {
             @media print {
               .qr img { display: block; }
             }
+            @media screen and (max-width: 600px) {
+              table, th, td { font-size: 12px; padding: 4px; }
+              img { max-width: 100px; }
+              body { padding: 10px; }
+            }
           </style>
         </head>
         <body>
@@ -292,6 +297,10 @@ const Order: React.FC = () => {
             h3 { margin-bottom: 20px; }
             ul { list-style-type: none; padding: 0; }
             li { margin: 10px 0; font-size: 16px; }
+            @media screen and (max-width: 600px) {
+              body { padding: 10px; }
+              h3, li { font-size: 14px; }
+            }
           </style>
         </head>
         <body onload="window.print()">
@@ -350,18 +359,24 @@ const Order: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: { xs: '10px', sm: '20px' }, minHeight: '100vh' }}>
+    <Box
+      sx={{
+        padding: { xs: '10px', sm: '20px', md: '30px' },
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+      }}
+    >
       <Box
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
           alignItems: { xs: 'flex-start', sm: 'center' },
-          mb: 3,
-          gap: 2,
+          mb: { xs: 2, sm: 3 },
+          gap: { xs: 2, sm: 1 },
         }}
       >
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
           Pending Orders
         </Typography>
         <Link to="/addorder" style={{ textDecoration: 'none' }}>
@@ -369,8 +384,9 @@ const Order: React.FC = () => {
             variant="contained"
             color="primary"
             sx={{
-              fontSize: { xs: '0.8rem', sm: '1rem' },
-              padding: { xs: '6px 12px', sm: '8px 16px' },
+              fontSize: { xs: '0.8rem', sm: '1rem', md: '1.1rem' },
+              padding: { xs: '6px 12px', sm: '8px 16px', md: '10px 20px' },
+              width: { xs: '100%', sm: 'auto' },
             }}
           >
             Add Order
@@ -378,20 +394,30 @@ const Order: React.FC = () => {
         </Link>
       </Box>
 
-      <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
+      <Dialog
+        open={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
             Are you sure you want to delete this order? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteId(null)} color="primary">
+          <Button
+            onClick={() => setConfirmDeleteId(null)}
+            color="primary"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+          >
             Cancel
           </Button>
           <Button
             onClick={() => confirmDeleteId && handleDeleteOrder(confirmDeleteId)}
             color="error"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
           >
             Delete
           </Button>
@@ -400,8 +426,8 @@ const Order: React.FC = () => {
 
       <Box
         sx={{
-          mb: 4,
-          p: { xs: 2, sm: 3 },
+          mb: { xs: 3, sm: 4 },
+          p: { xs: 2, sm: 3, md: 4 },
           border: '1px solid #ddd',
           borderRadius: '8px',
           backgroundColor: '#f9f9f9',
@@ -411,11 +437,15 @@ const Order: React.FC = () => {
         <Typography
           variant="h5"
           gutterBottom
-          sx={{ textAlign: 'center', fontSize: { xs: '1.25rem', sm: '1.5rem' }, mb: 2 }}
+          sx={{
+            textAlign: 'center',
+            fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.75rem' },
+            mb: { xs: 1, sm: 2 },
+          }}
         >
           Total Quantities
         </Typography>
-        <Box sx={{ minWidth: '300px' }}>
+        <Box sx={{ minWidth: { xs: '100%', sm: '300px' } }}>
           <Box
             component="table"
             sx={{
@@ -432,8 +462,8 @@ const Order: React.FC = () => {
                 <Box
                   component="th"
                   sx={{
-                    p: { xs: '8px', sm: '10px' },
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    p: { xs: '6px', sm: '8px', md: '10px' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                   }}
                 >
                   Item Name
@@ -441,9 +471,9 @@ const Order: React.FC = () => {
                 <Box
                   component="th"
                   sx={{
-                    p: { xs: '8px', sm: '10px' },
+                    p: { xs: '6px', sm: '8px', md: '10px' },
                     textAlign: 'center',
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                   }}
                 >
                   Quantity
@@ -464,8 +494,8 @@ const Order: React.FC = () => {
                     <Box
                       component="td"
                       sx={{
-                        p: { xs: '8px', sm: '10px' },
-                        fontSize: { xs: '0.85rem', sm: '1rem' },
+                        p: { xs: '6px', sm: '8px', md: '10px' },
+                        fontSize: { xs: '0.75rem', sm: '0.85rem', md: '1rem' },
                       }}
                     >
                       {item.name}
@@ -473,9 +503,9 @@ const Order: React.FC = () => {
                     <Box
                       component="td"
                       sx={{
-                        p: { xs: '8px', sm: '10px' },
+                        p: { xs: '6px', sm: '8px', md: '10px' },
                         textAlign: 'center',
-                        fontSize: { xs: '0.85rem', sm: '1rem' },
+                        fontSize: { xs: '0.75rem', sm: '0.85rem', md: '1rem' },
                       }}
                     >
                       {item.quantity}
@@ -489,9 +519,9 @@ const Order: React.FC = () => {
                     colSpan={2}
                     sx={{
                       textAlign: 'center',
-                      p: '20px',
+                      p: { xs: '15px', sm: '20px' },
                       color: '#888',
-                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
                     }}
                   >
                     No items to display.
@@ -503,7 +533,7 @@ const Order: React.FC = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={2}>
+      <Grid container spacing={{ xs: 1, sm: 2, md: 3 }}>
         {orders.length > 0 ? (
           orders.map((order) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={order.id}>
@@ -514,44 +544,52 @@ const Order: React.FC = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
+                  boxShadow: 1,
                 }}
               >
-                <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+                <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
                   <Typography
                     variant="h6"
                     gutterBottom
-                    sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+                    sx={{ fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}
                   >
                     {order.customer_name}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="textSecondary"
-                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' } }}
                   >
                     Phone: {order.phone || 'N/A'}
                   </Typography>
                   <Typography
                     variant="body2"
                     color="textSecondary"
-                    sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' } }}
                   >
                     Payment Method: {order.payment_method}
                   </Typography>
-                  <Typography variant="h6" sx={{ mt: 1, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                  <Typography
+                    variant="h6"
+                    sx={{ mt: 1, fontSize: { xs: '0.9rem', sm: '1.125rem', md: '1.25rem' } }}
+                  >
                     Total: ₹{order.total_amount}
                   </Typography>
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant="subtitle1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                  <Divider sx={{ my: { xs: 0.5, sm: 1 } }} />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontSize: { xs: '0.85rem', sm: '1rem', md: '1.125rem' } }}
+                  >
                     Items:
                   </Typography>
-                  <List dense>
+                  <List dense sx={{ p: 0 }}>
                     {order.items.map((item) => (
-                      <ListItem key={item.id} disableGutters>
+                      <ListItem key={item.id} disableGutters sx={{ p: { xs: 0.5, sm: 1 } }}>
                         <ListItemText
                           primary={`${item.name} - ₹${item.price} x ${item.quantity}`}
                           primaryTypographyProps={{
-                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                            fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
+                            noWrap: true,
                           }}
                         />
                       </ListItem>
@@ -562,10 +600,11 @@ const Order: React.FC = () => {
                   sx={{
                     flexDirection: { xs: 'column', sm: 'row' },
                     alignItems: { xs: 'stretch', sm: 'center' },
-                    gap: { xs: 1, sm: 0.5 },
-                    p: { xs: 1, sm: '8px' },
+                    gap: { xs: 0.5, sm: 0.5, md: 1 },
+                    p: { xs: 1, sm: '8px', md: '12px' },
                     justifyContent: { sm: 'space-between' },
                     borderTop: '1px solid #ddd',
+                    flexWrap: 'wrap',
                   }}
                 >
                   <Button
@@ -574,11 +613,11 @@ const Order: React.FC = () => {
                     color="primary"
                     onClick={() => handleEditOrder(order)}
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      py: { xs: 1, sm: 'default' },
-                      px: { xs: 1, sm: 1.5 },
-                      width: { xs: '100%', sm: 'auto' }, // Full width on xs, auto on sm+
-                      minWidth: { sm: '60px' },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                      py: { xs: 0.5, sm: '6px', md: '8px' },
+                      px: { xs: 1, sm: 1.5, md: 2 },
+                      width: { xs: '100%', sm: 'auto' },
+                      mb: { xs: 0.5, sm: 0 },
                     }}
                   >
                     Edit
@@ -589,11 +628,11 @@ const Order: React.FC = () => {
                     color="secondary"
                     onClick={() => handlePrintOrder(order)}
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      py: { xs: 1, sm: 'default' },
-                      px: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                      py: { xs: 0.5, sm: '6px', md: '8px' },
+                      px: { xs: 1, sm: 1.5, md: 2 },
                       width: { xs: '100%', sm: 'auto' },
-                      minWidth: { sm: '60px' },
+                      mb: { xs: 0.5, sm: 0 },
                     }}
                   >
                     Print
@@ -604,11 +643,11 @@ const Order: React.FC = () => {
                     color="info"
                     onClick={() => handlePrintForKitchen(order)}
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      py: { xs: 1, sm: 'default' },
-                      px: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                      py: { xs: 0.5, sm: '6px', md: '8px' },
+                      px: { xs: 1, sm: 1.5, md: 2 },
                       width: { xs: '100%', sm: 'auto' },
-                      minWidth: { sm: '60px' },
+                      mb: { xs: 0.5, sm: 0 },
                     }}
                   >
                     Print for Kitchen
@@ -619,11 +658,11 @@ const Order: React.FC = () => {
                     color="success"
                     onClick={() => handleOrderComplete(order.id)}
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      py: { xs: 1, sm: 'default' },
-                      px: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                      py: { xs: 0.5, sm: '6px', md: '8px' },
+                      px: { xs: 1, sm: 1.5, md: 2 },
                       width: { xs: '100%', sm: 'auto' },
-                      minWidth: { sm: '60px' },
+                      mb: { xs: 0.5, sm: 0 },
                     }}
                   >
                     Complete
@@ -634,11 +673,11 @@ const Order: React.FC = () => {
                     color="error"
                     onClick={() => setConfirmDeleteId(order.id)}
                     sx={{
-                      fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      py: { xs: 1, sm: 'default' },
-                      px: { xs: 1, sm: 1.5 },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
+                      py: { xs: 0.5, sm: '6px', md: '8px' },
+                      px: { xs: 1, sm: 1.5, md: 2 },
                       width: { xs: '100%', sm: 'auto' },
-                      minWidth: { sm: '60px' },
+                      mb: { xs: 0.5, sm: 0 },
                     }}
                   >
                     Delete
@@ -654,8 +693,8 @@ const Order: React.FC = () => {
               sx={{
                 textAlign: 'center',
                 color: '#888',
-                py: 4,
-                fontSize: { xs: '1rem', sm: '1.25rem' },
+                py: { xs: 2, sm: 4 },
+                fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
               }}
             >
               No pending orders available.
