@@ -21,6 +21,7 @@ interface SettingsData {
   operatingHours: string;
   upiId: string;
   isOpen: boolean;
+  gst: number; // Added GST field
 }
 
 const SettingsPage: React.FC = () => {
@@ -32,6 +33,7 @@ const SettingsPage: React.FC = () => {
     operatingHours: '',
     upiId: '',
     isOpen: false,
+    gst: 0, // Default GST value
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [success, setSuccess] = useState<boolean>(false);
@@ -102,7 +104,6 @@ const SettingsPage: React.FC = () => {
         address: address,
       }));
     } catch (err: GeolocationPositionError | unknown) {
-      // Updated type here
       console.error('Location error:', err);
       let errorMessage = 'Unable to fetch location';
       if (err instanceof GeolocationPositionError) {
@@ -121,7 +122,9 @@ const SettingsPage: React.FC = () => {
     const newValue =
       (e.target as HTMLInputElement).type === 'checkbox'
         ? (e.target as HTMLInputElement).checked
-        : value;
+        : name === 'gst'
+          ? parseFloat(value) || 0
+          : value; // Handle GST as a number
     setSettings({
       ...settings,
       [name]: newValue,
@@ -238,6 +241,18 @@ const SettingsPage: React.FC = () => {
                 value={settings.upiId}
                 onChange={handleChange}
                 placeholder="example@upi"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="GST"
+                name="gst"
+                type="number"
+                value={settings.gst}
+                onChange={handleChange}
+                InputProps={{ inputProps: { min: 0 } }}
+                helperText="Enter GST percentage (e.g., 5 for 5%)"
               />
             </Grid>
             <Grid item xs={12} sm={6} display="flex" alignItems="center">
