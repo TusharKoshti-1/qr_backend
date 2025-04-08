@@ -167,20 +167,42 @@ const CustomerPage: React.FC = () => {
       );
     } else {
       setSelectedCategory('All');
-      // When searching, don't open any categories; items will be shown in a flat list below
       setOpenCategories((prev) =>
         Object.keys(prev).reduce((acc, cat) => ({ ...acc, [cat]: false }), {})
       );
     }
   };
 
-  // Flatten all items for search results
+  // Flatten all items for search results and sort them
   const allItems = [
     ...topSellers,
     ...Object.values(groupedItems).flat(),
-  ].filter((item) =>
-    searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : false
-  );
+  ].map((item) => {
+    const lowerName = item.name.toLowerCase();
+    const lowerSearch = searchTerm.toLowerCase();
+    let score = 0;
+
+    if (searchTerm) {
+      if (lowerName === lowerSearch) score = 3; // Exact match
+      else if (lowerName.startsWith(lowerSearch)) score = 2; // Starts with
+      else if (lowerName.includes(lowerSearch)) score = 1; // Contains
+    }
+
+    return { ...item, matchScore: score };
+  })
+  .filter((item) => item.matchScore > 0) // Only include items with a match
+  .sort((a, b) => {
+    // First, prioritize items in selectedItems (cart)
+    const aInCart = selectedItems.some((i) => i.id === a.id) ? 1 : 0;
+    const bInCart = selectedItems.some((i) => i.id === b.id) ? 1 : 0;
+    if (aInCart !== bInCart) return bInCart - aInCart; // Cart items first
+
+    // Then sort by match score (exact > starts with > contains)
+    if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+
+    // Finally, sort alphabetically as a tiebreaker
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px', pt: '70px' }}>
@@ -452,7 +474,7 @@ const CustomerPage: React.FC = () => {
 
 // Reusable ItemCard Component
 const ItemCard: React.FC<{
-  item: MenuItem | TopSellerItem;
+  item: MenuItem | TopSellerItem & { matchScore?: number };
   selectedItems: CartItem[];
   onAdd: (item: MenuItem | TopSellerItem) => void;
   onQuantityChange: (itemId: string, increment: boolean) => void;
