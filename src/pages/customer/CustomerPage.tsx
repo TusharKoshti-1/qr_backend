@@ -96,13 +96,14 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
+        // Initialize all categories as closed by default
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
               acc[category] = false;
               return acc;
             },
-            { 'Best Selling': true } as Record<string, boolean>
+            { 'Best Selling': false } as Record<string, boolean>
           )
         );
       } catch (error) {
@@ -159,10 +160,7 @@ const CustomerPage: React.FC = () => {
     if (term.trim() === '') {
       setSelectedCategory('All');
       setOpenCategories((prev) =>
-        Object.keys(prev).reduce(
-          (acc, cat) => ({ ...acc, [cat]: cat === 'Best Selling' }), // Keep Best Selling open by default
-          {}
-        )
+        Object.keys(prev).reduce((acc, cat) => ({ ...acc, [cat]: false }), {})
       );
       return;
     }
@@ -215,23 +213,23 @@ const CustomerPage: React.FC = () => {
         <Typography variant="h4">Welcome</Typography>
         <IconButton
           onClick={() => navigate('/cartpage')}
-          sx={{ color: '#00cc00' }} // Bright Black for highlight
+          sx={{ color: '#00cc00' }} // Bright green for highlight
         >
-          <ShoppingCart sx={{ fontSize: '2rem' }} /> {/* Increased size */}
+          <ShoppingCart sx={{ fontSize: '2rem' }} />
           {totalQuantity > 0 && (
             <Box
               sx={{
                 position: 'absolute',
                 top: 0,
                 right: 0,
-                backgroundColor: '#fff', // Bright white for highlight
+                backgroundColor: '#fff',
                 borderRadius: '50%',
                 width: 20,
                 height: 20,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#000000', // black text for contrast
+                color: '#000000',
                 fontSize: '12px',
                 fontWeight: 'bold',
               }}
@@ -272,7 +270,7 @@ const CustomerPage: React.FC = () => {
               variant="outlined"
               fullWidth
               value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)} // Updated to use handleSearch
+              onChange={(e) => handleSearch(e.target.value)}
             />
             <Box sx={{ position: 'relative', width: { xs: '100%', sm: '200px' } }}>
               <Box
