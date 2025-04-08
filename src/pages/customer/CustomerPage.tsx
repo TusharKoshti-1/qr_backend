@@ -96,14 +96,14 @@ const CustomerPage: React.FC = () => {
         );
         setGroupedItems(grouped);
 
-        // Initialize all categories as closed by default
+        // Initialize 'Best Selling' as open by default, others closed
         setOpenCategories(
           Object.keys(grouped).reduce(
             (acc, category) => {
               acc[category] = false;
               return acc;
             },
-            { 'Best Selling': false } as Record<string, boolean>
+            { 'Best Selling': true } as Record<string, boolean>
           )
         );
       } catch (error) {
@@ -160,37 +160,27 @@ const CustomerPage: React.FC = () => {
     if (term.trim() === '') {
       setSelectedCategory('All');
       setOpenCategories((prev) =>
+        Object.keys(prev).reduce(
+          (acc, cat) => ({ ...acc, [cat]: cat === 'Best Selling' }), // Only Best Selling open by default
+          {}
+        )
+      );
+    } else {
+      setSelectedCategory('All');
+      // When searching, don't open any categories; items will be shown in a flat list below
+      setOpenCategories((prev) =>
         Object.keys(prev).reduce((acc, cat) => ({ ...acc, [cat]: false }), {})
       );
-      return;
     }
-
-    // Keep selectedCategory as 'All' to show all categories
-    setSelectedCategory('All');
-
-    // Find all categories with matching items and open them
-    const lowerTerm = term.toLowerCase();
-    const matchingCategories = [
-      ...(topSellers.some((item) => item.name.toLowerCase().includes(lowerTerm))
-        ? ['Best Selling']
-        : []),
-      ...Object.entries(groupedItems)
-        .filter(([, items]) =>
-          items.some((item) => item.name.toLowerCase().includes(lowerTerm))
-        )
-        .map(([category]) => category),
-    ];
-
-    setOpenCategories((prev) =>
-      Object.keys(prev).reduce(
-        (acc, category) => {
-          acc[category] = matchingCategories.includes(category); // Open if it has matches
-          return acc;
-        },
-        {} as Record<string, boolean>
-      )
-    );
   };
+
+  // Flatten all items for search results
+  const allItems = [
+    ...topSellers,
+    ...Object.values(groupedItems).flat(),
+  ].filter((item) =>
+    searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : false
+  );
 
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px', pt: '70px' }}>
@@ -211,10 +201,7 @@ const CustomerPage: React.FC = () => {
         }}
       >
         <Typography variant="h4">Welcome</Typography>
-        <IconButton
-          onClick={() => navigate('/cartpage')}
-          sx={{ color: '#00cc00' }} // Bright green for highlight
-        >
+        <IconButton onClick={() => navigate('/cartpage')} sx={{ color: '#00cc00' }}>
           <ShoppingCart sx={{ fontSize: '2rem' }} />
           {totalQuantity > 0 && (
             <Box
@@ -319,8 +306,30 @@ const CustomerPage: React.FC = () => {
           </Box>
         </Box>
 
+        {/* Search Results (Flat List) */}
+        {searchTerm && allItems.length > 0 && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ color: 'black', fontWeight: 'bold', mb: 1 }}>
+              Search Results
+            </Typography>
+            <Grid container spacing={2}>
+              {allItems.map((item) => (
+                <Grid item xs={12} key={item.id}>
+                  <ItemCard
+                    item={item}
+                    selectedItems={selectedItems}
+                    onAdd={handleAddItem}
+                    onQuantityChange={handleQuantity}
+                    onRemove={handleRemoveItem}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
         {/* Best Selling Section */}
-        {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Selling') && (
+        {topSellers.length > 0 && (selectedCategory === 'All' || selectedCategory === 'Best Selling') && !searchTerm && (
           <Box sx={{ mb: 3 }}>
             <Box
               onClick={() =>
@@ -343,36 +352,28 @@ const CustomerPage: React.FC = () => {
             </Box>
             {openCategories['Best Selling'] && (
               <Grid container spacing={2} sx={{ mt: 1 }}>
-                {topSellers
-                  .filter((item) =>
-                    searchTerm ? item.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
-                  )
-                  .map((item) => (
-                    <Grid item xs={12} key={item.id}>
-                      <ItemCard
-                        item={item}
-                        selectedItems={selectedItems}
-                        onAdd={handleAddItem}
-                        onQuantityChange={handleQuantity}
-                        onRemove={handleRemoveItem}
-                      />
-                    </Grid>
-                  ))}
+                {topSellers.map((item) => (
+                  <Grid item xs={12} key={item.id}>
+                    <ItemCard
+                      item={item}
+                      selectedItems={selectedItems}
+                      onAdd={handleAddItem}
+                      onQuantityChange={handleQuantity}
+                      onRemove={handleRemoveItem}
+                    />
+                  </Grid>
+                ))}
               </Grid>
             )}
           </Box>
         )}
 
         {/* Other Categories Sections */}
-        {Object.entries(groupedItems)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
-          .map(([category, items]) => {
-            const filteredItems = searchTerm
-              ? items.filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
-              : items;
-            if (filteredItems.length === 0) return null;
-            return (
+        {!searchTerm &&
+          Object.entries(groupedItems)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .filter(([category]) => selectedCategory === 'All' || category === selectedCategory)
+            .map(([category, items]) => (
               <Box key={category} sx={{ mb: 3 }}>
                 <Box
                   onClick={() =>
@@ -395,7 +396,7 @@ const CustomerPage: React.FC = () => {
                 </Box>
                 {openCategories[category] && (
                   <Grid container spacing={2} sx={{ mt: 1 }}>
-                    {filteredItems.map((item) => (
+                    {items.map((item) => (
                       <Grid item xs={12} key={item.id}>
                         <ItemCard
                           item={item}
@@ -409,8 +410,7 @@ const CustomerPage: React.FC = () => {
                   </Grid>
                 )}
               </Box>
-            );
-          })}
+            ))}
       </Box>
 
       {/* Sticky Cart Footer */}
