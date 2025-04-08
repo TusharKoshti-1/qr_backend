@@ -59,7 +59,7 @@ interface SettingsType {
   restaurantName: string;
   phone: string;
   upiId: string;
-  gst?: number; // Added GST rate to settings
+  gst?: number; // GST rate, optional
 }
 
 const TableOrdersPage: React.FC = () => {
@@ -75,7 +75,7 @@ const TableOrdersPage: React.FC = () => {
   const [newTableNumber, setNewTableNumber] = useState('');
   const [newTableSectionId, setNewTableSectionId] = useState<number | ''>('');
   const [newSectionName, setNewSectionName] = useState('');
-  const [includeGST, setIncludeGST] = useState(false); // State for GST checkbox
+  const [includeGST, setIncludeGST] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -154,7 +154,7 @@ const TableOrdersPage: React.FC = () => {
                 ? data.order.items
                 : typeof data.order.items === 'string'
                   ? JSON.parse(data.order.items)
-                  : orderToUpdate.items; // Fallback to existing items
+                  : orderToUpdate.items;
             } catch (e) {
               console.error('Error parsing items in update_table_order:', e, data.order.items);
               updatedItems = orderToUpdate.items;
@@ -290,16 +290,16 @@ const TableOrdersPage: React.FC = () => {
       (o) => o.table_number === table.table_number && o.section_id === table.section_id,
     );
     if (!order || order.status === 'Completed') {
-      return '#d4edda'; // Green for empty or completed
+      return '#d4edda';
     }
-    return '#fff3cd'; // Yellow for occupied (Pending)
+    return '#fff3cd';
   };
 
   const handleTableClick = (tableNumber: string, sectionId: number) => {
     setSelectedTable(tableNumber);
     setSelectedSectionId(sectionId);
     setDialogOpen(true);
-    setIncludeGST(false); // Reset GST checkbox when opening dialog
+    setIncludeGST(false);
   };
 
   const handleAddTable = async () => {
@@ -457,11 +457,14 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
 
-    let finalTotalAmount = order.total_amount;
+    // Ensure total_amount is a number
+    let finalTotalAmount = Number(order.total_amount);
     let gstAmount = 0;
 
     if (includeGST && settings.gst) {
-      gstAmount = finalTotalAmount * (settings.gst / 100);
+      // Ensure settings.gst is a number
+      const gstRate = Number(settings.gst);
+      gstAmount = finalTotalAmount * (gstRate / 100);
       finalTotalAmount += gstAmount;
     }
 
@@ -880,7 +883,7 @@ const TableOrdersPage: React.FC = () => {
                     <Checkbox
                       checked={includeGST}
                       onChange={(e) => setIncludeGST(e.target.checked)}
-                      disabled={isLoading}
+                      disabled={isLoading || !settings?.gst}
                     />
                   }
                   label="Include GST"
