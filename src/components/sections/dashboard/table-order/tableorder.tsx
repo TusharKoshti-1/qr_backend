@@ -59,7 +59,7 @@ interface SettingsType {
   restaurantName: string;
   phone: string;
   upiId: string;
-  gstRate?: number; // Added GST rate to settings
+  gst?: number; // Added GST rate to settings
 }
 
 const TableOrdersPage: React.FC = () => {
@@ -460,8 +460,8 @@ const TableOrdersPage: React.FC = () => {
     let finalTotalAmount = order.total_amount;
     let gstAmount = 0;
 
-    if (includeGST && settings.gstRate) {
-      gstAmount = finalTotalAmount * (settings.gstRate / 100);
+    if (includeGST && settings.gst) {
+      gstAmount = finalTotalAmount * (settings.gst / 100);
       finalTotalAmount += gstAmount;
     }
 
@@ -513,7 +513,7 @@ const TableOrdersPage: React.FC = () => {
                 .join('')}
             </table>
             <p class="total-amount"><strong>Subtotal:</strong> ₹${order.total_amount}</p>
-            ${includeGST && settings.gstRate ? `<p class="gst"><strong>GST (${settings.gstRate}%):</strong> ₹${gstAmount.toFixed(2)}</p>` : ''}
+            ${includeGST && settings.gst ? `<p class="gst"><strong>GST (${settings.gst}%):</strong> ₹${gstAmount.toFixed(2)}</p>` : ''}
             <p class="total-amount"><strong>Total Amount:</strong> ₹${finalTotalAmount.toFixed(2)}</p>
           </div>
           <div class="qr">
@@ -886,9 +886,9 @@ const TableOrdersPage: React.FC = () => {
                   label="Include GST"
                   sx={{ mt: 1 }}
                 />
-                {includeGST && settings?.gstRate && (
+                {includeGST && settings?.gst && (
                   <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                    GST Rate: {settings.gstRate}%
+                    GST Rate: {settings.gst}%
                   </Typography>
                 )}
               </Box>
