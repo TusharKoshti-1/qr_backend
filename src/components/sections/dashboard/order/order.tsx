@@ -18,6 +18,8 @@ import {
   ListItemText,
   Typography,
   Divider,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import QRCode from 'qrcode';
 
@@ -47,6 +49,7 @@ interface SettingsType {
   restaurantName: string;
   phone: string;
   upiId: string;
+  gst?: number; // Added GST rate
 }
 
 const Order: React.FC = () => {
@@ -54,6 +57,9 @@ const Order: React.FC = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [aggregatedItems, setAggregatedItems] = useState<AggregatedItemType[]>([]);
   const [settings, setSettings] = useState<SettingsType | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderType | null>(null);
+  const [includeGST, setIncludeGST] = useState(false); // State for GST checkbox
   const navigate = useNavigate();
 
   const aggregateItems = (orders: OrderType[]) => {
@@ -195,15 +201,30 @@ const Order: React.FC = () => {
     navigate('/editorder', { state: { order } });
   };
 
-  const handlePrintOrder = async (order: OrderType) => {
-    if (!settings || !settings.upiId) {
-      alert('UPI ID not configured in settings. Cannot generate QR code.');
+  const handlePrintOrderClick = (order: OrderType) => {
+    setSelectedOrder(order);
+    setIncludeGST(false); // Reset GST checkbox
+    setPrintDialogOpen(true);
+  };
+
+  const handlePrintOrder = async () => {
+    if (!selectedOrder || !settings || !settings.upiId) {
+      alert('No order selected or UPI ID not configured.');
       return;
+    }
+
+    let finalTotalAmount = Number(selectedOrder.total_amount);
+    let gstAmount = 0;
+
+    if (includeGST && settings.gst) {
+      const gstRate = Number(settings.gst);
+      gstAmount = finalTotalAmount * (gstRate / 100);
+      finalTotalAmount += gstAmount;
     }
 
     const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
       settings.restaurantName,
-    )}&am=${order.total_amount}&cu=INR`;
+    )}&am=${finalTotalAmount}&cu=INR`;
 
     let qrCodeUrl = '';
     try {
@@ -228,6 +249,8 @@ const Order: React.FC = () => {
             th, td { padding: 8px; text-align: left; }
             th { background-color: #f2f2f2; }
             img { max-width: 150px; }
+            .total-amount { margin-top: 10px; font-weight: bold; }
+            .gst { margin-top: 5px; font-style: italic; }
             @media print {
               .qr img { display: block; }
             }
@@ -244,16 +267,15 @@ const Order: React.FC = () => {
             <p>Phone: ${settings.phone}</p>
           </div>
           <div class="details">
-            <p><strong>Customer:</strong> ${order.customer_name}</p>
-            <p><strong>Phone:</strong> ${order.phone || 'N/A'}</p>
-            <p><strong>Payment Method:</strong> ${order.payment_method}</p>
-            <p><strong>Total Amount:</strong> ₹${order.total_amount}</p>
+            <p><strong>Customer:</strong> ${selectedOrder.customer_name}</p>
+            <p><strong>Phone:</strong> ${selectedOrder.phone || 'N/A'}</p>
+            <p><strong>Payment Method:</strong> ${selectedOrder.payment_method}</p>
           </div>
           <div class="items">
             <h3>Items:</h3>
             <table>
               <tr><th>Name</th><th>Price</th><th>Qty</th><th>Total</th></tr>
-              ${order.items
+              ${selectedOrder.items
                 .map(
                   (item) =>
                     `<tr><td>${item.name}</td><td>₹${item.price}</td><td>${item.quantity}</td><td>₹${
@@ -262,9 +284,12 @@ const Order: React.FC = () => {
                 )
                 .join('')}
             </table>
+            <p class="total-amount"><strong>Subtotal:</strong> ₹${selectedOrder.total_amount}</p>
+            ${includeGST && settings.gst ? `<p class="gst"><strong>GST (${settings.gst}%):</strong> ₹${gstAmount.toFixed(2)}</p>` : ''}
+            <p class="total-amount"><strong>Total Amount:</strong> ₹${finalTotalAmount.toFixed(2)}</p>
           </div>
           <div class="qr">
-            <p>Scan to Pay ₹${order.total_amount}</p>
+            <p>Scan to Pay ₹${finalTotalAmount.toFixed(2)}</p>
             <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" onerror="alert('Failed to load QR code')" />
           </div>
           <script>
@@ -285,6 +310,8 @@ const Order: React.FC = () => {
         newWindow.print();
       };
     }
+    setPrintDialogOpen(false);
+    setSelectedOrder(null);
   };
 
   const handlePrintForKitchen = async (order: OrderType) => {
@@ -420,6 +447,52 @@ const Order: React.FC = () => {
             sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
           >
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={printDialogOpen}
+        onClose={() => setPrintDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Print Order</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+            Do you want to include GST in the receipt?
+          </DialogContentText>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={includeGST}
+                onChange={(e) => setIncludeGST(e.target.checked)}
+                disabled={!settings?.gst}
+              />
+            }
+            label="Include GST"
+          />
+          {includeGST && settings?.gst && (
+            <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+              GST Rate: {settings.gst}%
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setPrintDialogOpen(false)}
+            color="primary"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handlePrintOrder}
+            color="secondary"
+            variant="contained"
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
+          >
+            Print
           </Button>
         </DialogActions>
       </Dialog>
@@ -626,7 +699,7 @@ const Order: React.FC = () => {
                     variant="contained"
                     size="small"
                     color="secondary"
-                    onClick={() => handlePrintOrder(order)}
+                    onClick={() => handlePrintOrderClick(order)}
                     sx={{
                       fontSize: { xs: '0.75rem', sm: '0.875rem', md: '1rem' },
                       py: { xs: 0.5, sm: '6px', md: '8px' },
