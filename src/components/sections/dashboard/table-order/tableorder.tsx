@@ -18,6 +18,8 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  Checkbox,
+  FormControlLabel,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -57,6 +59,7 @@ interface SettingsType {
   restaurantName: string;
   phone: string;
   upiId: string;
+  gstRate?: number; // Added GST rate to settings
 }
 
 const TableOrdersPage: React.FC = () => {
@@ -72,6 +75,7 @@ const TableOrdersPage: React.FC = () => {
   const [newTableNumber, setNewTableNumber] = useState('');
   const [newTableSectionId, setNewTableSectionId] = useState<number | ''>('');
   const [newSectionName, setNewSectionName] = useState('');
+  const [includeGST, setIncludeGST] = useState(false); // State for GST checkbox
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -295,6 +299,7 @@ const TableOrdersPage: React.FC = () => {
     setSelectedTable(tableNumber);
     setSelectedSectionId(sectionId);
     setDialogOpen(true);
+    setIncludeGST(false); // Reset GST checkbox when opening dialog
   };
 
   const handleAddTable = async () => {
@@ -452,9 +457,17 @@ const TableOrdersPage: React.FC = () => {
       return;
     }
 
+    let finalTotalAmount = order.total_amount;
+    let gstAmount = 0;
+
+    if (includeGST && settings.gstRate) {
+      gstAmount = finalTotalAmount * (settings.gstRate / 100);
+      finalTotalAmount += gstAmount;
+    }
+
     const upiLink = `upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(
       settings.restaurantName,
-    )}&am=${order.total_amount}&cu=INR`;
+    )}&am=${finalTotalAmount}&cu=INR`;
 
     const qrCodeUrl = await QRCode.toDataURL(upiLink, { width: 150, margin: 1 }).catch((error) => {
       console.error('Error generating QR code:', error);
@@ -478,6 +491,7 @@ const TableOrdersPage: React.FC = () => {
             th { background-color: #f2f2f2; }
             img { max-width: 150px; }
             .total-amount { margin-top: 10px; font-weight: bold; }
+            .gst { margin-top: 5px; font-style: italic; }
           </style>
         </head>
         <body>
@@ -498,10 +512,12 @@ const TableOrdersPage: React.FC = () => {
                 )
                 .join('')}
             </table>
-            <p class="total-amount"><strong>Total Amount:</strong> ₹${order.total_amount}</p>
+            <p class="total-amount"><strong>Subtotal:</strong> ₹${order.total_amount}</p>
+            ${includeGST && settings.gstRate ? `<p class="gst"><strong>GST (${settings.gstRate}%):</strong> ₹${gstAmount.toFixed(2)}</p>` : ''}
+            <p class="total-amount"><strong>Total Amount:</strong> ₹${finalTotalAmount.toFixed(2)}</p>
           </div>
           <div class="qr">
-            <p>Scan to Pay ₹${order.total_amount}</p>
+            <p>Scan to Pay ₹${finalTotalAmount.toFixed(2)}</p>
             <img src="${qrCodeUrl}" alt="UPI QR Code" onload="window.print()" />
           </div>
         </body>
@@ -857,8 +873,24 @@ const TableOrdersPage: React.FC = () => {
                   variant="h6"
                   sx={{ mt: 1, fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.125rem' } }}
                 >
-                  Total: ₹{selectedOrder.total_amount}
+                  Subtotal: ₹{selectedOrder.total_amount}
                 </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={includeGST}
+                      onChange={(e) => setIncludeGST(e.target.checked)}
+                      disabled={isLoading}
+                    />
+                  }
+                  label="Include GST"
+                  sx={{ mt: 1 }}
+                />
+                {includeGST && settings?.gstRate && (
+                  <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                    GST Rate: {settings.gstRate}%
+                  </Typography>
+                )}
               </Box>
             );
           })()}
