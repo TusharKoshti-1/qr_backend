@@ -173,36 +173,44 @@ const CustomerPage: React.FC = () => {
     }
   };
 
-  // Flatten all items for search results and sort them
+  // Flatten all items, deduplicate, and sort for search results
   const allItems = [
     ...topSellers,
     ...Object.values(groupedItems).flat(),
-  ].map((item) => {
-    const lowerName = item.name.toLowerCase();
-    const lowerSearch = searchTerm.toLowerCase();
-    let score = 0;
+  ]
+    .reduce((unique, item) => {
+      // Only add item if its ID isn't already in the unique array
+      if (!unique.some((i) => i.id === item.id)) {
+        unique.push(item);
+      }
+      return unique;
+    }, [] as (MenuItem | TopSellerItem)[])
+    .map((item) => {
+      const lowerName = item.name.toLowerCase();
+      const lowerSearch = searchTerm.toLowerCase();
+      let score = 0;
 
-    if (searchTerm) {
-      if (lowerName === lowerSearch) score = 3; // Exact match
-      else if (lowerName.startsWith(lowerSearch)) score = 2; // Starts with
-      else if (lowerName.includes(lowerSearch)) score = 1; // Contains
-    }
+      if (searchTerm) {
+        if (lowerName === lowerSearch) score = 3; // Exact match
+        else if (lowerName.startsWith(lowerSearch)) score = 2; // Starts with
+        else if (lowerName.includes(lowerSearch)) score = 1; // Contains
+      }
 
-    return { ...item, matchScore: score };
-  })
-  .filter((item) => item.matchScore > 0) // Only include items with a match
-  .sort((a, b) => {
-    // First, prioritize items in selectedItems (cart)
-    const aInCart = selectedItems.some((i) => i.id === a.id) ? 1 : 0;
-    const bInCart = selectedItems.some((i) => i.id === b.id) ? 1 : 0;
-    if (aInCart !== bInCart) return bInCart - aInCart; // Cart items first
+      return { ...item, matchScore: score };
+    })
+    .filter((item) => item.matchScore > 0) // Only include items with a match
+    .sort((a, b) => {
+      // First, prioritize items in selectedItems (cart)
+      const aInCart = selectedItems.some((i) => i.id === a.id) ? 1 : 0;
+      const bInCart = selectedItems.some((i) => i.id === b.id) ? 1 : 0;
+      if (aInCart !== bInCart) return bInCart - aInCart; // Cart items first
 
-    // Then sort by match score (exact > starts with > contains)
-    if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      // Then sort by match score (exact > starts with > contains)
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
 
-    // Finally, sort alphabetically as a tiebreaker
-    return a.name.localeCompare(b.name);
-  });
+      // Finally, sort alphabetically as a tiebreaker
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px', pt: '70px' }}>
