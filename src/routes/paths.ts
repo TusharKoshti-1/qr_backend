@@ -27,4 +27,5 @@ export default {
   scanqrcodeagain: '/scanqrcodeagain',
   contactus: '/contactus',
   qrcode: '/qr-code',
+  addemployee: '/addemployee',
 };
