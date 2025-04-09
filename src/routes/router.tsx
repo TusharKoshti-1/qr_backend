@@ -29,6 +29,7 @@ const ChargesPage = lazy(() => import('pages/setting/Charges'));
 const ScanQRAgainPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
 const QrPage = lazy(() => import('pages/setting/QrCode'));
 const ContactUs = lazy(() => import('pages/contactus/ContactUs'));
+const EmployeeSigninPage = lazy(() => import('pages/employees/EmployeeSignin'));
 const EmployeePage = lazy(() => import('pages/employees/Employee'));
 const AddEmployeePage = lazy(() => import('pages/employees/AddEmployee'));
 
@@ -62,6 +63,10 @@ export const routes = [
           {
             path: paths.signin,
             element: <SignIn />,
+          },
+          {
+            path: paths.employeesignin,
+            element: <EmployeeSigninPage />,
           },
           {
             path: paths.signup,
