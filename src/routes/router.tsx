@@ -65,10 +65,6 @@ export const routes = [
             element: <SignIn />,
           },
           {
-            path: paths.employeesignin,
-            element: <EmployeeSigninPage />,
-          },
-          {
             path: paths.signup,
             element: <SignUp />,
           },
@@ -181,6 +177,10 @@ export const routes = [
       {
         path: paths.scanqrcodeagain,
         element: <ScanQRAgainPage />,
+      },
+      {
+        path: paths.employeesignin,
+        element: <EmployeeSigninPage />,
       },
       // Catch-All Route
       {
