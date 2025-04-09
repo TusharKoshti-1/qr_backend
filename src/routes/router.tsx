@@ -29,6 +29,7 @@ const ChargesPage = lazy(() => import('pages/setting/Charges'));
 const ScanQRAgainPage = lazy(() => import('pages/thankyou/ScanQRCodeAgain'));
 const QrPage = lazy(() => import('pages/setting/QrCode'));
 const ContactUs = lazy(() => import('pages/contactus/ContactUs'));
+const EmployeePage = lazy(() => import('pages/employees/Employee'));
 const AddEmployeePage = lazy(() => import('pages/employees/AddEmployee'));
 
 import PageLoader from 'components/loading/PageLoader';
@@ -136,6 +137,10 @@ export const routes = [
           {
             path: paths.qrcode,
             element: <QrPage />,
+          },
+          {
+            path: paths.employee,
+            element: <EmployeePage />,
           },
           {
             path: paths.addemployee,
