@@ -28,7 +28,7 @@ const AddEmployee: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/employee/register`,
+        `${import.meta.env.VITE_API_URL}/employee/register`,
         {
           username,
           email,
