@@ -3,7 +3,7 @@ import EmployeeOrderPage from 'components/sections/dashboard/employee/employeeor
 
 const EmployeeOrder = () => {
   return (
-    <Grid container spacing={2}>
+    <Grid>
       <EmployeeOrderPage />
     </Grid>
   );
