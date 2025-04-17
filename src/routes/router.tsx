@@ -1,9 +1,10 @@
 import { Suspense, lazy } from 'react';
 import { Outlet, createBrowserRouter, Navigate } from 'react-router-dom';
-import paths, { rootPaths } from './paths';
+import paths, { employeePaths, rootPaths } from './paths';
 
 const App = lazy(() => import('App'));
 const MainLayout = lazy(() => import('layouts/main-layout'));
+const EmployeeLayout = lazy(() => import('layouts/employee-layout'));
 const AuthLayout = lazy(() => import('layouts/auth-layout'));
 const Dashboard = lazy(() => import('pages/dashboard/Dashboard'));
 const SignIn = lazy(() => import('pages/authentication/SignIn'));
@@ -32,10 +33,13 @@ const ContactUs = lazy(() => import('pages/contactus/ContactUs'));
 const EmployeeSigninPage = lazy(() => import('pages/employees/EmployeeSignin'));
 const EmployeePage = lazy(() => import('pages/employees/Employee'));
 const AddEmployeePage = lazy(() => import('pages/employees/AddEmployee'));
+const EmployeeOrderPage = lazy(() => import('pages/employees/EmloyeeOrder'));
+const EmployeeAddOrderPage = lazy(() => import('pages/employees/EmployeeAddOrder'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
 import PrivateRoute from './PrivateRoute';
+import EmployeeRoute from './EmployeeRoute';
 
 export const routes = [
   {
@@ -154,6 +158,28 @@ export const routes = [
           {
             path: paths.contactus,
             element: <ContactUs />,
+          },
+        ],
+      },
+      {
+        path: rootPaths.root,
+        element: (
+          <EmployeeRoute>
+            <EmployeeLayout>
+              <Suspense fallback={<PageLoader />}>
+                <Outlet />
+              </Suspense>
+            </EmployeeLayout>
+          </EmployeeRoute>
+        ),
+        children: [
+          {
+            path: employeePaths.order,
+            element: <EmployeeOrderPage />,
+          },
+          {
+            path: employeePaths.addorder,
+            element: <EmployeeAddOrderPage />,
           },
         ],
       },

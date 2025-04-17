@@ -4,6 +4,12 @@ export const rootPaths = {
   authRoot: 'authentication',
 };
 
+export const employeePaths = {
+  order: '/order',
+  editorder: '/editorder',
+  addorder: '/addorder',
+};
+
 export default {
   signin: `/${rootPaths.authRoot}/sign-in`,
   signup: `/${rootPaths.authRoot}/sign-up`,

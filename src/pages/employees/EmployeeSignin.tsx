@@ -15,7 +15,7 @@ import {
 import { SyntheticEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import paths, { rootPaths } from 'routes/paths';
+import paths, { employeePaths } from 'routes/paths';
 import LogoHeader from 'layouts/main-layout/sidebar/LogoHeader';
 import IconifyIcon from 'components/base/IconifyIcon';
 import PasswordTextField from 'components/common/PasswordTextField';
@@ -56,7 +56,7 @@ const SignIn = () => {
         // Store JWT Token in local storage or state
         localStorage.setItem('employeeLoggedIn', data.token);
         // Redirect to the dashboard or any other page
-        navigate(rootPaths.root); // You can change this to the page you want to navigate after login
+        navigate(employeePaths.order); // You can change this to the page you want to navigate after login
       } else {
         setErrorMessage(data.message); // Show the error message from API response
       }
