@@ -22,7 +22,7 @@ const sitemap: MenuItem[] = [
   {
     id: 2,
     name: 'Menu',
-    path: '/menu',
+    path: '/employee/menu',
     pathName: 'menu',
     icon: 'ri:bar-chart-line',
     active: true,
@@ -30,14 +30,14 @@ const sitemap: MenuItem[] = [
       {
         id: 3,
         name: 'AddMenuItems',
-        path: '/addmenuitems',
+        path: '/employee/addmenuitems',
         pathName: 'addmenuitems',
         active: true,
       },
       {
         id: 13,
         name: 'AddNewItems',
-        path: '/addnewitems',
+        path: '/employee/addnewitems',
         pathName: 'addnewitems',
         active: true,
       },
@@ -46,7 +46,7 @@ const sitemap: MenuItem[] = [
   {
     id: 12,
     name: 'Order',
-    path: '/order',
+    path: '/employee/order',
     pathName: 'order',
     icon: 'ph:shopping-cart-light',
     active: true,
@@ -54,21 +54,21 @@ const sitemap: MenuItem[] = [
       {
         id: 4,
         name: 'AddOrder',
-        path: '/addorder',
+        path: '/employee/addorder',
         pathName: 'addorder',
         active: true,
       },
       {
         id: 15,
         name: 'EditOrder',
-        path: '/editorder',
+        path: '/employee/editorder',
         pathName: 'editorder',
         active: true,
       },
       {
         id: 25,
         name: 'OrderQRCode',
-        path: '/qr-code',
+        path: '/employee/qr-code',
         pathName: 'qr-code',
         active: true,
       },
@@ -77,7 +77,7 @@ const sitemap: MenuItem[] = [
   {
     id: 12,
     name: 'Table Order',
-    path: '/tableorder',
+    path: '/employee/tableorder',
     pathName: 'order',
     icon: 'ph:table-light',
     active: true,
@@ -85,14 +85,14 @@ const sitemap: MenuItem[] = [
       {
         id: 4,
         name: 'AddTableOrder',
-        path: '/addtableorder',
+        path: '/employee/addtableorder',
         pathName: 'addorder',
         active: true,
       },
       {
         id: 35,
         name: 'EditTableOrder',
-        path: '/edittableorder',
+        path: '/employee/edittableorder',
         pathName: 'edittableorder',
         active: true,
       },
@@ -101,7 +101,7 @@ const sitemap: MenuItem[] = [
   {
     id: 25,
     name: 'Contact Us',
-    path: '/contactus',
+    path: '/employee/contactus',
     pathName: 'contactus',
     svgIcon: Mail24Regular, // Use Fluent UI component
     active: true,
