@@ -5,9 +5,9 @@ export const rootPaths = {
 };
 
 export const employeePaths = {
-  order: '/order',
-  editorder: '/editorder',
-  addorder: '/addorder',
+  order: '/employee/order',
+  editorder: '/employee/editorder',
+  addorder: '/employee/addorder',
 };
 
 export default {
