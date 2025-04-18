@@ -46,7 +46,7 @@ const AddEmployee: React.FC = () => {
       setUsername('');
       setEmail('');
       setPassword('');
-      setTimeout(() => navigate('/employees'), 2000); // Redirect to employees list after 2 seconds
+      setTimeout(() => navigate('/employee'), 2000); // Redirect to employees list after 2 seconds
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to register employee');
     } finally {
