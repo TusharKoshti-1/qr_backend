@@ -30,7 +30,7 @@ const AccountDropdown = () => {
           `${import.meta.env.VITE_API_URL}/api/user/profile`, 
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+              Authorization: `Bearer ${localStorage.getItem('employeeLoggedIn')}`,
             }
           }
         );
@@ -74,7 +74,7 @@ const AccountDropdown = () => {
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            Authorization: `Bearer ${localStorage.getItem('employeeLoggedIn')}`,
           }
         }
       );
@@ -93,9 +93,6 @@ const AccountDropdown = () => {
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -192,22 +189,6 @@ const AccountDropdown = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem
-          onClick={triggerFileInput}
-          sx={{
-            '&:hover .account-menu-icon': { color: 'common.white' },
-          }}
-        >
-          <ListItemIcon>
-            <IconifyIcon
-              icon= 'material-symbols:person'
-              sx={{ color: 'primary.main' }}
-              className="account-menu-icon"
-            />
-          </ListItemIcon>
-          <Typography variant="body1">Change Profile Photo</Typography>
-        </MenuItem>
-
         <MenuItem
           onClick={() => navigate(paths.signin)}
           sx={{
