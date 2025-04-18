@@ -22,33 +22,34 @@ import PasswordTextField from 'components/common/PasswordTextField';
 
 const checkBoxLabel = { inputProps: { 'aria-label': 'Checkbox' } };
 
-// import dotenv from 'dotenv';
-// dotenv.config();
-
 const SignIn = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [restaurantId, setRestaurantId] = useState(''); // New state for restaurantId
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-
-  // Get restaurant_id from query parameters
-  const queryParams = new URLSearchParams(location.search);
-  const restaurantId = queryParams.get("restaurant_id");
 
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
 
+    // Validate restaurantId
+    if (!restaurantId) {
+      setErrorMessage('Please enter a Restaurant ID');
+      return;
+    }
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/employee/login?restaurant_id=${restaurantId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-          Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/employee/login?restaurant_id=${restaurantId}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          },
+          body: JSON.stringify({ email, password }),
         },
-        body: JSON.stringify({ email, password }),
-      });
+      );
 
       const data = await response.json();
 
@@ -56,9 +57,9 @@ const SignIn = () => {
         // Store JWT Token in local storage or state
         localStorage.setItem('employeeLoggedIn', data.token);
         // Redirect to the dashboard or any other page
-        navigate(employeePaths.order); // You can change this to the page you want to navigate after login
+        navigate(employeePaths.order);
       } else {
-        setErrorMessage(data.message); // Show the error message from API response
+        setErrorMessage(data.message);
       }
     } catch (error) {
       console.error('Error during login:', error);
@@ -95,6 +96,16 @@ const SignIn = () => {
         <Box component="form" sx={{ mt: 3 }} onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <TextField
+              id="restaurantId"
+              name="restaurantId"
+              type="text"
+              placeholder="Enter your Restaurant ID"
+              fullWidth
+              required
+              value={restaurantId}
+              onChange={(e) => setRestaurantId(e.target.value)}
+            />
+            <TextField
               id="email"
               name="email"
               type="email"
@@ -105,7 +116,6 @@ const SignIn = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-
             <PasswordTextField
               id="password"
               name="password"
@@ -120,59 +130,59 @@ const SignIn = () => {
 
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            alignItems={{ sm: 'center' }}
-            justifyContent="space-between"
-            mt={1}
-            spacing={0.5}
-          >
-            <FormControlLabel
-              control={<Checkbox {...checkBoxLabel} color="primary" />}
-              label={<Typography variant="subtitle1">Remember me</Typography>}
-            />
+          alignItems={{ sm: 'center' }}
+          justifyContent="space-between"
+          mt={1}
+          spacing={0.5}
+        >
+          <FormControlLabel
+            control={<Checkbox {...checkBoxLabel} color="primary" />}
+            label={<Typography variant="subtitle1">Remember me</Typography>}
+          />
 
-            <Typography variant="subtitle2" color="primary">
-              <Link href="#!" underline="hover">
-                Forgot password?
-              </Link>
-            </Typography>
-          </Stack>
+          <Typography variant="subtitle2" color="primary">
+            <Link href="#!" underline="hover">
+              Forgot password?
+            </Link>
+          </Typography>
+        </Stack>
 
-          <Button type="submit" size="large" variant="contained" sx={{ mt: 2 }} fullWidth>
-            Sign in
-          </Button>
+        <Button type="submit" size="large" variant="contained" sx={{ mt: 2 }} fullWidth>
+          Sign in
+        </Button>
 
-          <Divider sx={{ color: 'neutral.main', my: 2 }}>
-            <Typography variant="subtitle2"> or sign in with</Typography>
-          </Divider>
+        <Divider sx={{ color: 'neutral.main', my: 2 }}>
+          <Typography variant="subtitle2"> or sign in with</Typography>
+        </Divider>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<IconifyIcon icon="devicon:google" />}
-                sx={{ color: 'error.main', borderColor: 'error.main' }}
-                fullWidth
-              >
-                <Typography>Google</Typography>
-              </Button>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<IconifyIcon icon="logos:facebook" />}
-                sx={{ color: 'primary.light', borderColor: 'primary.light' }}
-                fullWidth
-              >
-                <Typography>Facebook</Typography>
-              </Button>
-            </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Button
+              variant="outlined"
+              size="large"
+              startIcon={<IconifyIcon icon="devicon:google" />}
+              sx={{ color: 'error.main', borderColor: 'error.main' }}
+              fullWidth
+            >
+              <Typography>Google</Typography>
+            </Button>
           </Grid>
-        </Box>
-      </Paper>
-    </Container>
-  );
+          <Grid item xs={12} sm={6}>
+            <Button
+              variant="outlined"
+              size="large"
+              startIcon={<IconifyIcon icon="logos:facebook" />}
+              sx={{ color: 'primary.light', borderColor: 'primary.light' }}
+              fullWidth
+            >
+              <Typography>Facebook</Typography>
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+    </Paper>
+  </Container>
+);
 };
 
 export default SignIn;
