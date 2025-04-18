@@ -124,6 +124,23 @@ const sitemap: MenuItem[] = [
     ],
   },
   {
+    id: 5,
+    name: 'Employee',
+    path: '/employee',
+    pathName: 'employee',
+    icon: 'ph:users', // Updated icon
+    active: true,
+    items: [
+      {
+        id: 30,
+        name: 'Add Employee',
+        path: '/addemployee',
+        pathName: 'addemployee',
+        active: true,
+      },
+    ],
+  },
+  {
     id: 7,
     name: 'Settings',
     path: '/settings',
