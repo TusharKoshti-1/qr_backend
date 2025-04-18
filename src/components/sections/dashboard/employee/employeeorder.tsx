@@ -198,7 +198,7 @@ const Order: React.FC = () => {
   }, []);
 
   const handleEditOrder = (order: OrderType) => {
-    navigate('/editorder', { state: { order } });
+    navigate('/employee/editorder', { state: { order } });
   };
 
   const handlePrintOrderClick = (order: OrderType) => {
@@ -406,7 +406,7 @@ const Order: React.FC = () => {
         <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
           Pending Orders
         </Typography>
-        <Link to="/addorder" style={{ textDecoration: 'none' }}>
+        <Link to="/employee/addorder" style={{ textDecoration: 'none' }}>
           <Button
             variant="contained"
             color="primary"

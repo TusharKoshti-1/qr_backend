@@ -125,7 +125,7 @@ const AdminAddOrderPage: React.FC = () => {
       alert('Order created successfully!');
       setCustomerName('');
       setOrderItems([]);
-      navigate('/order');
+      navigate('/employee/order');
     } catch (error) {
       console.error('Error creating order:', error);
       alert('Failed to create order');
