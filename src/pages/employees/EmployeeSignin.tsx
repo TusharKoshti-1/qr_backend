@@ -5,7 +5,6 @@ import {
   Container,
   Divider,
   FormControlLabel,
-  Grid,
   Link,
   Paper,
   Stack,
@@ -17,7 +16,6 @@ import { useNavigate } from 'react-router-dom';
 
 import paths, { employeePaths } from 'routes/paths';
 import LogoHeader from 'layouts/main-layout/sidebar/LogoHeader';
-import IconifyIcon from 'components/base/IconifyIcon';
 import PasswordTextField from 'components/common/PasswordTextField';
 
 const checkBoxLabel = { inputProps: { 'aria-label': 'Checkbox' } };
@@ -154,31 +152,6 @@ const SignIn = () => {
         <Divider sx={{ color: 'neutral.main', my: 2 }}>
           <Typography variant="subtitle2"> or sign in with</Typography>
         </Divider>
-
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<IconifyIcon icon="devicon:google" />}
-              sx={{ color: 'error.main', borderColor: 'error.main' }}
-              fullWidth
-            >
-              <Typography>Google</Typography>
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<IconifyIcon icon="logos:facebook" />}
-              sx={{ color: 'primary.light', borderColor: 'primary.light' }}
-              fullWidth
-            >
-              <Typography>Facebook</Typography>
-            </Button>
-          </Grid>
-        </Grid>
       </Box>
     </Paper>
   </Container>

@@ -5,7 +5,6 @@ import {
   Container,
   Divider,
   FormControlLabel,
-  Grid,
   Link,
   Paper,
   Stack,
@@ -17,13 +16,9 @@ import { useNavigate } from 'react-router-dom';
 
 import paths, { rootPaths } from 'routes/paths';
 import LogoHeader from 'layouts/main-layout/sidebar/LogoHeader';
-import IconifyIcon from 'components/base/IconifyIcon';
 import PasswordTextField from 'components/common/PasswordTextField';
 
 const checkBoxLabel = { inputProps: { 'aria-label': 'Checkbox' } };
-
-// import dotenv from 'dotenv';
-// dotenv.config();
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -51,9 +46,9 @@ const SignIn = () => {
         // Store JWT Token in local storage or state
         localStorage.setItem('userLoggedIn', data.token);
         // Redirect to the dashboard or any other page
-        navigate(rootPaths.root); // You can change this to the page you want to navigate after login
+        navigate(rootPaths.root);
       } else {
-        setErrorMessage(data.message); // Show the error message from API response
+        setErrorMessage(data.message);
       }
     } catch (error) {
       console.error('Error during login:', error);
@@ -140,30 +135,15 @@ const SignIn = () => {
             <Typography variant="subtitle2"> or sign in with</Typography>
           </Divider>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<IconifyIcon icon="devicon:google" />}
-                sx={{ color: 'error.main', borderColor: 'error.main' }}
-                fullWidth
-              >
-                <Typography>Google</Typography>
-              </Button>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<IconifyIcon icon="logos:facebook" />}
-                sx={{ color: 'primary.light', borderColor: 'primary.light' }}
-                fullWidth
-              >
-                <Typography>Facebook</Typography>
-              </Button>
-            </Grid>
-          </Grid>
+          <Button
+            variant="outlined"
+            size="large"
+            onClick={() => navigate('/employee/signin')}
+            sx={{ color: 'primary.main', borderColor: 'primary.main' }}
+            fullWidth
+          >
+            <Typography>Employee Sign In</Typography>
+          </Button>
         </Box>
       </Paper>
     </Container>
