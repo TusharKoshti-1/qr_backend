@@ -1,0 +1,19 @@
+@media print {
+    body > *:not(.print-section) {
+      display: none !important;
+    }
+    
+    .print-section {
+      text-align: center;
+      padding: 20px !important;
+    }
+    
+    .print-section img {
+      max-width: 400px !important;
+      margin: 20px auto;
+    }
+    
+    .print-section button {
+      display: none !important;
+    }
+  }

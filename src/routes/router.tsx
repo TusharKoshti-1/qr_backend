@@ -39,6 +39,11 @@ const EmployeeEditOrderPage = lazy(() => import('pages/employees/EmployeeEditOrd
 const EmployeeMenuPage = lazy(() => import('pages/employees/menu'));
 const EmployeeAddMenuItemsPage = lazy(() => import('pages/employees/addmenuitem'));
 const EmployeeAddNewItemsPage = lazy(() => import('pages/employees/addnewitems'));
+const EmployeeTableOrderPage = lazy(() => import('pages/employees/TableOrder'));
+const EmployeeAddTableOrderPage = lazy(() => import('pages/employees/AddTableOrder'));
+const EmployeeEditTableOrderPage = lazy(() => import('pages/employees/EditTableOrder'));
+const EmployeeQRPage = lazy(() => import('pages/employees/QrCode'));
+const EmployeeContactUs = lazy(() => import('pages/employees/ContactUs'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -196,6 +201,26 @@ export const routes = [
           {
             path: employeePaths.addmenuitems,
             element: <EmployeeAddMenuItemsPage />,
+          },
+          {
+            path: employeePaths.tableorder,
+            element: <EmployeeTableOrderPage />,
+          },
+          {
+            path: employeePaths.addtableorder,
+            element: <EmployeeAddTableOrderPage />,
+          },
+          {
+            path: employeePaths.edittableorder,
+            element: <EmployeeEditTableOrderPage />,
+          },
+          {
+            path: employeePaths.contactus,
+            element: <EmployeeContactUs />,
+          },
+          {
+            path: employeePaths.qrcode,
+            element: <EmployeeQRPage />,
           },
           {
             path: employeePaths.addnewitems,

@@ -11,6 +11,11 @@ export const employeePaths = {
   menu: `/employee/menu`,
   addmenuitems: `/employee/addmenuitems`,
   addnewitems: '/employee/addnewitems',
+  addtableorder: '/employee/addtableorder',
+  tableorder: '/employee/tableorder',
+  edittableorder: '/employee/edittableorder',
+  contactus: '/employee/contactus',
+  qrcode: '/employee/qr-code',
 };
 
 export default {
