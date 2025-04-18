@@ -58,7 +58,7 @@ const EditOrder: React.FC = () => {
         const response = await axios.get<MenuItem[]>(`${import.meta.env.VITE_API_URL}/api/menu`, {
           headers: {
             'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            Authorization: `Bearer ${localStorage.getItem('employeeLoggedIn')}`,
           },
         });
         const items = response.data;
@@ -152,7 +152,7 @@ const EditOrder: React.FC = () => {
         {
           headers: {
             'ngrok-skip-browser-warning': 'true',
-            Authorization: `Bearer ${localStorage.getItem('userLoggedIn')}`,
+            Authorization: `Bearer ${localStorage.getItem('employeeLoggedIn')}`,
           },
         },
       );
