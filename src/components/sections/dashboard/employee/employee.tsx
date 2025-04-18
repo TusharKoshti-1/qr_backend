@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   Box,
   Button,
@@ -22,7 +23,7 @@ interface EmployeeType {
   id: number;
   username: string;
   email: string;
-  created_at?: string; // Optional timestamp
+  created_at?: string;
 }
 
 const Employees: React.FC = () => {
@@ -30,7 +31,6 @@ const Employees: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-  //   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -74,6 +74,14 @@ const Employees: React.FC = () => {
     }
   };
 
+  const token = localStorage.getItem('userLoggedIn');
+  let restaurantId = null;
+
+  if (token) {
+    const decoded = jwtDecode<JwtPayload & { id: string }>(token);
+    restaurantId = decoded.id; // Adjust this key based on your token structure
+  }
+
   return (
     <Box
       sx={{
@@ -92,9 +100,19 @@ const Employees: React.FC = () => {
           gap: { xs: 2, sm: 1 },
         }}
       >
-        <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
-          Employees
-        </Typography>
+        <Box>
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
+            Employees
+          </Typography>
+          {restaurantId && (
+            <Typography
+              variant="body1"
+              sx={{ fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' }, mt: 1 }}
+            >
+              Restaurant ID: {restaurantId}
+            </Typography>
+          )}
+        </Box>
         <Link to="/addemployee" style={{ textDecoration: 'none' }}>
           <Button
             variant="contained"
