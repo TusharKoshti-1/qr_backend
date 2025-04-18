@@ -8,6 +8,9 @@ export const employeePaths = {
   order: '/employee/order',
   editorder: '/employee/editorder',
   addorder: '/employee/addorder',
+  menu: `/employee/menu`,
+  addmenuitems: `/employee/addmenuitems`,
+  addnewitems: '/employee/addnewitems',
 };
 
 export default {

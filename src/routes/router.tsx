@@ -36,6 +36,9 @@ const AddEmployeePage = lazy(() => import('pages/employees/AddEmployee'));
 const EmployeeOrderPage = lazy(() => import('pages/employees/EmloyeeOrder'));
 const EmployeeAddOrderPage = lazy(() => import('pages/employees/EmployeeAddOrder'));
 const EmployeeEditOrderPage = lazy(() => import('pages/employees/EmployeeEditOrder'));
+const EmployeeMenuPage = lazy(() => import('pages/employees/menu'));
+const EmployeeAddMenuItemsPage = lazy(() => import('pages/employees/addmenuitem'));
+const EmployeeAddNewItemsPage = lazy(() => import('pages/employees/addnewitems'));
 
 import PageLoader from 'components/loading/PageLoader';
 import Progress from 'components/loading/Progress';
@@ -185,6 +188,18 @@ export const routes = [
           {
             path: employeePaths.editorder,
             element: <EmployeeEditOrderPage />,
+          },
+          {
+            path: employeePaths.menu,
+            element: <EmployeeMenuPage />,
+          },
+          {
+            path: employeePaths.addmenuitems,
+            element: <EmployeeAddMenuItemsPage />,
+          },
+          {
+            path: employeePaths.addnewitems,
+            element: <EmployeeAddNewItemsPage />,
           },
         ],
       },
