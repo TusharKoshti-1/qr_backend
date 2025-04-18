@@ -3,7 +3,7 @@ import EmployeePage from 'components/sections/dashboard/employee/employee';
 
 const Employee = () => {
   return (
-    <Grid container spacing={2}>
+    <Grid>
       <EmployeePage />
     </Grid>
   );
