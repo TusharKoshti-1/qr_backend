@@ -1,6 +1,6 @@
 import { Collapse, Link, List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import { MenuItem } from 'routes/sitemap';
+import { MenuItem } from 'routes/Employeesitemap';
 
 interface CollapsedItemProps {
   items: MenuItem[];
@@ -14,7 +14,7 @@ const CollapsedItems = ({ items, open }: CollapsedItemProps) => {
       <List component="ul">
         {items?.map((item) => (
           <ListItem key={item.id} sx={{ py: 0, pl: 7, pr: 0 }}>
-            {item.path === "/editorder"|| item.path === "/qr-code" || item.path === "/edittableorder" ? ""
+            {item.path === "/employee/editorder"|| item.path === "/qr-code" || item.path === "/employee/edittableorder" ? ""
             :
             <ListItemButton
               selected={location.pathname === item.path}
